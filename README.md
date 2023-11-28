@@ -3,6 +3,7 @@
 |---|---|
 | Ansen | Weng |
 | Thijs | Houben | 
+| Hidde | van Luenen |
 
 # Lab Template
 
