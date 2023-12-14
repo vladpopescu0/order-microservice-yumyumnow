@@ -1,11 +1,11 @@
 openapi: 3.0.0
 info:
-  title: YumYumNow Orders - OpenAPI 3.1
+  title: YumYumNow Orders - OpenAPI 3.0
   description: >-
     This is the final version of the OpenAPI Specification of the scenario YumYumNow - Orders
   version: "1.0"
 servers:
-  - url: localhost:8081
+  - url: localhost:8083
 tags:
   - name: Dish
     description: everything about dishes
@@ -13,14 +13,89 @@ tags:
     description: everything about orders
   - name: Analytics Vendor
     description: all the necessary analytics for the vendor
+  - name: Restaurants Around
+    description: filter all restaurants based on some queries
 paths:
-  /dish:
+  /restaurants/{userID}:
+    get:
+      tags:
+        - Restaurants Around
+      summary: Find all restaurants around the location of an user
+      description: Using a constant radius, the endpoint should be able to return all restaurants UUIDs that are within the Euclidean distance
+      operationId: getAllRestaurants
+      parameters:
+        - name: userID
+          in: path
+          description: ID of user where the rule is applied
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: UUID
+        '400':
+          description: Bad Request. The provided user ID is invalid.
+        '404':
+          description: Not Found. No restaurants found around the area of the user.
+  /restaurants/{userID}/{searchQuery}:
+    get:
+      tags:
+        - Restaurants Around
+      summary: Find all restaurants around the location of an user and filter the names
+      description: Using a constant radius, the endpoint should be able to return all restaurants UUIDs that are within the Euclidean distance and the name matches the query string
+      operationId: getAllRestaurantsWithQuery
+      parameters:
+        - name: userID
+          in: path
+          description: ID of user where the rule is applied
+          required: true
+          schema:
+            type: string
+            format: UUID
+        - name: searchQuery
+          in: path
+          description: string query to search by name, must be URL safe
+          required: true
+          schema:
+            type: string
+            format: URLSAFE
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: UUID
+        '400':
+          description: Bad Request. The provided user ID or search query is invalid.
+        '404':
+          description: Not Found. No restaurants found within radius or with that name
+  /dish/{vendorID}:
     post:
       tags:
         - Dish
       summary: Add a new dish of a restaurant
       description: Add a new dish of a restaurant
       operationId: addDish
+      parameters:
+        - name: vendorID
+          in: path
+          description: ID of the vendor from who the dishes will be returned
+          required: true
+          schema:
+            type: string
+            format: UUID
       requestBody:
         description: Add a new dish of a restaurant
         content:
@@ -35,8 +110,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Dish'
-        '405':
-          description: Invalid input
+        '400':
+          description: Bad Request. The provided dish is malformed
   /dish/{dishID}:
     get:
       tags:
@@ -60,9 +135,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Dish'
         '400':
-          description: Invalid ID supplied
+          description: Bad Request. The provided ID is malformed
         '404':
-          description: Dish not found
+          description: Not Found. No dish found with that ID.
     put:
       tags:
         - Dish
@@ -92,9 +167,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Dish'
         '400':
-          description: Invalid ID supplied
+          description: Bad Request. The provided ID is malformed
         '404':
-          description: Dish not found
+          description: Not Found. No dish found with that ID.
     delete:
       tags:
         - Dish
@@ -113,7 +188,9 @@ paths:
         '200':
           description: Successful operation
         '400':
-          description: Invalid dish id value
+          description: Bad Request. The provided ID is malformed
+        '404':
+          description: Not Found. No dish found with that ID.
   /dish/list/{vendorID}:
     get:
       tags:
@@ -139,9 +216,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/Dish'
         '400':
-          description: Invalid ID supplied
+          description: Bad Request. The provided ID is malformed
         '404':
-          description: Vendor not found
+          description: Not Found. Vendor not found
   /dish/allergy-list/{vendorID}:
     get:
       tags:
@@ -176,7 +253,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/Dish'
         '400':
-          description: Invalid tag value
+          description: Bad Request. The provided ID or allergies are malformed
+        '404':
+          description: Not Found. Vendor not found
   /order:
     post:
       tags:
@@ -196,8 +275,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Order'
-        '404':
-          description: Could not make order
+        '400':
+          description: Bad Request. The provided order is malformed
     get:
       tags:
         - Order
@@ -214,7 +293,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Order'
         '404':
-          description: There are no orders in the database
+          description: Not Found. There are no orders in the database
   /order/{orderID}:
     put:
       tags:
@@ -242,8 +321,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Order'
+        '400':
+          description: Bad Request. The provided order is malformed
         '404':
-          description: Order not found
+          description: Not Found. Order not found
     get:
       tags:
         - Order
@@ -266,9 +347,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Order'
         '400':
-          description: Invalid ID supplied
+          description: Bad Request. The provided ID is malformed
         '404':
-          description: Order not found
+          description: Not Found. Order not found
     delete:
       tags:
         - Order
@@ -287,9 +368,9 @@ paths:
         '200':
           description: Operation succesful
         '400':
-          description: Invalid ID supplied
+          description: Bad Request. The provided ID is malformed
         '404':
-          description: Order not found
+          description: Not Found. Order not found
   /order/{orderID}/orderRating:
     get:
       tags:
@@ -313,8 +394,10 @@ paths:
                 type: integer
                 description: Return a rating
                 example: 4
+        '400':
+          description: Bad Request. The provided ID is malformed
         '404':
-          description: Order not found
+          description: Not Found. Order not found
     put:
       tags:
         - Order
@@ -333,7 +416,8 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Order'
+              type: integer
+              description: Between 1 and 5
       responses:
         '200':
           description: Successful operation
@@ -342,10 +426,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/Order'
         '400':
-          description: rating exceeded the boundaries of [1-5]
+          description: Bad Request. rating exceeded the boundaries of [1-5]
         '404':
-          description: Order not found
-  /order{orderID}/totalCost:
+          description: Not Found. Order not found
+  /order/{orderID}/totalCost:
     get:
       tags:
         - Order
@@ -368,23 +452,18 @@ paths:
                 type: number
                 format: float
                 example: 21.39
-            application/xml:
-              schema:
-                type: number
-                format: float
-                example: 21.39
         '400':
-          description: Invalid ID supplied
+          description: Bad Request. The provided ID is malformed
         '404':
-          description: Order not found
+          description: Not Found. Order not found
   /order/{orderID}/isPaid:
     get:
       tags:
         - Order
       summary: Checks if order is paid before being sent to the customer.
       parameters:
-        - name: orderID
-          in: path
+        - in: path
+          name: orderID
           required: true
           schema:
             type: string
@@ -393,10 +472,10 @@ paths:
       responses:
         '200':
           description: Successful operation
-        '402':
-          description: Not paid
+        '400':
+          description: Bad Request. The provided ID is malformed
         '404':
-          description: The order with that id does not exist
+          description: Not Found. Order not found
     put:
       tags:
         - Order
@@ -419,9 +498,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Order'
         '400':
-          description: The orderPaid field is NULL/not set
+          description: Bad Request. The orderPaid field is NULL/not set
         '404':
-          description: Order not found
+          description: Not Found. Order not found
   /order/{orderID}/status:
     get:
       tags:
@@ -455,9 +534,9 @@ paths:
                   - 'on-transit'
                   - delivered
         '400':
-          description: Invalid ID supplied
+          description: Bad Request. The provided ID is malformed
         '404':
-          description: Order not found
+          description: Not Found. Order not found
     put:
       tags:
         - Order
@@ -476,14 +555,25 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Order'
+              type: string
+              description: it must be one of the enums listed in the order status values
+              enum:
+                - pending
+                - accepted
+                - rejected
+                - preparing
+                - given to courier
+                - 'on-transit'
+                - delivered
       responses:
         '200':
           description: Successful operation
         '400':
-          description: Invalid ID supplied
+          description: Bad Request. The provided ID is malformed
         '404':
-          description: Order not found
+          description: Not Found. Order not found
+        '415':
+          description: Unsupported Media Type. Invalid Enum Value
   /order/{customerID}/history:
     get:
       tags:
@@ -509,9 +599,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/Order'
         '400':
-          description: Invalid ID supplied
+          description: Bad Request. The provided ID is malformed
         '404':
-          description: Customer not found
+          description: Not Found. Customer not found
   /order/fromVendorID/{vendorID}:
     get:
       tags:
@@ -534,9 +624,9 @@ paths:
                 type: integer
                 example: 10
         '400':
-          description: Undefined value for the number of users
+          description: Bad Request. The provided ID is malformed
         '404':
-          description: VendorID does not exist
+          description: Not Found. Vendor not found
   /order/{orderID}/vendor:
     get:
       tags:
@@ -558,11 +648,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Order"
         '400':
-          description: Something went wrong
-        '403':
-          description: The Status Is Not Ready
+          description: Bad Request. The provided ID is malformed
         '404':
-          description: Id Not Found
+          description: Not Found. Order not found
   /vendor/{vendorID}/analytics/history/{customerID}:
     get:
       tags:
@@ -594,9 +682,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/Order'
         '400':
-          description: Invalid ID supplied
+          description: Bad Request. The provided ID(s) are malformed
         '404':
-          description: Vendor/Customer not found
+          description: Not Found. Vendor/Customer not found
   /vendor/{vendorID}/analytics/orderVolumes:
     get:
       tags:
@@ -620,9 +708,9 @@ paths:
                 type: integer
                 example: 100
         '400':
-          description: Invalid ID supplied
+          description: Bad Request. The provided ID(s) are malformed
         '404':
-          description: Vendor not found
+          description: Not Found. Vendor not found
   /vendor/{vendorID}/analytics/popularItems:
     get:
       tags:
@@ -647,9 +735,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/Dish'
         '400':
-          description: Invalid ID supplied
+          description: Bad Request. The provided ID(s) are malformed
         '404':
-          description: Vendor not found
+          description: Not Found. Vendor not found
   /vendor/{vendorID}/analytics/peakTimes:
     get:
       tags:
@@ -700,9 +788,9 @@ paths:
                     - 1
                     - 0
         '400':
-          description: Invalid ID supplied
+          description: Bad Request. The provided ID(s) are malformed
         '404':
-          description: Vendor not found
+          description: Not Found. Vendor not found
 components:
   schemas:
     Dish:
@@ -718,7 +806,7 @@ components:
           example: 550e8400-e29b-41d4-a716-446655440000
         name:
           type: string
-          example: Kapsalon
+          example:  Kapsalon
         price:
           type: number
           format: float
@@ -793,6 +881,11 @@ components:
           type: integer
           description: Rating of the order
           example: 1
+        price:
+          type: number
+          format: float
+          description: The price of the whole order as a sum of dishes and additional costs
+          example: 17.38
     Address:
       type: object
       properties:
@@ -808,6 +901,7 @@ components:
         zip:
           type: string
           example: '2628CC'
+
   requestBodies:
     Dish:
       description: Dish object that needs to be added
