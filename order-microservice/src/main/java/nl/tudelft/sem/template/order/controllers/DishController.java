@@ -1,7 +1,7 @@
 package nl.tudelft.sem.template.order.controllers;
 
-import nl.tudelft.sem.template.api.DishApi;
-import nl.tudelft.sem.template.model.Dish;
+import nl.tudelft.sem.template.order.api.DishApi;
+import nl.tudelft.sem.template.order.commons.Dish;
 import nl.tudelft.sem.template.order.domain.user.DishIdAlreadyInUseException;
 import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.DishService;
@@ -27,9 +27,9 @@ public class DishController implements DishApi {
         this.dishService = dishService;
     }
     @Override
-    public ResponseEntity<Dish> addDish(UUID vendorID, Dish dish) {
+    public ResponseEntity<Dish> addDish(Dish dish) {
         try {
-            Dish d = dishService.addDish(vendorID, dish);
+            Dish d = dishService.addDish(dish);
             return ResponseEntity.ok(dish);
         } catch (Exception e){
             return ResponseEntity.badRequest().build();

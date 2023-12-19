@@ -1,8 +1,9 @@
 package nl.tudelft.sem.template.order.domain.user;
 
 import javassist.NotFoundException;
-import nl.tudelft.sem.template.model.Dish;
+import nl.tudelft.sem.template.order.commons.Dish;
 import org.springframework.stereotype.Service;
+import nl.tudelft.sem.template.order.database.DishRepository;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.List;
@@ -17,7 +18,7 @@ public class DishService {
         this.dishRepository = dishRepository;
     }
 
-    public Dish addDish(UUID vendorID, Dish dish) throws DishIdAlreadyInUseException {
+    public Dish addDish(Dish dish) throws DishIdAlreadyInUseException {
         if(checkUUIDIsUnique(dish.getDishID())){
             throw new DishIdAlreadyInUseException(dish.getDishID());
         }
