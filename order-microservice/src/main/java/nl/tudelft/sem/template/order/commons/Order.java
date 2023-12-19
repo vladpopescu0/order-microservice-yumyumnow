@@ -16,6 +16,7 @@ import javax.persistence.*;
 import javax.validation.Valid;
 
 @Entity
+@Table(name = "orders")
 public class Order {
     @Id
     @GeneratedValue(generator = "uuid-hibernate-generator")
@@ -23,7 +24,7 @@ public class Order {
     private UUID orderID;
     private UUID vendorID;
     private UUID customerID;
-    @ManyToOne
+    @Embedded
     private Address address;
     private BigDecimal date;
     @ElementCollection
