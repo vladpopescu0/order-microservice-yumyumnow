@@ -5,22 +5,23 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.util.Objects;
 import java.util.UUID;
 
-@Entity
+@Embeddable
 public class Address {
     private String street;
     private String city;
     private String country;
     private String zip;
-    @Id
-    @GeneratedValue(generator = "uuid-hibernate-generator")
-    @GenericGenerator(name = "uuid-hibernate-generator", strategy = "org.hibernate.id.UUIDGenerator")
-    private UUID addressID;
+//    @Id
+//    @GeneratedValue(generator = "uuid-hibernate-generator")
+//    @GenericGenerator(name = "uuid-hibernate-generator", strategy = "org.hibernate.id.UUIDGenerator")
+//    private UUID addressID;
 
     public Address() {
     }
@@ -131,12 +132,12 @@ public class Address {
         return o == null ? "null" : o.toString().replace("\n", "\n    ");
     }
 
-    public void setAddressID(UUID addressID) {
-        this.addressID = addressID;
-    }
-
-    public UUID getAddressID() {
-        return addressID;
-    }
+//    public void setAddressID(UUID addressID) {
+//        this.addressID = addressID;
+//    }
+//
+//    public UUID getAddressID() {
+//        return addressID;
+//    }
 }
 
