@@ -3,15 +3,23 @@ package nl.tudelft.sem.template.order.commons;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
+import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Embeddable;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.util.Objects;
-@Embeddable
+import java.util.UUID;
+@Entity
 public class Address {
     private String street;
     private String city;
     private String country;
     private String zip;
+    @Id
+    @GeneratedValue(generator = "uuid-hibernate-generator")
+    @GenericGenerator(name = "uuid-hibernate-generator", strategy = "org.hibernate.id.UUIDGenerator")
+    private UUID addressID;
 
     public Address() {
     }
@@ -120,6 +128,14 @@ public class Address {
 
     private String toIndentedString(Object o) {
         return o == null ? "null" : o.toString().replace("\n", "\n    ");
+    }
+
+    public void setAddressID(UUID addressID) {
+        this.addressID = addressID;
+    }
+
+    public UUID getAddressID() {
+        return addressID;
     }
 }
 

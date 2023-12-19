@@ -1,8 +1,7 @@
-package nl.tudelft.sem.template.order.controllers;
+package nl.tudelft.sem.template.order.domain.user;
 
 import nl.tudelft.sem.template.order.api.DishApi;
 import nl.tudelft.sem.template.order.commons.Dish;
-import nl.tudelft.sem.template.order.domain.user.DishIdAlreadyInUseException;
 import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.DishService;
 import nl.tudelft.sem.template.order.domain.user.VendorNotFoundException;

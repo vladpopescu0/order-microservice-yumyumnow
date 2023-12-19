@@ -22,7 +22,9 @@ public class Dish {
     private String name;
     private Float price;
     private String description;
+    @ElementCollection
     private @Valid List<String> listOfIngredients;
+    @ElementCollection
     private @Valid List<String> listOfAllergies;
     private String image;
 

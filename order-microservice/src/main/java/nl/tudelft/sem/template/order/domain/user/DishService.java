@@ -1,6 +1,7 @@
 package nl.tudelft.sem.template.order.domain.user;
 
 import nl.tudelft.sem.template.order.commons.Dish;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,12 +12,13 @@ import java.util.UUID;
 public class DishService {
     private final transient DishRepository dishRepository;
 
+    @Autowired
     public DishService(DishRepository dishRepository) {
         this.dishRepository = dishRepository;
     }
 
     public Dish addDish(Dish dish) throws DishIdAlreadyInUseException {
-        if(checkUUIDIsUnique(dish.getDishID())){
+        if(!checkUUIDIsUnique(dish.getDishID())){
             throw new DishIdAlreadyInUseException(dish.getDishID());
         }
         dish = dishRepository.save(dish);
@@ -59,7 +61,7 @@ public class DishService {
     }
 
     public List<Dish> getAllergyFilteredDishesFromVendor(UUID vendorID, List<String> allergies) throws VendorNotFoundException {
-        Optional<List<Dish>> databaseDishes = dishRepository.findDishesByVendorIDAndAndListOfAllergies(vendorID, allergies);
+        Optional<List<Dish>> databaseDishes = dishRepository.findDishesByVendorIDAndListOfAllergies(vendorID, allergies);
         if(databaseDishes.isEmpty()){
             throw new VendorNotFoundException(vendorID);
         }

@@ -12,13 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.Valid;
 
 @Entity
+@Table(name = "orders")
 public class Order {
     @Id
     @GeneratedValue(generator = "uuid-hibernate-generator")
@@ -26,8 +24,10 @@ public class Order {
     private UUID orderID;
     private UUID vendorID;
     private UUID customerID;
+    @ManyToOne
     private Address address;
     private BigDecimal date;
+    @ElementCollection
     private @Valid List<UUID> listOfDishes;
     private String specialRequirements;
     private Boolean orderPaid;
