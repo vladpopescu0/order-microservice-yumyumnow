@@ -16,6 +16,7 @@ import javax.persistence.*;
 import javax.validation.Valid;
 
 @Entity
+@Table(name = "orders")
 public class Order {
     @Id
     @GeneratedValue(generator = "uuid-hibernate-generator")
