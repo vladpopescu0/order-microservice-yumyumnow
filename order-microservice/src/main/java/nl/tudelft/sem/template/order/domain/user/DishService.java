@@ -1,11 +1,8 @@
 package nl.tudelft.sem.template.order.domain.user;
 
-import javassist.NotFoundException;
 import nl.tudelft.sem.template.order.commons.Dish;
 import org.springframework.stereotype.Service;
-import nl.tudelft.sem.template.order.database.DishRepository;
 
-import javax.management.openmbean.KeyAlreadyExistsException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

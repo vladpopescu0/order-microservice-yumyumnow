@@ -3,8 +3,10 @@ package nl.tudelft.sem.template.order.commons;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import java.util.Objects;
 
+import javax.persistence.Embeddable;
+import java.util.Objects;
+@Embeddable
 public class Address {
     private String street;
     private String city;
