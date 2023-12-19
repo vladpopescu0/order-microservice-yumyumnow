@@ -1,4 +1,4 @@
-package nl.tudelft.sem.template.order.domain.user;
+package nl.tudelft.sem.template.order.controllers;
 
 import nl.tudelft.sem.template.order.api.DishApi;
 import nl.tudelft.sem.template.order.commons.Dish;

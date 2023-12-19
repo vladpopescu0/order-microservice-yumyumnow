@@ -1,4 +1,4 @@
-package nl.tudelft.sem.template.order.domain.user;
+package nl.tudelft.sem.template.order.domain.user.repositories;
 
 import nl.tudelft.sem.template.order.commons.Dish;
 import org.springframework.data.jpa.repository.JpaRepository;
