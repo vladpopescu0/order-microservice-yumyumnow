@@ -12,15 +12,15 @@ import java.util.UUID;
 @Repository
 public interface DishRepository extends JpaRepository<Dish, UUID> {
     Optional<Dish> findDishByDishID(UUID dishId);
-//
+
     Optional<List<Dish>> findDishesByVendorID(UUID vendorId);
-//
+
     @Override
     void deleteById(UUID uuid);
-//
-@Query("SELECT d FROM Dish d WHERE d.vendorID = :vendorId AND d.listOfAllergies IN :allergies")
+
+@Query("SELECT d FROM Dish d WHERE d.vendorID = :vendorId AND NOT EXISTS (SELECT a FROM d.listOfAllergies a WHERE a IN :allergies)")
 Optional<List<Dish>> findDishesByVendorIDAndListOfAllergies(@Param("vendorId") UUID vendorId, @Param("allergies") List<String> allergies);
-//Optional<List<Dish>> findDishesByVendorIDAndListOfAllergies(UUID vendorId, List<String> allergies);
-//
     boolean existsByDishID(UUID dishId);
+
+    boolean existsByVendorID(UUID vendorID);
 }

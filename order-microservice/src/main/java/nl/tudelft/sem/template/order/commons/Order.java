@@ -24,7 +24,7 @@ public class Order {
     private UUID orderID;
     private UUID vendorID;
     private UUID customerID;
-    @ManyToOne
+    @Embedded
     private Address address;
     private BigDecimal date;
     @ElementCollection
