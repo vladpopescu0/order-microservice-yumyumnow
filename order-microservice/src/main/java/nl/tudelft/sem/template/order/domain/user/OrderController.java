@@ -1,11 +1,10 @@
-package nl.tudelft.sem.template.order.controllers;
+package nl.tudelft.sem.template.order.domain.user;
 
 import nl.tudelft.sem.template.order.api.OrderApi;
-import nl.tudelft.sem.template.order.database.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Controller;
 
-@Service
+@Controller
 public class OrderController implements OrderApi {
     private final OrderRepository repository;
 
