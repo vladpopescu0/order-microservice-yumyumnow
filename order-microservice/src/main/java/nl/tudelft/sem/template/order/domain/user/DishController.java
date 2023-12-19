@@ -29,7 +29,7 @@ public class DishController implements DishApi {
     public ResponseEntity<Dish> addDish(Dish dish) {
         try {
             Dish d = dishService.addDish(dish);
-            return ResponseEntity.ok(dish);
+            return ResponseEntity.ok(d);
         } catch (Exception e){
             return ResponseEntity.badRequest().build();
         }

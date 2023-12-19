@@ -4,6 +4,7 @@ import nl.tudelft.sem.template.order.commons.Dish;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,7 +47,7 @@ public class DishService {
     }
 
     public Dish updateDish(UUID dishID, Dish dish) throws DishNotFoundException {
-        if(!checkUUIDIsUnique(dish.getDishID())){
+        if(checkUUIDIsUnique(dishID)){
             throw new DishNotFoundException(dishID);
         }
         dish = dishRepository.save(dish);
@@ -54,17 +55,17 @@ public class DishService {
     }
 
     public void deleteDishByDishId(UUID dishID) throws DishNotFoundException {
-        if(!checkUUIDIsUnique(dishID)){
+        if(checkUUIDIsUnique(dishID)){
             throw new DishNotFoundException(dishID);
         }
         dishRepository.deleteById(dishID);
     }
 
     public List<Dish> getAllergyFilteredDishesFromVendor(UUID vendorID, List<String> allergies) throws VendorNotFoundException {
-        Optional<List<Dish>> databaseDishes = dishRepository.findDishesByVendorIDAndListOfAllergies(vendorID, allergies);
-        if(databaseDishes.isEmpty()){
+        if(!dishRepository.existsByVendorID(vendorID)) {
             throw new VendorNotFoundException(vendorID);
         }
-        return databaseDishes.get();
+        Optional<List<Dish>> databaseDishes = dishRepository.findDishesByVendorIDAndListOfAllergies(vendorID, allergies);
+        return databaseDishes.orElseGet(ArrayList::new);
     }
 }
