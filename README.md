@@ -1,9 +1,10 @@
 # Members
-| First Name | Last Name | 
-|---|---|
-| Ansen | Weng |
-| Thijs | Houben | 
-| Hidde | van Luenen |
+| First Name | Last Name  | 
+|------------|------------|
+| Ansen      | Weng       |
+| Thijs      | Houben     | 
+| Hidde      | van Luenen |
+| Vlad       | Popescu    |
 
 # Lab Template
 
