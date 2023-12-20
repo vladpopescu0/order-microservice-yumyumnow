@@ -73,7 +73,7 @@ public class DishController implements DishApi {
      */
     @Override
     public ResponseEntity<Dish> updateDishByID(UUID dishId, Dish dish) {
-        if (dishId.equals(dish.getDishID())) {
+        if (!dishId.equals(dish.getDishID())) {
             return ResponseEntity.badRequest().build();
         }
         try {
