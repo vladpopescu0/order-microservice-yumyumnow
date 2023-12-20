@@ -15,8 +15,6 @@ import javax.validation.Valid;
 @Entity
 public class Dish {
     @Id
-    @GeneratedValue(generator = "uuid-hibernate-generator")
-    @GenericGenerator(name = "uuid-hibernate-generator", strategy = "org.hibernate.id.UUIDGenerator")
     private UUID dishID;
     private UUID vendorID;
     private String name;
