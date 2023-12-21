@@ -1,12 +1,11 @@
 package nl.tudelft.sem.template.order.domain.user;
 
+import java.util.Optional;
+import java.util.UUID;
 import nl.tudelft.sem.template.order.commons.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class OrderService {
@@ -18,7 +17,8 @@ public class OrderService {
     }
 
     /**
-     * Checks if the uuid can be found in the database
+     * Checks if the uuid can be found in the database.
+     *
      * @param uuid the uuid to look for in the order Repository
      * @return true if the order exists in the database, false otherwise
      */
@@ -27,18 +27,20 @@ public class OrderService {
     }
 
     /**
-     * The implementation of the orderISPaid method from the controllers
+     * The implementation of the orderISPaid method from the controllers.
+     *
      * @param orderID the id of the order to check
      * @return true if the order is paid, false otherwise
-     * @throws OrderNotFoundException when the method cannot find the order
-     * in the database
+     * @throws OrderNotFoundException when the method cannot find the order in the database
      */
-    public boolean orderIsPaid(UUID orderID)  throws OrderNotFoundException {
-        if(!checkUUIDIsUnique(orderID)){
+    public boolean orderIsPaid(UUID orderID) throws OrderNotFoundException {
+        if (!checkUUIDIsUnique(orderID)) {
             throw new OrderNotFoundException(orderID);
         }
         Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
-        assert(currentOrder.isPresent());
+
+        assert (currentOrder.isPresent());
+
         return currentOrder.get().getOrderPaid();
     }
 
