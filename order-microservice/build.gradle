@@ -108,14 +108,16 @@ task customCheckstyle(type: Checkstyle) {
 		// Exclude directories or files associated with generated code
 		!file.path.contains('generated') // Example condition, modify as per your generated code path
 	}
-}
+	// Set Checkstyle classpath
+	classpath = configurations.checkstyle // Use the 'checkstyle' configuration
 
-checkstyle {
-	toolVersion "10.12.5"
 	// Link Checkstyle task to customCheckstyle
-	configFile = customCheckstyle.configFile
-	ignoreFailures = false // Set to true if you want the build to ignore Checkstyle failures
-	showViolations = true // Set to true to display Checkstyle violations in the console
+	checkstyle {
+		toolVersion "10.12.5"
+		// configFile has already been set in customCheckstyle task
+		ignoreFailures = false // Set to true if you want the build to ignore Checkstyle failures
+		showViolations = true // Set to true to display Checkstyle violations in the console
+	}
 }
 
 pmd {

@@ -1,8 +1,10 @@
-
-package nl.tudelft.sem.template.order.domain.user;
+package nl.tudelft.sem.template.order.controllers;
 
 import java.util.UUID;
 import nl.tudelft.sem.template.order.api.OrderApi;
+import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
+import nl.tudelft.sem.template.order.domain.user.OrderService;
+import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;

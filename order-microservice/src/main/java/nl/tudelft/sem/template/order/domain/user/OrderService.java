@@ -3,6 +3,7 @@ package nl.tudelft.sem.template.order.domain.user;
 import java.util.Optional;
 import java.util.UUID;
 import nl.tudelft.sem.template.order.commons.Order;
+import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
