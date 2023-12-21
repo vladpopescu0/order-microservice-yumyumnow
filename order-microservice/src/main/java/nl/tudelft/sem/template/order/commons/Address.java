@@ -11,7 +11,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.util.Objects;
 import java.util.UUID;
-@Entity
+@Embeddable
 public class Address {
     private String street;
     private String city;
