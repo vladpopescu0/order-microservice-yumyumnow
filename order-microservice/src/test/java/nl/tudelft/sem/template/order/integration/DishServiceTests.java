@@ -1,6 +1,10 @@
-package nl.tudelft.sem.template.order.domain.user;
+package nl.tudelft.sem.template.order.integration;
 
 import nl.tudelft.sem.template.order.commons.Dish;
+import nl.tudelft.sem.template.order.domain.user.DishIdAlreadyInUseException;
+import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
+import nl.tudelft.sem.template.order.domain.user.DishService;
+import nl.tudelft.sem.template.order.domain.user.VendorNotFoundException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
