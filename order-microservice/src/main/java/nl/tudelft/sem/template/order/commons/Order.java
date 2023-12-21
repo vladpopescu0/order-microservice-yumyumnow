@@ -19,8 +19,6 @@ import javax.validation.Valid;
 @Table(name = "orders")
 public class Order {
     @Id
-    @GeneratedValue(generator = "uuid-hibernate-generator")
-    @GenericGenerator(name = "uuid-hibernate-generator", strategy = "org.hibernate.id.UUIDGenerator")
     private UUID orderID;
     private UUID vendorID;
     private UUID customerID;
