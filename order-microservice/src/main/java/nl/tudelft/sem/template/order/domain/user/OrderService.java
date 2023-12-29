@@ -90,6 +90,19 @@ public class OrderService {
     }
 
     /**
+     * Method for deleting specific Order from the database.
+     *
+     * @param orderID ID specifying the Order to be deleted
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public void deleteOrderByID(UUID orderID) throws OrderNotFoundException {
+        if (!checkUUIDIsUnique(orderID)) {
+            throw new OrderNotFoundException(orderID);
+        }
+        orderRepository.deleteById(orderID);
+    }
+
+    /**
      * The implementation of the orderISPaid method from the controllers.
      *
      * @param orderID the id of the order to check

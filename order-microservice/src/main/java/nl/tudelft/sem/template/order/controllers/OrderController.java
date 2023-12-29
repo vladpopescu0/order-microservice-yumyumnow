@@ -80,6 +80,28 @@ public class OrderController implements OrderApi {
 
     }
 
+    /**
+     * Endpoint for deleting an Order.
+     *
+     * @param orderID The provided ID of the Order to delete
+     * @return 200 OK - The provided Order is deleted
+     *         400 BAD REQUEST - Deleting the provided Order is unsuccessful
+     *         404 NOT FOUND - No Order exists with the provided ID
+     */
+    @Override
+    public ResponseEntity<Void> deleteOrderByID(UUID orderID) {
+        try {
+            orderService.deleteOrderByID(orderID);
+            return ResponseEntity.ok().build();
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+
+
 
     /**
      * OrderID isPaid controller methods.
