@@ -59,6 +59,28 @@ public class OrderController implements OrderApi {
         }
     }
 
+    /**
+     * Endpoint for returning an Order with specific ID
+     *
+     * @param orderID The provided ID of the order to return
+     * @return 200 OK - The provided Order is returned
+     *         400 BAD REQUEST - Returning the provided Order is unsuccessful
+     *         404 NOT FOUND - No Order exists with the provided ID
+     */
+    @Override
+    public ResponseEntity<Order> getOrderById(UUID orderID){
+
+        try{
+            Order o = orderService.getOrderById(orderID);
+            return ResponseEntity.ok(o);
+        } catch(OrderNotFoundException e){
+            return ResponseEntity.notFound().build();
+        } catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+
+    }
+
 
     /**
      * OrderID isPaid controller methods.

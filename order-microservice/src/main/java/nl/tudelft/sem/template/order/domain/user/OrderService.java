@@ -71,6 +71,26 @@ public class OrderService {
     }
 
     /**
+     * Method for returning specific Order
+     *
+     * @param orderID Provided ID of Order to be returned
+     * @return Order with specified ID
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public Order getOrderById(UUID orderID) throws OrderNotFoundException {
+
+        Optional<Order> o = orderRepository.findOrderByOrderID(orderID);
+        if(o.isEmpty()){
+            throw new OrderNotFoundException(orderID);
+        }
+
+        Order orderToRet = o.get();
+        orderToRet.setListOfDishes(new ArrayList<>(orderToRet.getListOfDishes()));
+        return orderToRet;
+
+    }
+
+    /**
      * The implementation of the orderISPaid method from the controllers.
      *
      * @param orderID the id of the order to check
@@ -87,7 +107,5 @@ public class OrderService {
 
         return currentOrder.get().getOrderPaid();
     }
-
-
 
 }
