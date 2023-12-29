@@ -24,10 +24,10 @@ public class OrderService {
      * Checks if the uuid can be found in the database.
      *
      * @param uuid the uuid to look for in the order Repository
-     * @return false if the order exists in the database, true otherwise
+     * @return true if the order exists in the database, false otherwise
      */
     public boolean checkUUIDIsUnique(UUID uuid) {
-        return !orderRepository.existsByOrderID(uuid);
+        return orderRepository.existsByOrderID(uuid);
     }
 
     /**
@@ -39,7 +39,7 @@ public class OrderService {
      */
     public Order createOrder(Order order) throws OrderIdAlreadyInUseException {
 
-        if(!checkUUIDIsUnique(order.getOrderID())){
+        if(checkUUIDIsUnique(order.getOrderID())){
             throw new OrderIdAlreadyInUseException(order.getOrderID());
         }
 
@@ -98,7 +98,7 @@ public class OrderService {
      * @throws OrderNotFoundException when the method cannot find the order in the database
      */
     public boolean orderIsPaid(UUID orderID) throws OrderNotFoundException {
-        if (checkUUIDIsUnique(orderID)) {
+        if (!checkUUIDIsUnique(orderID)) {
             throw new OrderNotFoundException(orderID);
         }
         Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
