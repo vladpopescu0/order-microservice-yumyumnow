@@ -8,6 +8,7 @@ import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import nl.tudelft.sem.template.order.commons.Order;
 
 @RestController
 public class OrderController implements OrderApi {
@@ -18,6 +19,28 @@ public class OrderController implements OrderApi {
     public OrderController(OrderService orderService) {
         this.orderService = orderService;
     }
+
+    /**
+     * Endpoint for adding an order
+     *
+     * @param order Order to be added, containing: orderID, vendorID,
+     *              customerID, address, date, listOfDishes, specialRequirements,
+     *              orderPaid, status, rating, price
+     * @return 200 OK - Creating and adding the order was successful
+     *         400 BAD REQUEST - Adding operation wasn't successful
+     */
+    @Override
+    public ResponseEntity<Order> createOrder(Order order){
+        try{
+            Order o = orderService.createOrder(order);
+            return ResponseEntity.ok(o);
+
+        } catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
+
+    }
+
 
     /**
      * OrderID isPaid controller methods.
