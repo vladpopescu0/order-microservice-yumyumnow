@@ -3,13 +3,12 @@ package nl.tudelft.sem.template.order.controllers;
 import java.util.List;
 import java.util.UUID;
 import nl.tudelft.sem.template.order.api.OrderApi;
+import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
-import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-import nl.tudelft.sem.template.order.commons.Order;
 
 @RestController
 public class OrderController implements OrderApi {
@@ -22,7 +21,7 @@ public class OrderController implements OrderApi {
     }
 
     /**
-     * Endpoint for adding an order
+     * Endpoint for adding an order.
      *
      * @param order Order to be added, containing: orderID, vendorID,
      *              customerID, address, date, listOfDishes, specialRequirements,
@@ -31,36 +30,36 @@ public class OrderController implements OrderApi {
      *         400 BAD REQUEST - Adding operation wasn't successful
      */
     @Override
-    public ResponseEntity<Order> createOrder(Order order){
-        try{
+    public ResponseEntity<Order> createOrder(Order order) {
+        try {
             Order o = orderService.createOrder(order);
             return ResponseEntity.ok(o);
 
-        } catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
 
     }
 
     /**
-     * Endpoint for returning all Orders in the database
+     * Endpoint for returning all Orders in the database.
      *
      * @return 200 OK - The Orders are successfully returned
      *         404 NOT FOUND - No Orders are stored in the database
      */
     @Override
-    public ResponseEntity<List<Order>> getAllOrders(){
+    public ResponseEntity<List<Order>> getAllOrders() {
 
-        try{
+        try {
             List<Order> list = orderService.getAllOrders();
             return ResponseEntity.ok(list);
-        } catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     /**
-     * Endpoint for returning an Order with specific ID
+     * Endpoint for returning an Order with specific ID.
      *
      * @param orderID The provided ID of the order to return
      * @return 200 OK - The provided Order is returned
@@ -68,14 +67,14 @@ public class OrderController implements OrderApi {
      *         404 NOT FOUND - No Order exists with the provided ID
      */
     @Override
-    public ResponseEntity<Order> getOrderById(UUID orderID){
+    public ResponseEntity<Order> getOrderById(UUID orderID) {
 
-        try{
+        try {
             Order o = orderService.getOrderById(orderID);
             return ResponseEntity.ok(o);
-        } catch(OrderNotFoundException e){
+        } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
-        } catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
 

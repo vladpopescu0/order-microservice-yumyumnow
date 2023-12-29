@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.UUID;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
-import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +30,7 @@ public class OrderService {
     }
 
     /**
-     * Method for adding a new Order to the database
+     * Method for adding a new Order to the database.
      *
      * @param order new Order to be added to the database
      * @return Order that has been created and added to the database
@@ -39,7 +38,7 @@ public class OrderService {
      */
     public Order createOrder(Order order) throws OrderIdAlreadyInUseException {
 
-        if(checkUUIDIsUnique(order.getOrderID())){
+        if (checkUUIDIsUnique(order.getOrderID())) {
             throw new OrderIdAlreadyInUseException(order.getOrderID());
         }
 
@@ -51,7 +50,7 @@ public class OrderService {
     }
 
     /**
-     * Method for returning all Orders stored in the database
+     * Method for returning all Orders stored in the database.
      *
      * @return List of Orders in the database
      * @throws NoOrdersException - thrown when there are no Orders in the database
@@ -59,11 +58,11 @@ public class OrderService {
     public List<Order> getAllOrders() throws NoOrdersException {
 
         List<Order> orders = orderRepository.findAll();
-        if(orders.isEmpty()){
+        if (orders.isEmpty()) {
             throw new NoOrdersException();
         }
 
-        for(Order o : orders){
+        for (Order o : orders) {
             o.setListOfDishes(new ArrayList<>(o.getListOfDishes()));
         }
 
@@ -71,7 +70,7 @@ public class OrderService {
     }
 
     /**
-     * Method for returning specific Order
+     * Method for returning specific Order.
      *
      * @param orderID Provided ID of Order to be returned
      * @return Order with specified ID
@@ -80,7 +79,7 @@ public class OrderService {
     public Order getOrderById(UUID orderID) throws OrderNotFoundException {
 
         Optional<Order> o = orderRepository.findOrderByOrderID(orderID);
-        if(o.isEmpty()){
+        if (o.isEmpty()) {
             throw new OrderNotFoundException(orderID);
         }
 
