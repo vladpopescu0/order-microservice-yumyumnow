@@ -1,5 +1,6 @@
 package nl.tudelft.sem.template.order.controllers;
 
+import java.util.List;
 import java.util.UUID;
 import nl.tudelft.sem.template.order.api.OrderApi;
 import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
@@ -39,6 +40,23 @@ public class OrderController implements OrderApi {
             return ResponseEntity.badRequest().build();
         }
 
+    }
+
+    /**
+     * Endpoint for returning all Orders in the database
+     *
+     * @return 200 OK - The Orders are successfully returned
+     *         404 NOT FOUND - No Orders are stored in the database
+     */
+    @Override
+    public ResponseEntity<List<Order>> getAllOrders(){
+
+        try{
+            List<Order> list = orderService.getAllOrders();
+            return ResponseEntity.ok(list);
+        } catch (Exception e){
+            return ResponseEntity.notFound().build();
+        }
     }
 
 

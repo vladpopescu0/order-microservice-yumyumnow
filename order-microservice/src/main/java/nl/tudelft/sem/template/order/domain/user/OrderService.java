@@ -1,10 +1,12 @@
 package nl.tudelft.sem.template.order.domain.user;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
+import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +51,26 @@ public class OrderService {
     }
 
     /**
+     * Method for returning all Orders stored in the database
+     *
+     * @return List of Orders in the database
+     * @throws NoOrdersException - thrown when there are no Orders in the database
+     */
+    public List<Order> getAllOrders() throws NoOrdersException {
+
+        List<Order> orders = orderRepository.findAll();
+        if(orders.isEmpty()){
+            throw new NoOrdersException();
+        }
+
+        for(Order o : orders){
+            o.setListOfDishes(new ArrayList<>(o.getListOfDishes()));
+        }
+
+        return orders;
+    }
+
+    /**
      * The implementation of the orderISPaid method from the controllers.
      *
      * @param orderID the id of the order to check
@@ -65,8 +87,6 @@ public class OrderService {
 
         return currentOrder.get().getOrderPaid();
     }
-
-
 
 
 
