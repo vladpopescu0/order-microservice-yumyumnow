@@ -24,8 +24,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class DishServiceTests {
@@ -110,112 +109,87 @@ public class DishServiceTests {
         });
     }
 
-//    @Test
-//    public void update_dish_correct_id() throws DishNotFoundException {
-//        when(dishRepository.updateDish(d1.getDishID(),d1)).thenReturn(d1);
-//
-//        ResponseEntity<Dish> res = dishController.updateDishByID(d1.getDishID(),d1);
-//
-//        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
-//        assertThat(res.getBody()).isEqualTo(d1);
-//    }
-//
-//    @Test
-//    public void update_dish_not_found() throws DishNotFoundException {
-//        when(dishService.updateDish(d1.getDishID(),d1)).thenThrow(DishNotFoundException.class);
-//
-//        ResponseEntity<Dish> res = dishController.updateDishByID(d1.getDishID(),d1);
-//
-//        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-//    }
-//
-//    @Test
-//    public void update_dish_bad_request() throws DishNotFoundException {
-//        when(dishService.updateDish(d1.getDishID(),d1)).thenThrow(NullPointerException.class);
-//
-//        ResponseEntity<Dish> res = dishController.updateDishByID(d1.getDishID(),d1);
-//
-//        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-//    }
-//
-//    @Test
-//    public void delete_dish_correct_id() {
-//        ResponseEntity<Void> res = dishController.deleteDishByID(d1.getDishID());
-//
-//        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
-//    }
-//
-//    @Test
-//    public void delete_dish_not_found() throws DishNotFoundException {
-//        doThrow(DishNotFoundException.class).when(dishService).deleteDishByDishId(d1.getDishID());
-//
-//        ResponseEntity<Void> res = dishController.deleteDishByID(d1.getDishID());
-//
-//        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-//    }
-//
-//    @Test
-//    public void delete_dish_bad_request() throws DishNotFoundException {
-//        doThrow(NullPointerException.class).when(dishService).deleteDishByDishId(d1.getDishID());
-//
-//        ResponseEntity<Void> res = dishController.deleteDishByID(d1.getDishID());
-//
-//        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-//    }
-//
-//    @Test
-//    public void get_dishes_by_vendor_correct_id() throws VendorNotFoundException {
-//        when(dishService.getDishByVendorId(d1.getVendorID())).thenReturn(List.of(d1,d2));
-//
-//        ResponseEntity<List<Dish>> res = dishController.getDishesByVendorID(d1.getVendorID());
-//
-//        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
-//        assertThat(res.getBody()).contains(d1).contains(d2);
-//    }
-//
-//    @Test
-//    public void get_dishes_by_vendor_not_found() throws VendorNotFoundException {
-//        when(dishService.getDishByVendorId(d1.getVendorID())).thenThrow(VendorNotFoundException.class);
-//
-//        ResponseEntity<List<Dish>> res = dishController.getDishesByVendorID(d1.getVendorID());
-//
-//        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-//    }
-//
-//    @Test
-//    public void get_dishes_by_vendor_bad_request() throws VendorNotFoundException {
-//        when(dishService.getDishByVendorId(d1.getVendorID())).thenThrow(NullPointerException.class);
-//
-//        ResponseEntity<List<Dish>> res = dishController.getDishesByVendorID(d1.getVendorID());
-//
-//        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-//    }
-//
-//    @Test
-//    public void get_dishes_with_allergies_correct() throws VendorNotFoundException {
-//        when(dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>())).thenReturn(List.of(d1,d2));
-//
-//        ResponseEntity<List<Dish>> res = dishController.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
-//
-//        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
-//        assertThat(res.getBody()).contains(d1).contains(d2);
-//    }
-//
-//    @Test
-//    public void get_dishes_with_allergies_not_found() throws VendorNotFoundException {
-//        doThrow(VendorNotFoundException.class).when(dishService).getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
-//
-//        ResponseEntity<List<Dish>> res = dishController.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
-//
-//        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-//    }
-//
-//    @Test
-//    public void get_dishes_with_allergies_bad_request() throws VendorNotFoundException {
-//        doThrow(NullPointerException.class).when(dishService).getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
-//
-//        ResponseEntity<List<Dish>> res = dishController.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
-//
-//        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-//    }
+    @Test
+    public void update_dish_correct_id() throws DishNotFoundException {
+        when(dishRepository.existsByDishID(d1.getDishID())).thenReturn(true);
+        when(dishRepository.save(d1)).thenReturn(d1);
+
+        Dish res = dishService.updateDish(d1.getDishID(),d1);
+
+        assertThat(res).isEqualTo(d1);
+    }
+
+    @Test
+    public void update_dish_not_found() throws DishNotFoundException {
+        Assertions.assertThrows(DishNotFoundException.class, () ->{
+            dishService.updateDish(d1.getDishID(),d1);
+        });
+    }
+
+
+    @Test
+    public void delete_dish_correct_id() throws DishNotFoundException {
+        when(dishRepository.existsByDishID(d1.getDishID())).thenReturn(true);
+        dishService.deleteDishByDishId(d1.getDishID());
+
+        verify(dishRepository,times(1)).existsByDishID(d1.getDishID());
+        verify(dishRepository,times(1)).deleteById(d1.getDishID());
+    }
+
+    @Test
+    public void delete_dish_not_found() throws DishNotFoundException {
+        when(dishRepository.existsByDishID(d1.getDishID())).thenReturn(false);
+        Assertions.assertThrows(DishNotFoundException.class, () ->{
+            dishService.deleteDishByDishId(d1.getDishID());
+        });
+        verify(dishRepository,times(1)).existsByDishID(d1.getDishID());
+        verify(dishRepository,never()).deleteById(d1.getDishID());
+    }
+
+    @Test
+    public void get_dishes_by_vendor_correct_id() throws VendorNotFoundException {
+        when(dishRepository.findDishesByVendorID(d1.getVendorID())).thenReturn(Optional.of(List.of(d1,d2)));
+
+        List<Dish> res = dishService.getDishByVendorId(d1.getVendorID());
+
+        assertThat(res).contains(d1).contains(d2);
+    }
+
+    @Test
+    public void get_dishes_by_vendor_not_found() throws VendorNotFoundException {
+        when(dishRepository.findDishesByVendorID(d1.getVendorID())).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(VendorNotFoundException.class, () ->{
+            dishService.getDishByVendorId(d1.getVendorID());
+        });
+    }
+
+
+    @Test
+    public void get_dishes_with_allergies_correct() throws VendorNotFoundException {
+        when(dishRepository.existsByVendorID(d1.getVendorID())).thenReturn(true);
+        when(dishRepository.findDishesByVendorIDAndListOfAllergies(d1.getVendorID(),new ArrayList<>())).thenReturn(Optional.of(List.of(d1,d2)));
+
+        List<Dish> res = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
+
+        assertThat(res).contains(d1).contains(d2);
+    }
+
+    @Test
+    public void get_dishes_with_no_dish_found() throws VendorNotFoundException {
+        when(dishRepository.existsByVendorID(d1.getVendorID())).thenReturn(true);
+        when(dishRepository.findDishesByVendorIDAndListOfAllergies(d1.getVendorID(),new ArrayList<>())).thenReturn(Optional.empty());
+
+        List<Dish> res = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
+        assertThat(res).isEmpty();
+    }
+
+    @Test
+    public void get_dishes_with_allergies_not_found() throws VendorNotFoundException {
+        when(dishRepository.existsByVendorID(d1.getVendorID())).thenReturn(false);
+        Assertions.assertThrows(VendorNotFoundException.class, () ->{
+            dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
+        });
+        verify(dishRepository,never()).findDishesByVendorIDAndListOfAllergies(d1.getDishID(),new ArrayList<>());
+    }
 }
