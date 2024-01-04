@@ -2,6 +2,7 @@ package nl.tudelft.sem.template.order.controllers;
 
 import java.util.UUID;
 import nl.tudelft.sem.template.order.api.OrderApi;
+import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
@@ -35,6 +36,22 @@ public class OrderController implements OrderApi {
             } else {
                 return ResponseEntity.status(402).build();
             }
+        } catch (OrderNotFoundException notFound) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    /**
+     * OrderID isPaid controller method to update the isPaid field.
+     * It throws a 404 if the order is not found.
+     *
+     * @param orderID the id of the order to be checked
+     * @return the order after it was updated
+     */
+    @Override
+    public ResponseEntity<Order> updateOrderPaid(UUID orderID) {
+        try {
+            Order updatedOrder = orderService.orderIsPaidUpdate(orderID);
+            return ResponseEntity.ok(updatedOrder);
         } catch (OrderNotFoundException notFound) {
             return ResponseEntity.notFound().build();
         }

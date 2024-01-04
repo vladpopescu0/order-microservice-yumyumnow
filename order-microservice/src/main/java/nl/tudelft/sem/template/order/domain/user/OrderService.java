@@ -28,7 +28,7 @@ public class OrderService {
     }
 
     /**
-     * The implementation of the orderISPaid method from the controllers.
+     * The implementation of the orderISPaid get method from the controllers.
      *
      * @param orderID the id of the order to check
      * @return true if the order is paid, false otherwise
@@ -43,6 +43,28 @@ public class OrderService {
         assert (currentOrder.isPresent());
 
         return currentOrder.get().getOrderPaid();
+    }
+    /**
+     * The implementation of the orderISPaid put method from the controllers.
+     *
+     * @param orderID the id of the order to flip the isPaid value
+     * @throws OrderNotFoundException when the method cannot find the order in the database
+     */
+    public Order orderIsPaidUpdate(UUID orderID) throws OrderNotFoundException {
+        if (!checkUUIDIsUnique(orderID)) {
+            throw new OrderNotFoundException(orderID);
+        }
+        Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
+
+        assert (currentOrder.isPresent());
+
+        orderRepository.updateOrderPayment(!currentOrder.get().getOrderPaid(),orderID);
+
+        Optional<Order> currentOrderUpdated = orderRepository.findOrderByOrderID(orderID);
+
+        assert (currentOrderUpdated.isPresent());
+
+        return currentOrderUpdated.get();
     }
 
 
