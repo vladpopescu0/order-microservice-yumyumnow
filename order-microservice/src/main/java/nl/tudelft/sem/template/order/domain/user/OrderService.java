@@ -2,6 +2,7 @@ package nl.tudelft.sem.template.order.domain.user;
 
 import java.util.Optional;
 import java.util.UUID;
+
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,16 @@ public class OrderService {
      */
     public boolean checkUUIDIsUnique(UUID uuid) {
         return orderRepository.existsByOrderID(uuid);
+    }
+
+    public Order getOrderById(UUID orderId) throws OrderNotFoundException {
+        Optional<Order> databaseOrder = orderRepository.findOrderByOrderID(orderId);
+        if (databaseOrder.isEmpty()) {
+            throw new OrderNotFoundException(orderId);
+        }
+
+        Order res = databaseOrder.get();
+        return res;
     }
 
     /**

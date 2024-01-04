@@ -1,7 +1,10 @@
 package nl.tudelft.sem.template.order.controllers;
 
 import java.util.UUID;
+import java.util.List;
+
 import nl.tudelft.sem.template.order.api.OrderApi;
+import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
@@ -37,6 +40,25 @@ public class OrderController implements OrderApi {
             }
         } catch (OrderNotFoundException notFound) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * OrderID getListOfDishes controller methods.
+     * It returns the list of the UUID of the dishes the order contains.
+     * It throws a 404 if the order is not found.
+     *
+     * @param orderID the id of the order to be retrieved the list of dishes from
+     * @return the list of UUID of dishes
+     */
+    public ResponseEntity<List<UUID>> getListOfDishes(UUID orderID) {
+        try {
+            Order order = orderService.getOrderById(orderID);
+            return ResponseEntity.ok(order.getListOfDishes());
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 
