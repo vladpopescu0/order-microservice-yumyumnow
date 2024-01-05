@@ -154,6 +154,28 @@ class OrderServiceTests {
     }
 
     @Test
+    void testDeleteOrderByIDSuccessful() throws OrderNotFoundException {
+
+        Mockito.when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
+
+        orderService.deleteOrderByID(order1.getOrderID());
+
+        Mockito.verify(orderRepository, Mockito.times(1)).deleteById(order1.getOrderID());
+
+    }
+
+    @Test
+    void testDeleteOrderByIDNotFound(){
+
+        Mockito.when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
+
+        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.deleteOrderByID(order1.getOrderID()));
+
+        Mockito.verify(orderRepository, Mockito.never()).deleteById(order1.getOrderID());
+
+    }
+
+    @Test
     void testOrderIsPaid_WhenOrderExistsAndIsPaid() throws OrderNotFoundException {
         UUID orderID = UUID.randomUUID();
         Order paidOrder = new Order();
