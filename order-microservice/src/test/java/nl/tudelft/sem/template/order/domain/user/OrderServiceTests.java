@@ -14,9 +14,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 
@@ -30,7 +28,9 @@ class OrderServiceTests {
     private OrderService orderService;
 
     Address a1;
+    Address a2;
     Order order1;
+    Order order2;
 
     @BeforeEach
     void setup() {
@@ -39,6 +39,12 @@ class OrderServiceTests {
         a1.setCity("Delft");
         a1.setCountry("Netherlands");
         a1.setZip("2628CC");
+
+        a2 = new Address();
+        a2.setStreet("Carnegieplein 2");
+        a2.setCity("Den Haag");
+        a2.setCountry("Netherlands");
+        a2.setZip("2517KJ");
 
         order1 = new Order();
         order1.setOrderID(UUID.randomUUID());
@@ -51,6 +57,18 @@ class OrderServiceTests {
         order1.setOrderPaid(true);
         order1.setStatus(Order.StatusEnum.ACCEPTED);
         order1.setRating(4);
+
+        order2 = new Order();
+        order2.setOrderID(UUID.randomUUID());
+        order2.setVendorID(UUID.randomUUID());
+        order2.setCustomerID(UUID.randomUUID());
+        order2.setAddress(a2);
+        order2.setDate(new BigDecimal("1700006405030"));
+        order2.setListOfDishes(Arrays.asList(UUID.randomUUID()));
+        order2.setSpecialRequirements("The bell doesn't work");
+        order2.setOrderPaid(false);
+        order2.setStatus(Order.StatusEnum.ACCEPTED);
+        order2.setRating(3);
 
     }
 
@@ -93,6 +111,27 @@ class OrderServiceTests {
 
         Assertions.assertThrows(OrderIdAlreadyInUseException.class, () -> orderService.createOrder(order1));
 
+    }
+
+    @Test
+    void testGetAllOrdersSuccessful() throws NoOrdersException {
+
+        Mockito.when(orderRepository.findAll()).thenReturn(Arrays.asList(order1, order2));
+
+        List<Order> orderList = orderService.getAllOrders();
+
+        Assertions.assertTrue(orderList.contains(order1));
+        Assertions.assertTrue(orderList.contains(order2));
+        Assertions.assertEquals(2, orderList.size());
+
+    }
+
+    @Test
+    void testGetAllOrdersNoOrders(){
+
+        Mockito.when(orderRepository.findAll()).thenReturn(new ArrayList<>());
+
+        Assertions.assertThrows(NoOrdersException.class, () -> orderService.getAllOrders());
     }
 
     @Test
