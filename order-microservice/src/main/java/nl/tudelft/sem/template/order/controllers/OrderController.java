@@ -92,13 +92,13 @@ public class OrderController implements OrderApi {
     @Override
     public ResponseEntity<Order> editOrderByID(UUID orderID, Order order) {
 
-        if(!order.getOrderID().equals(orderID)){
+        if (!order.getOrderID().equals(orderID)) {
             return ResponseEntity.badRequest().build();
         }
 
         try {
             Order edited = orderService.editOrderByID(orderID, order);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok(edited);
         } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {

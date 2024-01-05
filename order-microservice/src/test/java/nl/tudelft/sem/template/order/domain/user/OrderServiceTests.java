@@ -10,13 +10,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.*;
-
-import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTests {
@@ -109,7 +106,8 @@ class OrderServiceTests {
         UUID takenId = order1.getOrderID();
         Mockito.when(orderService.checkUUIDIsUnique(takenId)).thenReturn(true);
 
-        Assertions.assertThrows(OrderIdAlreadyInUseException.class, () -> orderService.createOrder(order1));
+        Assertions.assertThrows(OrderIdAlreadyInUseException.class,
+                () -> orderService.createOrder(order1));
 
     }
 
@@ -137,7 +135,8 @@ class OrderServiceTests {
     @Test
     void testGetOrderByIdSuccessful() throws OrderNotFoundException {
 
-        Mockito.when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.of(order1));
+        Mockito.when(orderRepository.findOrderByOrderID(order1.getOrderID()))
+                .thenReturn(Optional.of(order1));
 
         Order returned = orderService.getOrderById(order1.getOrderID());
 
@@ -147,9 +146,35 @@ class OrderServiceTests {
     @Test
     void testGetOrderByIdNotFound() throws OrderNotFoundException {
 
-        Mockito.when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.empty());
+        Mockito.when(orderRepository.findOrderByOrderID(order1.getOrderID()))
+                .thenReturn(Optional.empty());
 
-        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.getOrderById(order1.getOrderID()));
+        Assertions.assertThrows(OrderNotFoundException.class,
+                () -> orderService.getOrderById(order1.getOrderID()));
+
+    }
+
+    @Test
+    void testEditOrderByIDSuccessful() throws OrderNotFoundException {
+
+        order1.setRating(2);
+
+        Mockito.when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
+        Mockito.when(orderRepository.save(order1)).thenReturn(order1);
+
+        Order edited = orderService.editOrderByID(order1.getOrderID(), order1);
+
+        Assertions.assertEquals(order1, edited);
+
+    }
+
+    @Test
+    void testEditOrderByIDNotFound() {
+
+        Mockito.when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
+
+        Assertions.assertThrows(OrderNotFoundException.class,
+                () -> orderService.editOrderByID(order1.getOrderID(), order1));
 
     }
 

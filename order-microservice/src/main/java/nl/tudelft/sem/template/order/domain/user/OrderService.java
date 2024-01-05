@@ -98,7 +98,7 @@ public class OrderService {
      * @throws OrderNotFoundException - thrown when the orderID isn't found
      */
     public Order editOrderByID(UUID orderID, Order order) throws OrderNotFoundException {
-        if(!checkUUIDIsUnique(orderID)) {
+        if (!checkUUIDIsUnique(orderID)) {
             throw new OrderNotFoundException(orderID);
         }
 
