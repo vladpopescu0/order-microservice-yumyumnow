@@ -1,37 +1,63 @@
 package nl.tudelft.sem.template.order.controllers;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import nl.tudelft.sem.template.order.api.ApiUtil;
 import nl.tudelft.sem.template.order.api.VendorApi;
 import nl.tudelft.sem.template.order.commons.Dish;
 import nl.tudelft.sem.template.order.commons.Order;
-import nl.tudelft.sem.template.order.domain.user.*;
+import nl.tudelft.sem.template.order.domain.user.CustomerNotFoundException;
+import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
+import nl.tudelft.sem.template.order.domain.user.OrderService;
+import nl.tudelft.sem.template.order.domain.user.VendorNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Controller
-public class VendorController implements VendorApi {
-
+public class VendorAnalyticsController implements VendorApi {
+    private final OrderController orderController;
+    private final DishController dishController;
     private final transient OrderService orderService;
 
     @Autowired
-    public VendorController(OrderService orderService) {
+    public VendorAnalyticsController(OrderController orderController, DishController dishController, OrderService orderService) {
+        this.orderController = orderController;
+        this.dishController = dishController;
         this.orderService = orderService;
+    }
+
+    /**
+     * Calculates the total earnings of an order
+     *
+     * @param orderId the UUID of the order to calculate the total earnings of
+     * @return 200 OK if the calculation is successful, including a float representing the total earnings
+     *         400 BAD REQUEST if the calculation was unsuccessful
+     */
+    public ResponseEntity<Float> getOrderEarnings(UUID orderId) {
+        try {
+            Float earnings = 0.0f;
+            ResponseEntity<List<UUID>> listResponse = orderController.getListOfDishes(orderId);
+            if (listResponse.getStatusCode().equals(HttpStatus.OK)) {
+                List<UUID> listOfDishes = orderController.getListOfDishes(orderId).getBody();
+                if (listOfDishes != null) {
+                    for (UUID id : listOfDishes) {
+                        ResponseEntity<Dish> dishResponse = dishController.getDishByID(id);
+                        if (dishResponse.getStatusCode().equals(HttpStatus.OK)) {
+                            Dish dish = dishController.getDishByID(id).getBody();
+                            earnings += dish.getPrice();
+                        }
+                    }
+                }
+            }
+            return ResponseEntity.ok(earnings);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @Override

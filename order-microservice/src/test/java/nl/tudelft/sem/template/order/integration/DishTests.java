@@ -77,6 +77,7 @@ public class DishTests {
         d2.setListOfIngredients(ingredients2);
         d2.setVendorID(UUID.randomUUID());
     }
+
     @Transactional
     @Test
     public void createDish_withValidData_worksCorrectly() throws Exception {

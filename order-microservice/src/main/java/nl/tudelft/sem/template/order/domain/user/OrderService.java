@@ -1,11 +1,5 @@
 package nl.tudelft.sem.template.order.domain.user;
 
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.LongBuffer;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import nl.tudelft.sem.template.order.commons.Dish;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
@@ -14,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.swing.text.html.Option;
+import java.nio.ByteBuffer;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -38,6 +35,7 @@ public class OrderService {
     }
 
     /**
+<<<<<<< HEAD
      * Method for adding a new Order to the database.
      *
      * @param order new Order to be added to the database
@@ -127,6 +125,23 @@ public class OrderService {
 
         return currentOrder.get().getOrderPaid();
     }
+
+
+//    /* retrieves an order
+//     *
+//     * @param orderId the UUID of the order that has to be retrieved
+//     * @return Order from the database with the given id
+//     * @throws OrderNotFoundException if there is no order with the given id in the database
+//     */
+//    public Order getOrderById(UUID orderId) throws OrderNotFoundException {
+//        Optional<Order> databaseOrder = orderRepository.findOrderByOrderID(orderId);
+//        if (databaseOrder.isEmpty()) {
+//            throw new OrderNotFoundException(orderId);
+//        }
+//
+//        Order res = databaseOrder.get();
+//        return res;
+//    }
 
     private List<Order> getOrdersFromVendor(UUID vendorID) throws VendorNotFoundException, NoOrdersException {
         if(!orderRepository.existsByVendorID(vendorID)){
