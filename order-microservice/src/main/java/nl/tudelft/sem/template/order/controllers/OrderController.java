@@ -49,10 +49,11 @@ public class OrderController implements OrderApi {
     /**
      * OrderID getListOfDishes controller methods.
      * It returns the list of the UUID of the dishes the order contains.
-     * It throws a 404 if the order is not found.
      *
      * @param orderID the id of the order to be retrieved the list of dishes from.
-     * @return the list of UUID of dishes.
+     * @return 200 OK if the list of dishes has been retrieved, including the list of UUID dishes
+     *         404 NOT FOUND if the order could not be found
+     *         400 BAD REQUEST if the retrieval was not successful
      */
     public ResponseEntity<List<UUID>> getListOfDishes(UUID orderID) {
         try {
@@ -71,7 +72,9 @@ public class OrderController implements OrderApi {
      * It throws a 404 if the order is not found.
      *
      * @param orderID the id of the order to be retrieved the special requirements from.
-     * @return the String of Special requirements.
+     * @return 200 OK if the special requirements of the order has been retrieved, including the special requirements
+     *         404 NOT FOUND if the order could not be found
+     *         400 BAD REQUEST if the retrieval was not successful
      */
     public ResponseEntity<String> getSpecialRequirements(UUID orderID) {
         try {
@@ -87,10 +90,11 @@ public class OrderController implements OrderApi {
     /**
      * OrderID getOrderAddress controller methods.
      * It returns the address to which the order should be delivered.
-     * It throws a 404 if the order is not found.
      *
      * @param orderID the id of the order to be delivered to the retrieved address.
-     * @return the address of the order.
+     * @return 200 OK if the address of the order has been retrieved, including the address
+     *         404 NOT FOUND if the order could not be found
+     *         400 BAD REQUEST if the retrieval was not successful
      */
     public ResponseEntity<Address> getOrderAddress(UUID orderID) {
         try {
@@ -106,10 +110,11 @@ public class OrderController implements OrderApi {
     /**
      * OrderID getOrderDate controller methods.
      * It returns the date when the order was made.
-     * It throws a 404 if the order is not found.
      *
      * @param orderID the id of the order of which the date of creation should be retrieved.
-     * @return the date of the order.
+     * @return 200 OK if the date of the order has been retrieved, including the date
+     *         404 NOT FOUND if the order could not be found
+     *         400 BAD REQUEST if the retrieval was not successful
      */
     public ResponseEntity<BigDecimal> getOrderDate(UUID orderID) {
         try {
