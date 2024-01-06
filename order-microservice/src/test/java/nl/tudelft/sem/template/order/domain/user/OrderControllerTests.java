@@ -1,5 +1,7 @@
 package nl.tudelft.sem.template.order.domain.user;
 
+import nl.tudelft.sem.template.order.commons.Address;
+import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.controllers.OrderController;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
