@@ -38,6 +38,8 @@ public class OrderController implements OrderApi {
             }
         } catch (OrderNotFoundException notFound) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e){
+            return ResponseEntity.badRequest().build();
         }
     }
     /**
@@ -54,6 +56,8 @@ public class OrderController implements OrderApi {
             return ResponseEntity.ok(updatedOrder);
         } catch (OrderNotFoundException notFound) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e){
+            return ResponseEntity.badRequest().build();
         }
     }
 
