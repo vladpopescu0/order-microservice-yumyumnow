@@ -6,11 +6,9 @@ import java.util.List;
 
 import nl.tudelft.sem.template.order.api.OrderApi;
 import nl.tudelft.sem.template.order.commons.Address;
-import nl.tudelft.sem.template.order.commons.Dish;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
-import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -126,5 +124,6 @@ public class OrderController implements OrderApi {
             return ResponseEntity.badRequest().build();
         }
     }
+
     //Methods
 }
