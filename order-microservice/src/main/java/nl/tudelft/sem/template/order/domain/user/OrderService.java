@@ -1,22 +1,30 @@
 package nl.tudelft.sem.template.order.domain.user;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.LongBuffer;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import nl.tudelft.sem.template.order.commons.Dish;
 import nl.tudelft.sem.template.order.commons.Order;
+import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.swing.text.html.Option;
 
 
 @Service
 public class OrderService {
     private final transient OrderRepository orderRepository;
+    private final transient DishRepository dishRepository;
 
     @Autowired
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, DishRepository dishRepository) {
         this.orderRepository = orderRepository;
+        this.dishRepository = dishRepository;
     }
 
     /**
@@ -120,4 +128,78 @@ public class OrderService {
         return currentOrder.get().getOrderPaid();
     }
 
+    private List<Order> getOrdersFromVendor(UUID vendorID) throws VendorNotFoundException, NoOrdersException {
+        if(!orderRepository.existsByVendorID(vendorID)){
+            throw new VendorNotFoundException(vendorID);
+        }
+        Optional<List<Order>> orders = orderRepository.findOrdersByVendorID(vendorID);
+        return getOrders(orders);
+    }
+
+    private List<Order> getOrders(Optional<List<Order>> orders) throws NoOrdersException {
+        if(orders.isEmpty()){
+            throw new NoOrdersException();
+        }
+        List<Order> result = orders.get();
+        for (Order o : result) {
+            o.setListOfDishes(new ArrayList<>(o.getListOfDishes()));
+        }
+        return result;
+    }
+
+    public List<Order> getOrdersFromCostumerAtVendor(UUID vendorID, UUID customerID) throws VendorNotFoundException, CustomerNotFoundException, NoOrdersException {
+        if(!orderRepository.existsByVendorID(vendorID)){
+            throw new VendorNotFoundException(vendorID);
+        }
+        if(!orderRepository.existsByCustomerID(customerID)){
+            throw new CustomerNotFoundException(customerID);
+        }
+        Optional<List<Order>> orders = orderRepository.findOrdersByVendorIDAndCustomerID(vendorID, customerID);
+        return getOrders(orders);
+    }
+
+    public Integer getOrderVolume(UUID vendorID) throws VendorNotFoundException, NoOrdersException {
+        if(!orderRepository.existsByVendorID(vendorID)){
+            throw new VendorNotFoundException(vendorID);
+        }
+        Optional<Integer> res = orderRepository.countOrderByVendorID(vendorID);
+        if(res.isEmpty()){
+            throw new NoOrdersException();
+        }
+        return res.get();
+    }
+
+    public List<Integer> getOrderVolumeByTime(UUID vendorID) throws VendorNotFoundException, NoOrdersException {
+        List<Order> orders = getOrdersFromVendor(vendorID);
+        int[] times = new int[24];
+        for(Order o : orders){
+            long t = o.getDate().longValueExact();
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(t);
+            int hours = calendar.get(Calendar.HOUR_OF_DAY);
+            times[hours]++;
+        }
+        return Arrays.stream(times).boxed().collect(Collectors.toList());
+    }
+
+
+    public List<Dish> getDishesSortedByVolume(UUID vendorID) throws VendorNotFoundException, DishNotFoundException {
+        if(!orderRepository.existsByVendorID(vendorID)){
+            throw new VendorNotFoundException(vendorID);
+        }
+        List<UUID> queryResult = orderRepository.countDishesOccurrencesFromVendor(vendorID)
+                .stream().map(o -> (byte[]) o)
+                .map(bytes -> ByteBuffer.wrap(bytes).asLongBuffer())
+                .map(buff -> new UUID(buff.get(),buff.get()))
+                .collect(Collectors.toList());
+        List<Dish> result = new ArrayList<>();
+        for (UUID row : queryResult) {
+            Optional<Dish> cur = dishRepository.findDishByDishID(row);
+            if(cur.isEmpty()){
+                throw new DishNotFoundException(row);
+            }
+            result.add(cur.get());
+        }
+        return result;
+    }
 }
