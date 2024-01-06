@@ -28,6 +28,13 @@ public class OrderService {
         return orderRepository.existsByOrderID(uuid);
     }
 
+    /**
+     * retrieves an order
+     *
+     * @param orderId the UUID of the order that has to be retrieved
+     * @return Order from the database with the given id
+     * @throws OrderNotFoundException if there is no order with the given id in the database
+     */
     public Order getOrderById(UUID orderId) throws OrderNotFoundException {
         Optional<Order> databaseOrder = orderRepository.findOrderByOrderID(orderId);
         if (databaseOrder.isEmpty()) {
