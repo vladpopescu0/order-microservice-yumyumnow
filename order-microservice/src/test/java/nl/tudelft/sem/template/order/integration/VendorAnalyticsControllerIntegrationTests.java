@@ -285,30 +285,6 @@ public class VendorAnalyticsControllerIntegrationTests {
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 
-//    @Test
-//    @Transactional
-//    public void get_peak_times_2_values_non_overlapping() throws Exception {
-//        dishService.addDish(d1);
-//        dishService.addDish(d2);
-//        orderService.createOrder(order1);
-//        orderService.createOrder(order2);
-//
-//        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/vendor/{vendorID}/analytics/peakTimes",order1.getVendorID())
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(MockMvcResultMatchers.status().isOk())
-//                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-//        List<Integer> volume = objectMapper.readValue(res.getResponse().getContentAsString(),new TypeReference<List<Integer>>() {});
-//        assertThat(volume.size()).isEqualTo(24);
-//        assertThat(volume.get(18)).isEqualTo(1);
-//        assertThat(volume.get(1)).isEqualTo(1);
-//        for(int i = 0; i<23; i++){
-//            if(i!=1&&i!=18){
-//                assertThat(volume.get(i)).isEqualTo(0);
-//            }
-//        }
-//    }
-
     @Test
     @Transactional
     public void get_peak_times_vendor_does_not_exist() throws Exception {
