@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.order.commons.Order;
-import nl.tudelft.sem.template.order.domain.user.OrderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,9 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class OrderIntegrationTests {
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private transient OrderService orderService;
 
     @Autowired
     private ObjectMapper objectMapper; // Used for converting Java objects to JSON

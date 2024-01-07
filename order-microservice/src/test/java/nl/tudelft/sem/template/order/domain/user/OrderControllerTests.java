@@ -72,13 +72,10 @@ class OrderControllerTests {
         ResponseEntity<Order> response = orderController.updateOrderPaid(orderID);
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(order,response.getBody());
     }
     @Test
     void testPaymentWhenNotExists() throws OrderNotFoundException {
-        UUID orderID = UUID.randomUUID();
-        Order order = new Order();
-        order.setOrderID(orderID);
-        order.setOrderPaid(false);
         UUID orderIDFake = UUID.randomUUID();
         Mockito.when(orderService.orderIsPaidUpdate(orderIDFake)).thenThrow(OrderNotFoundException.class);
 
