@@ -98,6 +98,26 @@ public class OrderService {
     }
 
     /**
+     * Method for editing an Order in the database.
+     *
+     * @param orderID ID specifying the Order to be deleted
+     * @param order The edited Order to put into the database
+     * @return Edited Order
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public Order editOrderByID(UUID orderID, Order order) throws OrderNotFoundException {
+        if (!checkUUIDIsUnique(orderID)) {
+            throw new OrderNotFoundException(orderID);
+        }
+
+        order = orderRepository.save(order);
+        order.setListOfDishes(new ArrayList<>(order.getListOfDishes()));
+
+        return order;
+
+    }
+
+    /**
      * Method for deleting specific Order from the database.
      *
      * @param orderID ID specifying the Order to be deleted

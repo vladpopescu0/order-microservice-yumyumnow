@@ -84,6 +84,33 @@ public class OrderController implements OrderApi {
     }
 
     /**
+     * Endpoint for editing an Order.
+     *
+     * @param orderID The provided ID of the order to be edited
+     * @param order The edited Order
+     * @return 200 OK - The Order is successfully edited
+     *         400 BAD REQUEST - Editing the Order is unsuccessful
+     *         404 NOT FOUND - No Order exists with the provided ID
+     */
+    @Override
+    public ResponseEntity<Order> editOrderByID(UUID orderID, Order order) {
+
+        if (!order.getOrderID().equals(orderID)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        try {
+            Order edited = orderService.editOrderByID(orderID, order);
+            return ResponseEntity.ok(edited);
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+    }
+
+    /**
      * Endpoint for deleting an Order.
      *
      * @param orderID The provided ID of the Order to delete
