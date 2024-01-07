@@ -1,5 +1,10 @@
 package nl.tudelft.sem.template.order.controllers;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import nl.tudelft.sem.template.order.api.VendorApi;
 import nl.tudelft.sem.template.order.commons.Dish;
 import nl.tudelft.sem.template.order.commons.Order;
@@ -12,11 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Controller
 public class VendorAnalyticsController implements VendorApi {
@@ -24,15 +24,23 @@ public class VendorAnalyticsController implements VendorApi {
     private final DishController dishController;
     private final transient OrderService orderService;
 
+    /**
+     * Instantiates a new VendorAnalyticsController.
+     *
+     * @param orderController   the OrderController
+     * @param dishController    the DishController
+     * @param orderService      the OrderService
+     */
     @Autowired
-    public VendorAnalyticsController(OrderController orderController, DishController dishController, OrderService orderService) {
+    public VendorAnalyticsController(OrderController orderController,
+                                     DishController dishController, OrderService orderService) {
         this.orderController = orderController;
         this.dishController = dishController;
         this.orderService = orderService;
     }
 
     /**
-     * Calculates the total earnings of an order
+     * Calculates the total earnings of an order.
      *
      * @param orderId the UUID of the order to calculate the total earnings of
      * @return 200 OK if the calculation is successful, including a float representing the total earnings
@@ -60,10 +68,19 @@ public class VendorAnalyticsController implements VendorApi {
         }
     }
 
+    /**
+     * Getter for all the orders from a customer at a specific vendor.
+     *
+     * @param vendorID the UUID of the vendor where the orders have been placed
+     * @param customerID the UUID of the customer who placed the orders
+     * @return 200 OK with a list of orders from a customer at a certain vendor if they both exist
+     *         404 NOT FOUND if either the vendor or the customer does not exist, or both
+     *         400 BAD REQUEST if something else went wrong
+     */
     @Override
     public ResponseEntity<List<Order>> vendorVendorIDAnalyticsHistoryCustomerIDGet(UUID vendorID, UUID customerID) {
         try {
-            List<Order> orders = orderService.getOrdersFromCostumerAtVendor(vendorID,customerID);
+            List<Order> orders = orderService.getOrdersFromCostumerAtVendor(vendorID, customerID);
             return ResponseEntity.ok(orders);
         } catch (VendorNotFoundException | CustomerNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -74,6 +91,14 @@ public class VendorAnalyticsController implements VendorApi {
         }
     }
 
+    /**
+     * Getter for the total number of orders made at a vendor.
+     *
+     * @param vendorID the UUID of the vendor from whom the total number of orders is returned
+     * @return 200 OK with the total number of orders made at a vendor
+     *         404 NOT FOUND if the vendor could not be found
+     *         400 BAD REQUEST if something else went wrong
+     */
     @Override
     public ResponseEntity<Integer> vendorVendorIDAnalyticsOrderVolumesGet(UUID vendorID) {
         try {
@@ -88,6 +113,15 @@ public class VendorAnalyticsController implements VendorApi {
         }
     }
 
+    /**
+     * Getter for a list containing the volume of orders divided over each hour of the day.
+     *
+     * @param vendorID the UUID of the vendor from whom the volumes divided over the hours are retrieved
+     * @return 200 OK with the volume of orders divided over each hour of the day, where index
+     *             0 is for 00:00 till 01:00, 1 is for 01:00 till 02:00, ... 23 is for 23:00 till 00:00
+     *         404 NOT FOUND if the vendor could not be found
+     *         400 BAD REQUEST if something else went wrong
+     */
     @Override
     public ResponseEntity<List<Integer>> vendorVendorIDAnalyticsPeakTimesGet(UUID vendorID) {
         try {
@@ -102,6 +136,16 @@ public class VendorAnalyticsController implements VendorApi {
         }
     }
 
+    /**
+     * Getter for a list of dishes offered by a vendor ordered by how often they have been ordered.
+     * The list only contain dishes that have been ordered at least once
+     *
+     * @param vendorID UUID of the vendor from which the popular dishes will be retrieved
+     * @return 200 OK with the dishes ordered by how often they have been ordered, only including dishes
+     *             that have been ordered before
+     *         404 NOT FOUND if the vendor could not be found
+     *         400 BAD REQUEST if something else went wrong
+     */
     @Override
     public ResponseEntity<List<Dish>> vendorVendorIDAnalyticsPopularItemsGet(UUID vendorID) {
         try {
