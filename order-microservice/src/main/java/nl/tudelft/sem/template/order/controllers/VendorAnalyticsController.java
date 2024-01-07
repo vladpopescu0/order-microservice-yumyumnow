@@ -12,7 +12,6 @@ public class VendorAnalyticsController implements VendorApi {
     private final OrderController orderController;
     private final DishController dishController;
 
-
     public VendorAnalyticsController(OrderController orderController, DishController dishController) {
         this.orderController = orderController;
         this.dishController = dishController;
@@ -33,10 +32,19 @@ public class VendorAnalyticsController implements VendorApi {
                 List<UUID> listOfDishes = orderController.getListOfDishes(orderId).getBody();
                 if (listOfDishes != null) {
                     for (UUID id : listOfDishes) {
-                        ResponseEntity<Dish> dishResponse = dishController.getDishByID(id);
-                        if (dishResponse.getStatusCode().equals(HttpStatus.OK)) {
-                            Dish dish = dishController.getDishByID(id).getBody();
-                            earnings += dish.getPrice();
+                        ResponseEntity<Dish> dishResponse;
+                        int t = 0;
+                        while (t < 3) {
+                            dishResponse = dishController.getDishByID(id);
+                            if (dishResponse.getStatusCode().equals(HttpStatus.OK)) {
+                                Dish dish = dishController.getDishByID(id).getBody();
+                                earnings += dish.getPrice();
+                                break;
+                            }
+                            else {
+                                wait(2000);
+                                t++;
+                            }
                         }
                     }
                 }
