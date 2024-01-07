@@ -42,13 +42,19 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 ////            "WHERE o.vendorID = :vendorID " +
 //            "GROUP BY o.listOfDishes")
 //    List<Object[]> countDishesOccurrencesFromVendor();
-    @Query(value = "SELECT d.DISHID " +
-            "FROM Orders o " +
-            "JOIN ORDER_LIST_OF_DISHES as lod on lod.ORDER_ORDERID = o.ORDERID " +
-            "JOIN DISH as d on lod.LIST_OF_DISHES = d.DISHID " +
-            "WHERE o.VENDORID = :vendorID " +
-            "GROUP BY d.DISHID " +
-            "ORDER BY COUNT(*) DESC", nativeQuery = true)
-    List<Object> countDishesOccurrencesFromVendor(@Param("vendorID") UUID vendorID);
+//    @Query(value = "SELECT d.DISHID " +
+//            "FROM Orders o " +
+//            "JOIN ORDER_LIST_OF_DISHES as lod on lod.ORDER_ORDERID = o.ORDERID " +
+//            "JOIN DISH as d on lod.LIST_OF_DISHES = d.DISHID " +
+//            "WHERE o.VENDORID = :vendorID " +
+//            "GROUP BY d.DISHID " +
+//            "ORDER BY COUNT(*) DESC", nativeQuery = true)
+    @Query(value = "SELECT lod " +
+            "FROM Order o " +
+            "JOIN o.listOfDishes lod " +
+            "WHERE o.vendorID = :vendorID " +
+            "GROUP BY lod " +
+            "ORDER BY COUNT(lod) DESC")
+    List<UUID> countDishesOccurrencesFromVendor(@Param("vendorID") UUID vendorID);
 
 }

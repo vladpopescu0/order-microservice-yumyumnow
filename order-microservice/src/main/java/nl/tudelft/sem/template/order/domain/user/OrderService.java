@@ -240,11 +240,12 @@ public class OrderService {
         if (!orderRepository.existsByVendorID(vendorID)) {
             throw new VendorNotFoundException(vendorID);
         }
-        List<UUID> queryResult = orderRepository.countDishesOccurrencesFromVendor(vendorID)
-                .stream().map(o -> (byte[]) o)
-                .map(bytes -> ByteBuffer.wrap(bytes).asLongBuffer())
-                .map(buff -> new UUID(buff.get(), buff.get()))
-                .collect(Collectors.toList());
+        List<UUID> queryResult = orderRepository.countDishesOccurrencesFromVendor(vendorID);
+//        List<UUID> queryResult = orderRepository.countDishesOccurrencesFromVendor(vendorID)
+//                .stream().map(o -> (byte[]) o)
+//                .map(bytes -> ByteBuffer.wrap(bytes).asLongBuffer())
+//                .map(buff -> new UUID(buff.get(), buff.get()))
+//                .collect(Collectors.toList());
         List<Dish> result = new ArrayList<>();
         for (UUID row : queryResult) {
             Optional<Dish> cur = dishRepository.findDishByDishID(row);

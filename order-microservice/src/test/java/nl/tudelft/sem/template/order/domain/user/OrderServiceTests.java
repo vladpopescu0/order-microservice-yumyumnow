@@ -271,7 +271,7 @@ class OrderServiceTests {
         }
 
         when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
-        when(orderRepository.countDishesOccurrencesFromVendor(order1.getVendorID())).thenReturn(byteList);
+        when(orderRepository.countDishesOccurrencesFromVendor(order1.getVendorID())).thenReturn(List.of(d1.getDishID(),d2.getDishID()));
         when(dishRepository.findDishByDishID(d1.getDishID())).thenReturn(Optional.of(d1));
         when(dishRepository.findDishByDishID(d2.getDishID())).thenReturn(Optional.empty());
 
@@ -280,22 +280,8 @@ class OrderServiceTests {
 
     @Test
     void getDishesSortedByVolume_DishesFound() throws VendorNotFoundException, DishNotFoundException {
-        List<Object> byteList = new ArrayList<>();
-        for(UUID curId : List.of(d2.getDishID(),d1.getDishID())) {
-            String id = curId.toString().replace("-", "");
-            byte[] idBytes = new byte[16];
-            for (int i = 0; i < 16; i++) {
-                int cur = Integer.parseInt(id.substring(2 * i, 2 * i + 2), 16);
-                if (cur >= 128) {
-                    cur -= 256;
-                }
-                idBytes[i] = (byte) cur;
-            }
-            byteList.add(idBytes);
-        }
-
         when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
-        when(orderRepository.countDishesOccurrencesFromVendor(order1.getVendorID())).thenReturn(byteList);
+        when(orderRepository.countDishesOccurrencesFromVendor(order1.getVendorID())).thenReturn(List.of(d2.getDishID(),d1.getDishID()));
         when(dishRepository.findDishByDishID(d1.getDishID())).thenReturn(Optional.of(d1));
         when(dishRepository.findDishByDishID(d2.getDishID())).thenReturn(Optional.of(d2));
 
