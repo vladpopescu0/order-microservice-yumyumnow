@@ -29,32 +29,13 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     Optional<List<Order>> findOrdersByVendorID(UUID vendorID);
 
-//    @Query("SELECT lod.LIST_OF_DISHES, COUNT(*)\n" +
-//            "FROM Orders o JOIN ORDER_LIST_OF_DISHES as lod on lod.ORDER_ORDERID = o.ORDERID\n" +
-//            "WHERE o.VENDORID = '550e8400e29b41d4a716446655440001'\n" +
-//            "GROUP BY lod.LIST_OF_DISHES")
-//    @Query("SELECT lod.LIST_OF_DISHES, COUNT(*)\n" +
-//        "FROM Order o JOIN ORDER_LIST_OF_DISHES as lod on lod.ORDER_ORDERID = o.ORDERID\n" +
-//        "WHERE o.VENDORID = '550e8400e29b41d4a716446655440001'\n" +
-//        "GROUP BY lod.LIST_OF_DISHES")
-//    @Query("SELECT o.listOfDishes, COUNT(*)" +
-//            "FROM Order o " +
-////            "WHERE o.vendorID = :vendorID " +
-//            "GROUP BY o.listOfDishes")
-//    List<Object[]> countDishesOccurrencesFromVendor();
-//    @Query(value = "SELECT d.DISHID " +
-//            "FROM Orders o " +
-//            "JOIN ORDER_LIST_OF_DISHES as lod on lod.ORDER_ORDERID = o.ORDERID " +
-//            "JOIN DISH as d on lod.LIST_OF_DISHES = d.DISHID " +
-//            "WHERE o.VENDORID = :vendorID " +
-//            "GROUP BY d.DISHID " +
-//            "ORDER BY COUNT(*) DESC", nativeQuery = true)
-    @Query(value = "SELECT lod " +
+    @Query(value = "SELECT d " +
             "FROM Order o " +
             "JOIN o.listOfDishes lod " +
+            "JOIN Dish d on d.dishID = lod " +
             "WHERE o.vendorID = :vendorID " +
             "GROUP BY lod " +
             "ORDER BY COUNT(lod) DESC")
-    List<UUID> countDishesOccurrencesFromVendor(@Param("vendorID") UUID vendorID);
+    List<Dish> countDishesOccurrencesFromVendor(@Param("vendorID") UUID vendorID);
 
 }
