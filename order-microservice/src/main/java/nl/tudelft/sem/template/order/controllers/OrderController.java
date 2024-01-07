@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 import nl.tudelft.sem.template.order.api.OrderApi;
 import nl.tudelft.sem.template.order.commons.Order;
+import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
 import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -172,5 +173,16 @@ public class OrderController implements OrderApi {
         }
     }
 
-    //Methods
+    @Override
+    public ResponseEntity<List<Order>> getCustomerOrderHistory(UUID customerID){
+        try{
+            List<Order> allOrdersByCustomerID = orderService.getOrdersByCustomerID(customerID);
+            return ResponseEntity.ok(allOrdersByCustomerID);
+            //I was thinking about extracting this status filtering
+            //and creating a status that filters by statuses
+            //design pattern? can be strategy pattern
+        }catch (NoOrdersException noOrdersException){
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

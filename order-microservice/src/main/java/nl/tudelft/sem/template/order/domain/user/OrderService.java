@@ -161,4 +161,11 @@ public class OrderService {
         return o;
     }
 
+    public List<Order> getOrdersByCustomerID(UUID customerID) throws NoOrdersException {
+        Optional<List<Order>> customerOrders = orderRepository.findOrdersByCustomerID(customerID);
+        if (customerOrders.isEmpty()) {
+            throw new NoOrdersException();
+        }
+        return customerOrders.get();
+    }
 }
