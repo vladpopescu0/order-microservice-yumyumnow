@@ -139,5 +139,26 @@ public class OrderService {
 
         return currentOrder.get().getOrderPaid();
     }
+    /**
+     * The implementation of the orderISPaid put method from the controllers.
+     *
+     * @param orderID the id of the order to flip the isPaid value
+     * @throws OrderNotFoundException when the method cannot find the order in the database
+     */
+
+    public Order orderIsPaidUpdate(UUID orderID) throws OrderNotFoundException {
+        if (!checkUUIDIsUnique(orderID)) {
+            throw new OrderNotFoundException(orderID);
+        }
+        Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
+
+        assert (currentOrder.isPresent());
+
+        orderRepository.updateOrderPayment(!currentOrder.get().getOrderPaid(), orderID);
+
+        Order o = currentOrder.get();
+        o.setOrderPaid(!o.getOrderPaid());
+        return o;
+    }
 
 }
