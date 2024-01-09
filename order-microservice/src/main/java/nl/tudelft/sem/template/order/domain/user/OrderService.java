@@ -1,5 +1,7 @@
 package nl.tudelft.sem.template.order.domain.user;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,20 +31,96 @@ public class OrderService {
     }
 
     /**
-     * retrieves an order
+     * Method for adding a new Order to the database.
      *
-     * @param orderId the UUID of the order that has to be retrieved
-     * @return Order from the database with the given id
-     * @throws OrderNotFoundException if there is no order with the given id in the database
+     * @param order new Order to be added to the database
+     * @return Order that has been created and added to the database
+     * @throws OrderIdAlreadyInUseException - thrown when the provided orderID is not unique
      */
-    public Order getOrderById(UUID orderId) throws OrderNotFoundException {
-        Optional<Order> databaseOrder = orderRepository.findOrderByOrderID(orderId);
-        if (databaseOrder.isEmpty()) {
-            throw new OrderNotFoundException(orderId);
+    public Order createOrder(Order order) throws OrderIdAlreadyInUseException {
+
+        if (checkUUIDIsUnique(order.getOrderID())) {
+            throw new OrderIdAlreadyInUseException(order.getOrderID());
         }
 
-        Order res = databaseOrder.get();
-        return res;
+        order = orderRepository.save(order);
+        order.setListOfDishes(new ArrayList<>(order.getListOfDishes()));
+
+        return order;
+
+    }
+
+    /**
+     * Method for returning all Orders stored in the database.
+     *
+     * @return List of Orders in the database
+     * @throws NoOrdersException - thrown when there are no Orders in the database
+     */
+    public List<Order> getAllOrders() throws NoOrdersException {
+
+        List<Order> orders = orderRepository.findAll();
+        if (orders.isEmpty()) {
+            throw new NoOrdersException();
+        }
+
+        for (Order o : orders) {
+            o.setListOfDishes(new ArrayList<>(o.getListOfDishes()));
+        }
+
+        return orders;
+    }
+
+    /**
+     * Method for returning specific Order.
+     *
+     * @param orderID Provided ID of Order to be returned
+     * @return Order with specified ID
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public Order getOrderById(UUID orderID) throws OrderNotFoundException {
+
+        Optional<Order> o = orderRepository.findOrderByOrderID(orderID);
+        if (o.isEmpty()) {
+            throw new OrderNotFoundException(orderID);
+        }
+
+        Order orderToRet = o.get();
+        orderToRet.setListOfDishes(new ArrayList<>(orderToRet.getListOfDishes()));
+        return orderToRet;
+
+    }
+
+    /**
+     * Method for editing an Order in the database.
+     *
+     * @param orderID ID specifying the Order to be deleted
+     * @param order The edited Order to put into the database
+     * @return Edited Order
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public Order editOrderByID(UUID orderID, Order order) throws OrderNotFoundException {
+        if (!checkUUIDIsUnique(orderID)) {
+            throw new OrderNotFoundException(orderID);
+        }
+
+        order = orderRepository.save(order);
+        order.setListOfDishes(new ArrayList<>(order.getListOfDishes()));
+
+        return order;
+
+    }
+
+    /**
+     * Method for deleting specific Order from the database.
+     *
+     * @param orderID ID specifying the Order to be deleted
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public void deleteOrderByID(UUID orderID) throws OrderNotFoundException {
+        if (!checkUUIDIsUnique(orderID)) {
+            throw new OrderNotFoundException(orderID);
+        }
+        orderRepository.deleteById(orderID);
     }
 
     /**
@@ -62,9 +140,26 @@ public class OrderService {
 
         return currentOrder.get().getOrderPaid();
     }
+    /**
+     * The implementation of the orderISPaid put method from the controllers.
+     *
+     * @param orderID the id of the order to flip the isPaid value
+     * @throws OrderNotFoundException when the method cannot find the order in the database
+     */
 
+    public Order orderIsPaidUpdate(UUID orderID) throws OrderNotFoundException {
+        if (!checkUUIDIsUnique(orderID)) {
+            throw new OrderNotFoundException(orderID);
+        }
+        Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
 
+        assert (currentOrder.isPresent());
 
+        orderRepository.updateOrderPayment(!currentOrder.get().getOrderPaid(), orderID);
 
+        Order o = currentOrder.get();
+        o.setOrderPaid(!o.getOrderPaid());
+        return o;
+    }
 
 }

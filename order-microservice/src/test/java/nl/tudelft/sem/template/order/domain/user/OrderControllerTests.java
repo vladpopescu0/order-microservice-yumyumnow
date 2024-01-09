@@ -19,6 +19,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+
+
 @ExtendWith(MockitoExtension.class)
 class OrderControllerTests {
 
@@ -165,6 +167,29 @@ class OrderControllerTests {
         Mockito.doThrow(OrderNotFoundException.class).when(orderService).orderIsPaid(orderID);
 
         ResponseEntity<Void> response = orderController.orderOrderIDIsPaidGet(orderID);
+
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void testPaymentWhenExists() throws OrderNotFoundException {
+        UUID orderID = UUID.randomUUID();
+        Order order = new Order();
+        order.setOrderID(orderID);
+        order.setOrderPaid(false);
+        Mockito.when(orderService.orderIsPaidUpdate(orderID)).thenReturn(order);
+
+        ResponseEntity<Order> response = orderController.updateOrderPaid(orderID);
+
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(order,response.getBody());
+    }
+    @Test
+    void testPaymentWhenNotExists() throws OrderNotFoundException {
+        UUID orderIDFake = UUID.randomUUID();
+        Mockito.when(orderService.orderIsPaidUpdate(orderIDFake)).thenThrow(OrderNotFoundException.class);
+
+        ResponseEntity<Order> response = orderController.updateOrderPaid(orderIDFake);
 
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
