@@ -14,22 +14,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import java.math.BigDecimal;
-import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTests {
@@ -301,7 +294,7 @@ class OrderServiceTests {
 
         when(orderRepository.existsByVendorID(nonExistingVendorID)).thenReturn(false);
 
-        Assertions.assertThrows(VendorNotFoundException.class, () -> orderService.getOrdersFromCostumerAtVendor(nonExistingVendorID,order1.getCustomerID()));
+        Assertions.assertThrows(VendorNotFoundException.class, () -> orderService.getOrdersFromCustomerAtVendor(nonExistingVendorID,order1.getCustomerID()));
     }
 
     @Test
@@ -311,7 +304,7 @@ class OrderServiceTests {
         when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
         when(orderRepository.existsByCustomerID(nonExistingCustomerID)).thenReturn(false);
 
-        Assertions.assertThrows(CustomerNotFoundException.class, () -> orderService.getOrdersFromCostumerAtVendor(order1.getVendorID(),nonExistingCustomerID));
+        Assertions.assertThrows(CustomerNotFoundException.class, () -> orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),nonExistingCustomerID));
     }
 
     @Test
@@ -320,7 +313,7 @@ class OrderServiceTests {
         when(orderRepository.existsByCustomerID(order1.getCustomerID())).thenReturn(true);
         when(orderRepository.findOrdersByVendorIDAndCustomerID(order1.getVendorID(),order1.getCustomerID())).thenReturn(Optional.empty());
 
-        Assertions.assertThrows(NoOrdersException.class, () -> orderService.getOrdersFromCostumerAtVendor(order1.getVendorID(),order1.getCustomerID()));
+        Assertions.assertThrows(NoOrdersException.class, () -> orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),order1.getCustomerID()));
     }
 
     @Test
@@ -329,7 +322,7 @@ class OrderServiceTests {
         when(orderRepository.existsByCustomerID(order1.getCustomerID())).thenReturn(true);
         when(orderRepository.findOrdersByVendorIDAndCustomerID(order1.getVendorID(),order1.getCustomerID())).thenReturn(Optional.of(List.of(order1,order2)));
 
-        List<Order> result = orderService.getOrdersFromCostumerAtVendor(order1.getVendorID(),order1.getCustomerID());
+        List<Order> result = orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),order1.getCustomerID());
 
         assertThat(result).isEqualTo(List.of(order1,order2));
     }

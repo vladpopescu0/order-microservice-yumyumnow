@@ -1,6 +1,5 @@
 package nl.tudelft.sem.template.order.domain.user;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -192,7 +191,7 @@ public class OrderService {
      * @throws CustomerNotFoundException if the customer does not exist
      * @throws NoOrdersException if no orders were found
      */
-    public List<Order> getOrdersFromCostumerAtVendor(UUID vendorID, UUID customerID)
+    public List<Order> getOrdersFromCustomerAtVendor(UUID vendorID, UUID customerID)
             throws VendorNotFoundException, CustomerNotFoundException, NoOrdersException {
         if (!orderRepository.existsByVendorID(vendorID)) {
             throw new VendorNotFoundException(vendorID);

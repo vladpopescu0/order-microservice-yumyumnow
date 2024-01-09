@@ -80,7 +80,7 @@ public class VendorAnalyticsController implements VendorApi {
     @Override
     public ResponseEntity<List<Order>> vendorVendorIDAnalyticsHistoryCustomerIDGet(UUID vendorID, UUID customerID) {
         try {
-            List<Order> orders = orderService.getOrdersFromCostumerAtVendor(vendorID, customerID);
+            List<Order> orders = orderService.getOrdersFromCustomerAtVendor(vendorID, customerID);
             return ResponseEntity.ok(orders);
         } catch (VendorNotFoundException | CustomerNotFoundException e) {
             return ResponseEntity.notFound().build();
