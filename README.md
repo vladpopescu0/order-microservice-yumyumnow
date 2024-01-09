@@ -5,6 +5,8 @@
 | Thijs      | Houben     | 
 | Hidde      | van Luenen |
 | Vlad       | Popescu    |
+| Petra      | Gulyás     |
+| Ioana      | Forfota    |
 
 # Lab Template
 
