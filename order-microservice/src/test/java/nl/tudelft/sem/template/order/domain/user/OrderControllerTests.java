@@ -33,9 +33,38 @@ class OrderControllerTests {
     @InjectMocks
     private OrderController orderController;
 
+    List<Order> orders;
+
+    Order order1;
+
+    Order order2;
+
     @BeforeEach
     void setUp() {
+        orders = new ArrayList<>();
+        order1 = new Order();
+        order1.setOrderID(UUID.randomUUID());
+        order1.setVendorID(UUID.randomUUID());
+        order1.setCustomerID(UUID.randomUUID());
+        order1.setAddress(null);
+        order1.setDate(new BigDecimal("1700006405000"));
+        order1.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
+        order1.setSpecialRequirements("Knock on the door");
+        order1.setOrderPaid(true);
+        order1.setStatus(Order.StatusEnum.DELIVERED);
+        order1.setRating(4);
 
+        order2 = new Order();
+        order2.setOrderID(UUID.randomUUID());
+        order2.setVendorID(UUID.randomUUID());
+        order2.setCustomerID(order1.getCustomerID());
+        order2.setAddress(null);
+        order2.setDate(new BigDecimal("1700006405000"));
+        order2.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
+        order2.setSpecialRequirements("Knock on the door");
+        order2.setOrderPaid(true);
+        order2.setStatus(Order.StatusEnum.DELIVERED);
+        order2.setRating(4);
     }
 
     @Test
@@ -109,30 +138,9 @@ class OrderControllerTests {
         UUID customerId = UUID.randomUUID();
         List<Order> orders = new ArrayList<>();
 
-        Order order1 = new Order();
-        order1.setOrderID(UUID.randomUUID());
-        order1.setVendorID(UUID.randomUUID());
-        order1.setCustomerID(UUID.randomUUID());
-        order1.setAddress(null);
-        order1.setDate(new BigDecimal("1700006405000"));
-        order1.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
-        order1.setSpecialRequirements("Knock on the door");
-        order1.setOrderPaid(true);
-        order1.setStatus(Order.StatusEnum.DELIVERED);
-        order1.setRating(4);
 
-        Order order2 = new Order();
-        order1.setOrderID(UUID.randomUUID());
-        order1.setVendorID(UUID.randomUUID());
-        order1.setCustomerID(order1.getCustomerID());
-        order1.setAddress(null);
-        order1.setDate(new BigDecimal("1700006405000"));
-        order1.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
-        order1.setSpecialRequirements("Knock on the door");
-        order1.setOrderPaid(true);
-        order1.setStatus(Order.StatusEnum.DELIVERED);
-        order1.setRating(4);
 
+        orders.add(order1);
         orders.add(order2);
 
         when(orderService.getPastOrdersByCustomerID(eq(customerId), Mockito.any(FilteringByStatus.class)))

@@ -148,6 +148,25 @@ public class OrderIntegrationTests {
         Boolean isPaid = objectMapper.readValue(res.getResponse().getContentAsString(),new TypeReference<Order>() {}).getOrderPaid();
         assertThat(isPaid).isTrue();
     }
+
+    @Transactional
+    @Test
+    public void checkOrderPaidUpdateOrderWasPaid() throws Exception {
+        order2.setOrderPaid(true);
+        ResultActions resultActions2 = mockMvc.perform(post("/order")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(order2)));
+        resultActions2.andExpect(status().isOk());
+
+
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/isPaid",order2.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
+        Boolean isPaid = objectMapper.readValue(res.getResponse().getContentAsString(),new TypeReference<Order>() {}).getOrderPaid();
+        assertThat(isPaid).isFalse();
+    }
     @Transactional
     @Test
     public void checkOrderPaidUpdateNotFound() throws Exception {

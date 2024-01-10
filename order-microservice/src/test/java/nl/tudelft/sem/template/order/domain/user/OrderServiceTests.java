@@ -33,6 +33,8 @@ class OrderServiceTests {
     Address a2;
     Order order1;
     Order order2;
+    Order order3;
+    List<Order> orders;
 
     @BeforeEach
     void setup() {
@@ -72,6 +74,18 @@ class OrderServiceTests {
         order2.setStatus(Order.StatusEnum.ACCEPTED);
         order2.setRating(3);
 
+        order3 = new Order();
+        order3.setOrderID(UUID.randomUUID());
+        order3.setVendorID(UUID.randomUUID());
+        order3.setCustomerID(order1.getCustomerID());
+        order3.setAddress(a2);
+        order3.setDate(new BigDecimal("1700006405030"));
+        order3.setListOfDishes(Arrays.asList(UUID.randomUUID()));
+        order3.setSpecialRequirements("The bell doesn't work");
+        order3.setOrderPaid(false);
+        order3.setStatus(Order.StatusEnum.DELIVERED);
+        order3.setRating(3);
+        orders = new ArrayList<>();
     }
 
     @Test
@@ -244,22 +258,9 @@ class OrderServiceTests {
         Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.orderIsPaid(nonExistingOrderID));
     }
 
+
     @Test
     void testOrderHistoryContainsValues() throws NoOrdersException {
-
-        Order order3 = new Order();
-        order3.setOrderID(UUID.randomUUID());
-        order3.setVendorID(UUID.randomUUID());
-        order3.setCustomerID(order1.getCustomerID());
-        order3.setAddress(a2);
-        order3.setDate(new BigDecimal("1700006405030"));
-        order3.setListOfDishes(Arrays.asList(UUID.randomUUID()));
-        order3.setSpecialRequirements("The bell doesn't work");
-        order3.setOrderPaid(false);
-        order3.setStatus(Order.StatusEnum.DELIVERED);
-        order3.setRating(3);
-
-        List<Order> orders = new ArrayList<>();
         orders.add(order1);
         orders.add(order3);
 
@@ -277,20 +278,7 @@ class OrderServiceTests {
 
     @Test
     void testOrderHistoryHasNoAvailablePastOrders() {
-
-        Order order3 = new Order();
-        order3.setOrderID(UUID.randomUUID());
-        order3.setVendorID(UUID.randomUUID());
-        order3.setCustomerID(order1.getCustomerID());
-        order3.setAddress(a2);
-        order3.setDate(new BigDecimal("1700006405030"));
-        order3.setListOfDishes(Arrays.asList(UUID.randomUUID()));
-        order3.setSpecialRequirements("The bell doesn't work");
-        order3.setOrderPaid(false);
         order3.setStatus(Order.StatusEnum.PENDING);
-        order3.setRating(3);
-
-        List<Order> orders = new ArrayList<>();
         orders.add(order1);
         orders.add(order3);
 

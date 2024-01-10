@@ -137,8 +137,6 @@ public class OrderService {
         }
         Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
 
-        assert (currentOrder.isPresent());
-
         return currentOrder.get().getOrderPaid();
     }
     /**
@@ -153,8 +151,6 @@ public class OrderService {
             throw new OrderNotFoundException(orderID);
         }
         Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
-
-        assert (currentOrder.isPresent());
 
         orderRepository.updateOrderPayment(!currentOrder.get().getOrderPaid(), orderID);
 
