@@ -52,7 +52,6 @@ public class OrderService {
 
         order = orderRepository.save(order);
         order.setListOfDishes(new ArrayList<>(order.getListOfDishes()));
-
         return order;
 
     }
@@ -260,6 +259,11 @@ public class OrderService {
         if (!orderRepository.existsByVendorID(vendorID)) {
             throw new VendorNotFoundException(vendorID);
         }
-        return orderRepository.countDishesOccurrencesFromVendor(vendorID);
+        List<Dish> res = orderRepository.countDishesOccurrencesFromVendor(vendorID);
+        for(Dish d : res){
+            d.setListOfIngredients(new ArrayList<>(d.getListOfIngredients()));
+            d.setListOfAllergies(new ArrayList<>(d.getListOfAllergies()));
+        }
+        return res;
     }
 }
