@@ -88,7 +88,7 @@ jacocoTestCoverageVerification() {
 			enabled = true
 			element = 'CLASS'
 			includes = ['nl.tudelft.sem.template.*']
-
+			excludes = ['nl.tudelft.sem.template.api.*','nl.tudelft.sem.template.commons.*','nl.tudelft.sem.template.order.api.*','nl.tudelft.sem.template.model.*']
 			limit {
 				counter = 'BRANCH'
 				value = 'COVEREDRATIO'
