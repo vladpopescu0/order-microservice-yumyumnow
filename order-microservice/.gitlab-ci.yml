@@ -63,14 +63,15 @@ pitest-order-microservice:
     - gradle_build
   stage: test
   script:
-    gradle order-microservice:pitest &&
-    MUTATION_SCORE=$(grep -oP "(?<=<th>Mutation Score</th><td>)([0-9]+)" order-microservice/build/reports/pitest/index.html) &&
-    if [[ $MUTATION_SCORE -ge 70 ]]; then
-      echo "Mutation score is greater than or equal to 70%."
-    else
-      echo "Mutation score is less than 70%."
-      exit 1
-    fi
+    - |
+      gradle order-microservice:pitest &&
+      MUTATION_SCORE=$(grep -oP "(?<=<th>Mutation Score</th><td>)([0-9]+)" order-microservice/build/reports/pitest/index.html) &&
+      if [[ $MUTATION_SCORE -ge 70 ]]; then
+        echo "Mutation score is greater than or equal to 70%."
+      else
+        echo "Mutation score is less than 70%."
+        exit 1
+      fi
   allow_failure: true
 
 #test-order-microservice:
