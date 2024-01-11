@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -120,7 +119,7 @@ public class VendorAnalyticsControllerTests {
 
     @Test
     void get_customer_history_vendor_not_found() throws Exception, CustomerNotFoundException {
-        when(orderService.getOrdersFromCostumerAtVendor(order1.getVendorID(),order1.getCustomerID())).thenThrow(VendorNotFoundException.class);
+        when(orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),order1.getCustomerID())).thenThrow(VendorNotFoundException.class);
 
         ResponseEntity<List<Order>> response = vendorAnalyticsController.vendorVendorIDAnalyticsHistoryCustomerIDGet(order1.getVendorID(),order1.getCustomerID());
 
@@ -129,7 +128,7 @@ public class VendorAnalyticsControllerTests {
 
     @Test
     void get_customer_history_customer_not_found() throws Exception, CustomerNotFoundException {
-        when(orderService.getOrdersFromCostumerAtVendor(order1.getVendorID(),order1.getCustomerID())).thenThrow(CustomerNotFoundException.class);
+        when(orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),order1.getCustomerID())).thenThrow(CustomerNotFoundException.class);
 
         ResponseEntity<List<Order>> response = vendorAnalyticsController.vendorVendorIDAnalyticsHistoryCustomerIDGet(order1.getVendorID(),order1.getCustomerID());
 
@@ -138,7 +137,7 @@ public class VendorAnalyticsControllerTests {
 
     @Test
     void get_customer_history_no_order() throws Exception, CustomerNotFoundException {
-        when(orderService.getOrdersFromCostumerAtVendor(order1.getVendorID(),order1.getCustomerID())).thenThrow(NoOrdersException.class);
+        when(orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),order1.getCustomerID())).thenThrow(NoOrdersException.class);
 
         ResponseEntity<List<Order>> response = vendorAnalyticsController.vendorVendorIDAnalyticsHistoryCustomerIDGet(order1.getVendorID(),order1.getCustomerID());
 
@@ -148,7 +147,7 @@ public class VendorAnalyticsControllerTests {
 
     @Test
     void get_customer_history_unexpected_exception() throws Exception, CustomerNotFoundException {
-        when(orderService.getOrdersFromCostumerAtVendor(order1.getVendorID(),order1.getCustomerID())).thenThrow(NullPointerException.class);
+        when(orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),order1.getCustomerID())).thenThrow(NullPointerException.class);
 
         ResponseEntity<List<Order>> response = vendorAnalyticsController.vendorVendorIDAnalyticsHistoryCustomerIDGet(order1.getVendorID(),order1.getCustomerID());
 
@@ -157,7 +156,7 @@ public class VendorAnalyticsControllerTests {
 
     @Test
     void get_customer_history_proper_request() throws Exception, CustomerNotFoundException {
-        when(orderService.getOrdersFromCostumerAtVendor(order1.getVendorID(),order1.getCustomerID())).thenReturn(List.of(order1));
+        when(orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),order1.getCustomerID())).thenReturn(List.of(order1));
 
         ResponseEntity<List<Order>> response = vendorAnalyticsController.vendorVendorIDAnalyticsHistoryCustomerIDGet(order1.getVendorID(),order1.getCustomerID());
 

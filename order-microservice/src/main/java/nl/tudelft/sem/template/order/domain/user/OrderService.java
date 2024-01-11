@@ -1,6 +1,5 @@
 package nl.tudelft.sem.template.order.domain.user;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -10,6 +9,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import nl.tudelft.sem.template.order.commons.Dish;
 import nl.tudelft.sem.template.order.commons.Order;
+import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
 import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,11 @@ public class OrderService {
      * @return Order that has been created and added to the database
      * @throws OrderIdAlreadyInUseException - thrown when the provided orderID is not unique
      */
-    public Order createOrder(Order order) throws OrderIdAlreadyInUseException {
+    public Order createOrder(Order order) throws OrderIdAlreadyInUseException, NullFieldException {
+
+        if (order == null) {
+            throw new NullFieldException();
+        }
 
         if (checkUUIDIsUnique(order.getOrderID())) {
             throw new OrderIdAlreadyInUseException(order.getOrderID());
@@ -83,8 +87,10 @@ public class OrderService {
      * @return Order with specified ID
      * @throws OrderNotFoundException - thrown when the orderID isn't found
      */
-    public Order getOrderById(UUID orderID) throws OrderNotFoundException {
-
+    public Order getOrderById(UUID orderID) throws OrderNotFoundException, NullFieldException {
+        if (orderID == null) {
+            throw new NullFieldException();
+        }
         Optional<Order> o = orderRepository.findOrderByOrderID(orderID);
         if (o.isEmpty()) {
             throw new OrderNotFoundException(orderID);
@@ -104,7 +110,12 @@ public class OrderService {
      * @return Edited Order
      * @throws OrderNotFoundException - thrown when the orderID isn't found
      */
-    public Order editOrderByID(UUID orderID, Order order) throws OrderNotFoundException {
+    public Order editOrderByID(UUID orderID, Order order) throws OrderNotFoundException, NullFieldException {
+
+        if (orderID == null || order == null) {
+            throw new NullFieldException();
+        }
+
         if (!checkUUIDIsUnique(orderID)) {
             throw new OrderNotFoundException(orderID);
         }
@@ -142,30 +153,7 @@ public class OrderService {
         }
         Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
 
-        assert (currentOrder.isPresent());
-
         return currentOrder.get().getOrderPaid();
-    }
-    /**
-     * The implementation of the orderISPaid put method from the controllers.
-     *
-     * @param orderID the id of the order to flip the isPaid value
-     * @throws OrderNotFoundException when the method cannot find the order in the database
-     */
-
-    public Order orderIsPaidUpdate(UUID orderID) throws OrderNotFoundException {
-        if (!checkUUIDIsUnique(orderID)) {
-            throw new OrderNotFoundException(orderID);
-        }
-        Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
-
-        assert (currentOrder.isPresent());
-
-        orderRepository.updateOrderPayment(!currentOrder.get().getOrderPaid(), orderID);
-
-        Order o = currentOrder.get();
-        o.setOrderPaid(!o.getOrderPaid());
-        return o;
     }
 
     /**
@@ -212,7 +200,7 @@ public class OrderService {
      * @throws CustomerNotFoundException if the customer does not exist
      * @throws NoOrdersException if no orders were found
      */
-    public List<Order> getOrdersFromCostumerAtVendor(UUID vendorID, UUID customerID)
+    public List<Order> getOrdersFromCustomerAtVendor(UUID vendorID, UUID customerID)
             throws VendorNotFoundException, CustomerNotFoundException, NoOrdersException {
         if (!orderRepository.existsByVendorID(vendorID)) {
             throw new VendorNotFoundException(vendorID);
@@ -286,5 +274,49 @@ public class OrderService {
             d.setListOfAllergies(new ArrayList<>(d.getListOfAllergies()));
         }
         return res;
+    }
+
+    /**
+     * The implementation of the orderISPaid put method from the controllers.
+     *
+     * @param orderID the id of the order to flip the isPaid value
+     * @throws OrderNotFoundException when the method cannot find the order in the database
+     */
+    public Order orderIsPaidUpdate(UUID orderID) throws OrderNotFoundException {
+        if (!checkUUIDIsUnique(orderID)) {
+            throw new OrderNotFoundException(orderID);
+        }
+        Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
+
+        orderRepository.updateOrderPayment(!currentOrder.get().getOrderPaid(), orderID);
+
+        Order o = currentOrder.get();
+        o.setOrderPaid(!o.getOrderPaid());
+        return o;
+    }
+
+    /**
+     * Get all past completed orders of a user based on their ID.
+     *
+     * @param customerID the id of the customer on which the SQL query is based
+     *
+     * @param filteringParam the filtering param I want to consider as correct, here
+     *                       could be "delivered"
+     *
+     * @return the list of all delivered orders of a specific customer
+     * @throws NoOrdersException when there are no orders in the database or no orders of this specific customerID
+     */
+    public List<Order> getPastOrdersByCustomerID(UUID customerID,
+                                                 FilteringParam<Order> filteringParam) throws NoOrdersException {
+        Optional<List<Order>> customerOrders = orderRepository.findOrdersByCustomerID(customerID);
+        if (customerOrders.isEmpty()) {
+            throw new NoOrdersException();
+        }
+        List<Order> fromOptional = customerOrders.get();
+        fromOptional = fromOptional.stream().filter(filteringParam::filtering).collect(Collectors.toList());
+        if (fromOptional.isEmpty()) {
+            throw new NoOrdersException();
+        }
+        return fromOptional;
     }
 }

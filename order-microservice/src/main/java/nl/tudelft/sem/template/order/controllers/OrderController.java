@@ -1,17 +1,20 @@
 package nl.tudelft.sem.template.order.controllers;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
 import nl.tudelft.sem.template.order.api.OrderApi;
 import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.order.commons.Order;
+import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
+import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
+import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
+import nl.tudelft.sem.template.order.domain.user.NullFieldException;
 import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.UUID;
 
 @RestController
 public class OrderController implements OrderApi {
@@ -37,7 +40,8 @@ public class OrderController implements OrderApi {
         try {
             Order o = orderService.createOrder(order);
             return ResponseEntity.ok(o);
-
+        } catch (NullFieldException e) {
+            return ResponseEntity.unprocessableEntity().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
@@ -52,7 +56,6 @@ public class OrderController implements OrderApi {
      */
     @Override
     public ResponseEntity<List<Order>> getAllOrders() {
-
         try {
             List<Order> list = orderService.getAllOrders();
             return ResponseEntity.ok(list);
@@ -75,6 +78,8 @@ public class OrderController implements OrderApi {
         try {
             Order o = orderService.getOrderById(orderID);
             return ResponseEntity.ok(o);
+        } catch (NullFieldException e) {
+            return ResponseEntity.unprocessableEntity().build();
         } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
@@ -102,6 +107,8 @@ public class OrderController implements OrderApi {
         try {
             Order edited = orderService.editOrderByID(orderID, order);
             return ResponseEntity.ok(edited);
+        } catch (NullFieldException e) {
+            return ResponseEntity.unprocessableEntity().build();
         } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
@@ -129,9 +136,6 @@ public class OrderController implements OrderApi {
             return ResponseEntity.badRequest().build();
         }
     }
-
-
-
 
     /**
      * OrderID isPaid controller methods.
@@ -188,6 +192,8 @@ public class OrderController implements OrderApi {
         try {
             Order order = orderService.getOrderById(orderID);
             return ResponseEntity.ok(order.getListOfDishes());
+        } catch (NullFieldException e) {
+            return ResponseEntity.unprocessableEntity().build();
         } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
@@ -209,6 +215,8 @@ public class OrderController implements OrderApi {
         try {
             Order order = orderService.getOrderById(orderID);
             return ResponseEntity.ok(order.getSpecialRequirements());
+        } catch (NullFieldException e) {
+            return ResponseEntity.unprocessableEntity().build();
         } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
@@ -229,6 +237,8 @@ public class OrderController implements OrderApi {
         try {
             Order order = orderService.getOrderById(orderID);
             return ResponseEntity.ok(order.getAddress());
+        } catch (NullFieldException e) {
+            return ResponseEntity.unprocessableEntity().build();
         } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
@@ -249,6 +259,8 @@ public class OrderController implements OrderApi {
         try {
             Order order = orderService.getOrderById(orderID);
             return ResponseEntity.ok(order.getDate());
+        } catch (NullFieldException e) {
+            return ResponseEntity.unprocessableEntity().build();
         } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
@@ -256,5 +268,22 @@ public class OrderController implements OrderApi {
         }
     }
 
-    //Methods
+    /** Controller for the /order/{orderID}/history endpoint.
+     *
+     * @param customerID the id of the customer on which we base the SQL query
+     *
+     * @return a response which can be 200 if there is at least a past order of this user in the database
+     *                                 404 if there are no orders of this user
+     *                                 400 if something else goes wrong
+     */
+    @Override
+    public ResponseEntity<List<Order>> getCustomerOrderHistory(UUID customerID) {
+        try {
+            FilteringParam<Order> filteringParam = new FilteringByStatus(Order.StatusEnum.DELIVERED);
+            List<Order> allOrdersByCustomerID = orderService.getPastOrdersByCustomerID(customerID, filteringParam);
+            return ResponseEntity.ok(allOrdersByCustomerID);
+        } catch (NoOrdersException noOrdersException) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

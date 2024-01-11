@@ -9,6 +9,7 @@ import nl.tudelft.sem.template.order.api.VendorApi;
 import nl.tudelft.sem.template.order.commons.Dish;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.domain.user.CustomerNotFoundException;
+import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
 import nl.tudelft.sem.template.order.domain.user.VendorNotFoundException;
@@ -46,23 +47,38 @@ public class VendorAnalyticsController implements VendorApi {
      * @return 200 OK if the calculation is successful, including a float representing the total earnings
      *         400 BAD REQUEST if the calculation was unsuccessful
      */
-    public ResponseEntity<Float> getOrderEarnings(UUID orderId) {
+    public ResponseEntity<Float> getOrderEarnings(UUID orderId) throws DishNotFoundException {
         try {
             Float earnings = 0.0f;
             ResponseEntity<List<UUID>> listResponse = orderController.getListOfDishes(orderId);
             if (listResponse.getStatusCode().equals(HttpStatus.OK)) {
                 List<UUID> listOfDishes = orderController.getListOfDishes(orderId).getBody();
+
                 if (listOfDishes != null) {
                     for (UUID id : listOfDishes) {
-                        ResponseEntity<Dish> dishResponse = dishController.getDishByID(id);
-                        if (dishResponse.getStatusCode().equals(HttpStatus.OK)) {
-                            Dish dish = dishController.getDishByID(id).getBody();
-                            earnings += dish.getPrice();
+                        ResponseEntity<Dish> dishResponse;
+                        int t = 0;
+
+                        while (t < 3) {
+                            dishResponse = dishController.getDishByID(id);
+                            HttpStatus dishResponseStatus = dishResponse.getStatusCode();
+
+                            if (dishResponseStatus.equals(HttpStatus.OK)) {
+                                Dish dish = dishController.getDishByID(id).getBody();
+                                earnings += dish.getPrice();
+                                break;
+                            } else if (dishResponseStatus.equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
+                                wait(1500);
+                                t++;
+                            } else {
+                                break;
+                            }
                         }
                     }
+                    return ResponseEntity.ok(earnings);
                 }
             }
-            return ResponseEntity.ok(earnings);
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
@@ -80,7 +96,7 @@ public class VendorAnalyticsController implements VendorApi {
     @Override
     public ResponseEntity<List<Order>> vendorVendorIDAnalyticsHistoryCustomerIDGet(UUID vendorID, UUID customerID) {
         try {
-            List<Order> orders = orderService.getOrdersFromCostumerAtVendor(vendorID, customerID);
+            List<Order> orders = orderService.getOrdersFromCustomerAtVendor(vendorID, customerID);
             return ResponseEntity.ok(orders);
         } catch (VendorNotFoundException e) {
             return ResponseEntity.notFound().build();

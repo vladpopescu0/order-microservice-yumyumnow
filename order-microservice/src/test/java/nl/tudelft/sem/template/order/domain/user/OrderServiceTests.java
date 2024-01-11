@@ -6,6 +6,7 @@ import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.order.commons.Dish;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
+import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
 import org.hibernate.collection.internal.PersistentBag;
 import org.junit.jupiter.api.Assertions;
@@ -16,22 +17,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.stream.Collectors;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import java.math.BigDecimal;
-import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTests {
@@ -53,6 +46,8 @@ class OrderServiceTests {
     Order order1CopyResult;
     Order order2;
     List<String> ingredients = new ArrayList<>();
+    Order order3;
+    List<Order> orders;
 
     @BeforeEach
     void setup() {
@@ -162,6 +157,20 @@ class OrderServiceTests {
         order2.setOrderPaid(true);
         order2.setStatus(Order.StatusEnum.ACCEPTED);
         order2.setRating(4);
+        order2.setRating(3);
+
+        order3 = new Order();
+        order3.setOrderID(UUID.randomUUID());
+        order3.setVendorID(UUID.randomUUID());
+        order3.setCustomerID(order1.getCustomerID());
+        order3.setAddress(a2);
+        order3.setDate(new BigDecimal("1700006405030"));
+        order3.setListOfDishes(Arrays.asList(UUID.randomUUID()));
+        order3.setSpecialRequirements("The bell doesn't work");
+        order3.setOrderPaid(false);
+        order3.setStatus(Order.StatusEnum.DELIVERED);
+        order3.setRating(3);
+        orders = new ArrayList<>();
     }
 
     @Test
@@ -185,9 +194,9 @@ class OrderServiceTests {
     }
 
     @Test
-    void testCreateOrderSuccessful() throws OrderIdAlreadyInUseException {
+    void testCreateOrderSuccessful() throws OrderIdAlreadyInUseException, NullFieldException {
 
-        Mockito.when(orderRepository.save(order1)).thenReturn(order1);
+        when(orderRepository.save(order1)).thenReturn(order1);
 
         Order savedOrder = orderService.createOrder(order1);
 
@@ -199,7 +208,7 @@ class OrderServiceTests {
     void testCreateOrderIdTaken() throws OrderIdAlreadyInUseException {
 
         UUID takenId = order1.getOrderID();
-        Mockito.when(orderService.checkUUIDIsUnique(takenId)).thenReturn(true);
+        when(orderService.checkUUIDIsUnique(takenId)).thenReturn(true);
 
         Assertions.assertThrows(OrderIdAlreadyInUseException.class,
                 () -> orderService.createOrder(order1));
@@ -209,7 +218,7 @@ class OrderServiceTests {
     @Test
     void testGetAllOrdersSuccessful() throws NoOrdersException {
 
-        Mockito.when(orderRepository.findAll()).thenReturn(Arrays.asList(order1, order2));
+        when(orderRepository.findAll()).thenReturn(Arrays.asList(order1, order2));
 
         List<Order> orderList = orderService.getAllOrders();
 
@@ -222,15 +231,15 @@ class OrderServiceTests {
     @Test
     void testGetAllOrdersNoOrders(){
 
-        Mockito.when(orderRepository.findAll()).thenReturn(new ArrayList<>());
+        when(orderRepository.findAll()).thenReturn(new ArrayList<>());
 
         Assertions.assertThrows(NoOrdersException.class, () -> orderService.getAllOrders());
     }
 
     @Test
-    void testGetOrderByIdSuccessful() throws OrderNotFoundException {
+    void testGetOrderByIdSuccessful() throws OrderNotFoundException, NullFieldException {
 
-        Mockito.when(orderRepository.findOrderByOrderID(order1.getOrderID()))
+        when(orderRepository.findOrderByOrderID(order1.getOrderID()))
                 .thenReturn(Optional.of(order1));
 
         Order returned = orderService.getOrderById(order1.getOrderID());
@@ -241,7 +250,7 @@ class OrderServiceTests {
     @Test
     void testGetOrderByIdNotFound() throws OrderNotFoundException {
 
-        Mockito.when(orderRepository.findOrderByOrderID(order1.getOrderID()))
+        when(orderRepository.findOrderByOrderID(order1.getOrderID()))
                 .thenReturn(Optional.empty());
 
         Assertions.assertThrows(OrderNotFoundException.class,
@@ -250,12 +259,12 @@ class OrderServiceTests {
     }
 
     @Test
-    void testEditOrderByIDSuccessful() throws OrderNotFoundException {
+    void testEditOrderByIDSuccessful() throws OrderNotFoundException, NullFieldException {
 
         order1.setRating(2);
 
-        Mockito.when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
-        Mockito.when(orderRepository.save(order1)).thenReturn(order1);
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
+        when(orderRepository.save(order1)).thenReturn(order1);
 
         Order edited = orderService.editOrderByID(order1.getOrderID(), order1);
         order1CopyResult.setRating(2);
@@ -266,7 +275,7 @@ class OrderServiceTests {
     @Test
     void testEditOrderByIDNotFound() {
 
-        Mockito.when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
 
         Assertions.assertThrows(OrderNotFoundException.class,
                 () -> orderService.editOrderByID(order1.getOrderID(), order1));
@@ -276,7 +285,7 @@ class OrderServiceTests {
     @Test
     void testDeleteOrderByIDSuccessful() throws OrderNotFoundException {
 
-        Mockito.when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
 
         orderService.deleteOrderByID(order1.getOrderID());
 
@@ -287,7 +296,7 @@ class OrderServiceTests {
     @Test
     void testDeleteOrderByIDNotFound(){
 
-        Mockito.when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
 
         Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.deleteOrderByID(order1.getOrderID()));
 
@@ -340,7 +349,7 @@ class OrderServiceTests {
 
         when(orderRepository.existsByVendorID(nonExistingVendorID)).thenReturn(false);
 
-        Assertions.assertThrows(VendorNotFoundException.class, () -> orderService.getOrdersFromCostumerAtVendor(nonExistingVendorID,order1.getCustomerID()));
+        Assertions.assertThrows(VendorNotFoundException.class, () -> orderService.getOrdersFromCustomerAtVendor(nonExistingVendorID,order1.getCustomerID()));
     }
 
     @Test
@@ -350,7 +359,7 @@ class OrderServiceTests {
         when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
         when(orderRepository.existsByCustomerID(nonExistingCustomerID)).thenReturn(false);
 
-        Assertions.assertThrows(CustomerNotFoundException.class, () -> orderService.getOrdersFromCostumerAtVendor(order1.getVendorID(),nonExistingCustomerID));
+        Assertions.assertThrows(CustomerNotFoundException.class, () -> orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),nonExistingCustomerID));
     }
 
     @Test
@@ -359,7 +368,7 @@ class OrderServiceTests {
         when(orderRepository.existsByCustomerID(order1.getCustomerID())).thenReturn(true);
         when(orderRepository.findOrdersByVendorIDAndCustomerID(order1.getVendorID(),order1.getCustomerID())).thenReturn(Optional.empty());
 
-        Assertions.assertThrows(NoOrdersException.class, () -> orderService.getOrdersFromCostumerAtVendor(order1.getVendorID(),order1.getCustomerID()));
+        Assertions.assertThrows(NoOrdersException.class, () -> orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),order1.getCustomerID()));
     }
 
     @Test
@@ -368,7 +377,7 @@ class OrderServiceTests {
         when(orderRepository.existsByCustomerID(order1.getCustomerID())).thenReturn(true);
         when(orderRepository.findOrdersByVendorIDAndCustomerID(order1.getVendorID(),order1.getCustomerID())).thenReturn(Optional.of(List.of(order1,order2)));
 
-        List<Order> result = orderService.getOrdersFromCostumerAtVendor(order1.getVendorID(),order1.getCustomerID());
+        List<Order> result = orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),order1.getCustomerID());
 
         assertThat(result).isEqualTo(List.of(order1CopyResult,order2));
     }
@@ -440,7 +449,7 @@ class OrderServiceTests {
         Random r = new Random();
         int[] time = new int[24];
         List<Order> orders = new ArrayList<>();
-        for(int i = 0; i<1000; i++){
+        for (int i = 0; i < 1000; i++) {
             long cur = r.nextInt();
             Order o = new Order();
             o.setDate(BigDecimal.valueOf(cur));
@@ -461,5 +470,48 @@ class OrderServiceTests {
 
         List<Integer> volume = orderService.getOrderVolumeByTime(order1.getVendorID());
         assertThat(volume).isEqualTo(correctTime);
+    }
+
+    @Test
+    void testOrderHistoryContainsValues() throws NoOrdersException {
+        orders.add(order1);
+        orders.add(order3);
+
+        when(orderRepository.findOrdersByCustomerID(order1.getCustomerID())).thenReturn(Optional.of(orders));
+
+        FilteringParam<Order> filteringParam = Mockito.mock(FilteringParam.class);
+        when(filteringParam.filtering(order3)).thenReturn(true);
+        when(filteringParam.filtering(order1)).thenReturn(false);
+
+        List<Order> assertion = orderService.getPastOrdersByCustomerID(order1.getCustomerID(),filteringParam);
+        Assertions.assertEquals(assertion.get(0),order3);
+        Assertions.assertEquals(assertion.size(),1);
+
+    }
+
+    @Test
+    void testOrderHistoryHasNoAvailablePastOrders() {
+        order3.setStatus(Order.StatusEnum.PENDING);
+        orders.add(order1);
+        orders.add(order3);
+
+        when(orderRepository.findOrdersByCustomerID(order1.getCustomerID())).thenReturn(Optional.of(orders));
+
+        FilteringParam<Order> filteringParam = Mockito.mock(FilteringParam.class);
+        when(filteringParam.filtering(order3)).thenReturn(false);
+        when(filteringParam.filtering(order1)).thenReturn(false);
+
+        Assertions.assertThrows(NoOrdersException.class, () -> orderService.getPastOrdersByCustomerID(order1.getCustomerID(),filteringParam));
+
+    }
+    @Test
+    void testOrderHistoryNotInDatabase() {
+        UUID randomUUID = UUID.randomUUID();
+        when(orderRepository.findOrdersByCustomerID(randomUUID)).thenReturn(Optional.empty());
+
+        FilteringParam<Order> filteringParam = Mockito.mock(FilteringParam.class);
+
+        Assertions.assertThrows(NoOrdersException.class, () -> orderService.getPastOrdersByCustomerID(randomUUID, filteringParam));
+        verifyNoInteractions(filteringParam);
     }
 }
