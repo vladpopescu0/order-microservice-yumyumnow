@@ -49,37 +49,37 @@ class OrderControllerTests {
         a1.setCountry("Netherlands");
         a1.setZip("2628CC");
 
-        listOfDishes = Arrays.asList(UUID.randomUUID(), UUID.randomUUID());
-
+        orders = new ArrayList<>();
         order1 = new Order();
         order1.setOrderID(UUID.randomUUID());
         order1.setVendorID(UUID.randomUUID());
         order1.setCustomerID(UUID.randomUUID());
         order1.setAddress(a1);
         order1.setDate(new BigDecimal("1700006405000"));
+        listOfDishes = Arrays.asList(UUID.randomUUID(), UUID.randomUUID());
         order1.setListOfDishes(listOfDishes);
         order1.setSpecialRequirements("Knock on the door");
         order1.setOrderPaid(true);
-        order1.setStatus(Order.StatusEnum.ACCEPTED);
+        order1.setStatus(Order.StatusEnum.DELIVERED);
         order1.setRating(4);
+
+        order2 = new Order();
+        order2.setOrderID(UUID.randomUUID());
+        order2.setVendorID(UUID.randomUUID());
+        order2.setCustomerID(order1.getCustomerID());
+        order2.setAddress(null);
+        order2.setDate(new BigDecimal("1700006405000"));
+        order2.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
+        order2.setSpecialRequirements("Knock on the door");
+        order2.setOrderPaid(true);
+        order2.setStatus(Order.StatusEnum.DELIVERED);
+        order2.setRating(4);
     }
 
     @Test
     void testGetListOfDishes_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
-        orders = new ArrayList<>();
-        order1 = new Order();
-        order1.setOrderID(UUID.randomUUID());
-        order1.setVendorID(UUID.randomUUID());
-        order1.setCustomerID(UUID.randomUUID());
-        order1.setAddress(null);
-        order1.setDate(new BigDecimal("1700006405000"));
-        order1.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
-        order1.setSpecialRequirements("Knock on the door");
-        order1.setOrderPaid(true);
-        order1.setStatus(Order.StatusEnum.DELIVERED);
-        order1.setRating(4);
 
         ResponseEntity<List<UUID>> response = orderController.getListOfDishes(orderId);
 
@@ -158,6 +158,7 @@ class OrderControllerTests {
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         Assertions.assertEquals(new BigDecimal("1700006405000"), response.getBody());
+
         order2 = new Order();
         order2.setOrderID(UUID.randomUUID());
         order2.setVendorID(UUID.randomUUID());
@@ -170,7 +171,6 @@ class OrderControllerTests {
         order2.setStatus(Order.StatusEnum.DELIVERED);
         order2.setRating(4);
     }
-
     @Test
     void testOrderOrderIDIsPaidGet_OrderIsPaid() throws OrderNotFoundException {
         UUID orderID = UUID.randomUUID();
