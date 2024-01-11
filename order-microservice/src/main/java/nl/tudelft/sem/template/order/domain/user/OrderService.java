@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
 import java.util.stream.Collectors;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
@@ -38,7 +39,11 @@ public class OrderService {
      * @return Order that has been created and added to the database
      * @throws OrderIdAlreadyInUseException - thrown when the provided orderID is not unique
      */
-    public Order createOrder(Order order) throws OrderIdAlreadyInUseException {
+    public Order createOrder(Order order) throws OrderIdAlreadyInUseException, NullFieldException {
+
+        if (order == null) {
+            throw new NullFieldException();
+        }
 
         if (checkUUIDIsUnique(order.getOrderID())) {
             throw new OrderIdAlreadyInUseException(order.getOrderID());
@@ -78,8 +83,10 @@ public class OrderService {
      * @return Order with specified ID
      * @throws OrderNotFoundException - thrown when the orderID isn't found
      */
-    public Order getOrderById(UUID orderID) throws OrderNotFoundException {
-
+    public Order getOrderById(UUID orderID) throws OrderNotFoundException, NullFieldException {
+        if (orderID == null) {
+            throw new NullFieldException();
+        }
         Optional<Order> o = orderRepository.findOrderByOrderID(orderID);
         if (o.isEmpty()) {
             throw new OrderNotFoundException(orderID);
@@ -99,7 +106,12 @@ public class OrderService {
      * @return Edited Order
      * @throws OrderNotFoundException - thrown when the orderID isn't found
      */
-    public Order editOrderByID(UUID orderID, Order order) throws OrderNotFoundException {
+    public Order editOrderByID(UUID orderID, Order order) throws OrderNotFoundException, NullFieldException {
+
+        if (orderID == null || order == null) {
+            throw new NullFieldException();
+        }
+
         if (!checkUUIDIsUnique(orderID)) {
             throw new OrderNotFoundException(orderID);
         }
@@ -139,13 +151,13 @@ public class OrderService {
 
         return currentOrder.get().getOrderPaid();
     }
+
     /**
      * The implementation of the orderISPaid put method from the controllers.
      *
      * @param orderID the id of the order to flip the isPaid value
      * @throws OrderNotFoundException when the method cannot find the order in the database
      */
-
     public Order orderIsPaidUpdate(UUID orderID) throws OrderNotFoundException {
         if (!checkUUIDIsUnique(orderID)) {
             throw new OrderNotFoundException(orderID);

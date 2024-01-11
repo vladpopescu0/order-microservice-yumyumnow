@@ -1,8 +1,10 @@
 package nl.tudelft.sem.template.order.domain.user;
 
+import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.controllers.OrderController;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,14 +35,39 @@ class OrderControllerTests {
     @InjectMocks
     private OrderController orderController;
 
+    List<UUID> listOfDishes;
     List<Order> orders;
-
     Order order1;
-
     Order order2;
+    Address a1;
 
     @BeforeEach
     void setUp() {
+        a1 = new Address();
+        a1.setStreet("Mekelweg 5");
+        a1.setCity("Delft");
+        a1.setCountry("Netherlands");
+        a1.setZip("2628CC");
+
+        listOfDishes = Arrays.asList(UUID.randomUUID(), UUID.randomUUID());
+
+        order1 = new Order();
+        order1.setOrderID(UUID.randomUUID());
+        order1.setVendorID(UUID.randomUUID());
+        order1.setCustomerID(UUID.randomUUID());
+        order1.setAddress(a1);
+        order1.setDate(new BigDecimal("1700006405000"));
+        order1.setListOfDishes(listOfDishes);
+        order1.setSpecialRequirements("Knock on the door");
+        order1.setOrderPaid(true);
+        order1.setStatus(Order.StatusEnum.ACCEPTED);
+        order1.setRating(4);
+    }
+
+    @Test
+    void testGetListOfDishes_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
+        UUID orderId = UUID.randomUUID();
+        Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
         orders = new ArrayList<>();
         order1 = new Order();
         order1.setOrderID(UUID.randomUUID());
@@ -54,6 +81,83 @@ class OrderControllerTests {
         order1.setStatus(Order.StatusEnum.DELIVERED);
         order1.setRating(4);
 
+        ResponseEntity<List<UUID>> response = orderController.getListOfDishes(orderId);
+
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void testGetListOfDishes_listFound() throws OrderNotFoundException, NullFieldException {
+        UUID orderId = UUID.randomUUID();
+        Mockito.when(orderService.getOrderById(orderId)).thenReturn(order1);
+
+        ResponseEntity<List<UUID>> response = orderController.getListOfDishes(orderId);
+
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(listOfDishes, response.getBody());
+    }
+
+    @Test
+    void testGetSpecialRequirements_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
+        UUID orderId = UUID.randomUUID();
+        Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
+
+        ResponseEntity<String> response = orderController.getSpecialRequirements(orderId);
+
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void testGetSpecialRequirements_foundAndRetrieved() throws OrderNotFoundException, NullFieldException {
+        UUID orderId = UUID.randomUUID();
+        Mockito.when(orderService.getOrderById(orderId)).thenReturn(order1);
+
+        ResponseEntity<String> response = orderController.getSpecialRequirements(orderId);
+
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals("Knock on the door", response.getBody());
+    }
+
+    @Test
+    void testGetOrderAddress_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
+        UUID orderId = UUID.randomUUID();
+        Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
+
+        ResponseEntity<Address> response = orderController.getOrderAddress(orderId);
+
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void testGetOrderAddress_foundAndRetrieved() throws OrderNotFoundException, NullFieldException {
+        UUID orderId = UUID.randomUUID();
+        Mockito.when(orderService.getOrderById(orderId)).thenReturn(order1);
+
+        ResponseEntity<Address> response = orderController.getOrderAddress(orderId);
+
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(a1, response.getBody());
+    }
+
+    @Test
+    void testGetOrderDate_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
+        UUID orderId = UUID.randomUUID();
+        Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
+
+        ResponseEntity<BigDecimal> response = orderController.getOrderDate(orderId);
+
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void testGetOrderDate_foundAndRetrieved() throws OrderNotFoundException, NullFieldException {
+        UUID orderId = UUID.randomUUID();
+        Mockito.when(orderService.getOrderById(orderId)).thenReturn(order1);
+
+        ResponseEntity<BigDecimal> response = orderController.getOrderDate(orderId);
+
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(new BigDecimal("1700006405000"), response.getBody());
         order2 = new Order();
         order2.setOrderID(UUID.randomUUID());
         order2.setVendorID(UUID.randomUUID());
