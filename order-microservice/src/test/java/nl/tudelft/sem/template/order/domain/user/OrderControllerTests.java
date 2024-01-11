@@ -3,7 +3,7 @@ package nl.tudelft.sem.template.order.domain.user;
 import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.controllers.OrderController;
-import org.junit.jupiter.api.Assertions;
+import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,10 +15,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +40,12 @@ class OrderControllerTests {
     Order order1;
     Address a1;
     List<UUID> listOfDishes;
+
+    List<Order> orders;
+
+    Order order1;
+
+    Order order2;
 
     @BeforeEach
     void setUp() {
@@ -61,6 +74,18 @@ class OrderControllerTests {
     void testGetListOfDishes_OrderNotFoundException() throws OrderNotFoundException {
         UUID orderId = UUID.randomUUID();
         Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
+        orders = new ArrayList<>();
+        order1 = new Order();
+        order1.setOrderID(UUID.randomUUID());
+        order1.setVendorID(UUID.randomUUID());
+        order1.setCustomerID(UUID.randomUUID());
+        order1.setAddress(null);
+        order1.setDate(new BigDecimal("1700006405000"));
+        order1.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
+        order1.setSpecialRequirements("Knock on the door");
+        order1.setOrderPaid(true);
+        order1.setStatus(Order.StatusEnum.DELIVERED);
+        order1.setRating(4);
 
         ResponseEntity<List<UUID>> response = orderController.getListOfDishes(orderId);
 
@@ -139,26 +164,37 @@ class OrderControllerTests {
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         Assertions.assertEquals(new BigDecimal("1700006405000"), response.getBody());
+        order2 = new Order();
+        order2.setOrderID(UUID.randomUUID());
+        order2.setVendorID(UUID.randomUUID());
+        order2.setCustomerID(order1.getCustomerID());
+        order2.setAddress(null);
+        order2.setDate(new BigDecimal("1700006405000"));
+        order2.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
+        order2.setSpecialRequirements("Knock on the door");
+        order2.setOrderPaid(true);
+        order2.setStatus(Order.StatusEnum.DELIVERED);
+        order2.setRating(4);
     }
 
     @Test
     void testOrderOrderIDIsPaidGet_OrderIsPaid() throws OrderNotFoundException {
         UUID orderID = UUID.randomUUID();
-        Mockito.when(orderService.orderIsPaid(orderID)).thenReturn(true);
+        when(orderService.orderIsPaid(orderID)).thenReturn(true);
 
         ResponseEntity<Void> response = orderController.orderOrderIDIsPaidGet(orderID);
 
-        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     void testOrderOrderIDIsPaidGet_OrderIsNotPaid() throws OrderNotFoundException {
         UUID orderID = UUID.randomUUID();
-        Mockito.when(orderService.orderIsPaid(orderID)).thenReturn(false);
+        when(orderService.orderIsPaid(orderID)).thenReturn(false);
 
         ResponseEntity<Void> response = orderController.orderOrderIDIsPaidGet(orderID);
 
-        Assertions.assertEquals(HttpStatus.PAYMENT_REQUIRED, response.getStatusCode());
+        assertEquals(HttpStatus.PAYMENT_REQUIRED, response.getStatusCode());
     }
 
     @Test
@@ -168,7 +204,7 @@ class OrderControllerTests {
 
         ResponseEntity<Void> response = orderController.orderOrderIDIsPaidGet(orderID);
 
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
@@ -177,21 +213,53 @@ class OrderControllerTests {
         Order order = new Order();
         order.setOrderID(orderID);
         order.setOrderPaid(false);
-        Mockito.when(orderService.orderIsPaidUpdate(orderID)).thenReturn(order);
+        when(orderService.orderIsPaidUpdate(orderID)).thenReturn(order);
 
         ResponseEntity<Order> response = orderController.updateOrderPaid(orderID);
 
-        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        Assertions.assertEquals(order,response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(order,response.getBody());
     }
     @Test
     void testPaymentWhenNotExists() throws OrderNotFoundException {
         UUID orderIDFake = UUID.randomUUID();
-        Mockito.when(orderService.orderIsPaidUpdate(orderIDFake)).thenThrow(OrderNotFoundException.class);
+        when(orderService.orderIsPaidUpdate(orderIDFake)).thenThrow(OrderNotFoundException.class);
 
         ResponseEntity<Order> response = orderController.updateOrderPaid(orderIDFake);
 
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void testGetCustomerOrderHistory_NoOrdersFound() throws NoOrdersException {
+        UUID customerId = UUID.randomUUID();
+
+        when(orderService.getPastOrdersByCustomerID(eq(customerId),  Mockito.any(FilteringByStatus.class)))
+                .thenThrow(new NoOrdersException());
+
+        var response = orderController.getCustomerOrderHistory(customerId);
+
+        assertEquals(404, response.getStatusCodeValue());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    void testGetCustomerOrderHistory_Success() throws NoOrdersException {
+        UUID customerId = UUID.randomUUID();
+        List<Order> orders = new ArrayList<>();
+
+
+
+        orders.add(order1);
+        orders.add(order2);
+
+        when(orderService.getPastOrdersByCustomerID(eq(customerId), Mockito.any(FilteringByStatus.class)))
+                .thenReturn(orders);
+
+        var response = orderController.getCustomerOrderHistory(customerId);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(orders, response.getBody());
     }
 
 }
