@@ -35,13 +35,11 @@ class OrderControllerTests {
     @InjectMocks
     private OrderController orderController;
 
-    Address a1;
     List<UUID> listOfDishes;
     List<Order> orders;
-
     Order order1;
-
     Order order2;
+    Address a1;
 
     @BeforeEach
     void setUp() {
@@ -79,7 +77,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetListOfDishes_OrderNotFoundException() throws OrderNotFoundException {
+    void testGetListOfDishes_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
 
@@ -89,7 +87,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetListOfDishes_listFound() throws OrderNotFoundException {
+    void testGetListOfDishes_listFound() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.when(orderService.getOrderById(orderId)).thenReturn(order1);
 
@@ -100,7 +98,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetSpecialRequirements_OrderNotFoundException() throws OrderNotFoundException {
+    void testGetSpecialRequirements_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
 
@@ -110,7 +108,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetSpecialRequirements_foundAndRetrieved() throws OrderNotFoundException {
+    void testGetSpecialRequirements_foundAndRetrieved() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.when(orderService.getOrderById(orderId)).thenReturn(order1);
 
@@ -121,7 +119,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetOrderAddress_OrderNotFoundException() throws OrderNotFoundException {
+    void testGetOrderAddress_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
 
@@ -131,7 +129,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetOrderAddress_foundAndRetrieved() throws OrderNotFoundException {
+    void testGetOrderAddress_foundAndRetrieved() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.when(orderService.getOrderById(orderId)).thenReturn(order1);
 
@@ -142,7 +140,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetOrderDate_OrderNotFoundException() throws OrderNotFoundException {
+    void testGetOrderDate_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
 
@@ -152,7 +150,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetOrderDate_foundAndRetrieved() throws OrderNotFoundException {
+    void testGetOrderDate_foundAndRetrieved() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.when(orderService.getOrderById(orderId)).thenReturn(order1);
 
@@ -160,6 +158,18 @@ class OrderControllerTests {
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         Assertions.assertEquals(new BigDecimal("1700006405000"), response.getBody());
+
+        order2 = new Order();
+        order2.setOrderID(UUID.randomUUID());
+        order2.setVendorID(UUID.randomUUID());
+        order2.setCustomerID(order1.getCustomerID());
+        order2.setAddress(null);
+        order2.setDate(new BigDecimal("1700006405000"));
+        order2.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
+        order2.setSpecialRequirements("Knock on the door");
+        order2.setOrderPaid(true);
+        order2.setStatus(Order.StatusEnum.DELIVERED);
+        order2.setRating(4);
     }
     @Test
     void testOrderOrderIDIsPaidGet_OrderIsPaid() throws OrderNotFoundException {

@@ -155,7 +155,7 @@ class OrderServiceTests {
     }
 
     @Test
-    void testCreateOrderSuccessful() throws OrderIdAlreadyInUseException {
+    void testCreateOrderSuccessful() throws OrderIdAlreadyInUseException, NullFieldException {
 
         when(orderRepository.save(order1)).thenReturn(order1);
 
@@ -198,7 +198,7 @@ class OrderServiceTests {
     }
 
     @Test
-    void testGetOrderByIdSuccessful() throws OrderNotFoundException {
+    void testGetOrderByIdSuccessful() throws OrderNotFoundException, NullFieldException {
 
         when(orderRepository.findOrderByOrderID(order1.getOrderID()))
                 .thenReturn(Optional.of(order1));
@@ -220,7 +220,7 @@ class OrderServiceTests {
     }
 
     @Test
-    void testEditOrderByIDSuccessful() throws OrderNotFoundException {
+    void testEditOrderByIDSuccessful() throws OrderNotFoundException, NullFieldException {
 
         order1.setRating(2);
 
