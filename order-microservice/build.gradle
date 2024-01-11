@@ -144,6 +144,7 @@ pitest {
 	threads = 4
 	outputFormats = ['XML', 'HTML']
 	timestampedReports = false
+	mutationThreshold = 75
 }
 
 apply plugin: 'org.openapi.generator'
