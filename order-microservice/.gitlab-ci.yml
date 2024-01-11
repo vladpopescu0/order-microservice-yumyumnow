@@ -85,10 +85,8 @@ mutation-score-check:
   extends:
     - .build_cached
   needs:
-    - gradle_build
     - pitest-order-microservice
   dependencies:
-    - gradle_build
     - pitest-order-microservice
   stage: test
   script:
