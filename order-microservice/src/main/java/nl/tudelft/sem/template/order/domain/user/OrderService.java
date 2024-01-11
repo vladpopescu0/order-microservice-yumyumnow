@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import nl.tudelft.sem.template.order.commons.Dish;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
+import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -142,10 +143,14 @@ public class OrderService {
         }
         Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
 
-        assert (currentOrder.isPresent());
-
         return currentOrder.get().getOrderPaid();
     }
+    /**
+     * The implementation of the orderISPaid put method from the controllers.
+     *
+     * @param orderID the id of the order to flip the isPaid value
+     * @throws OrderNotFoundException when the method cannot find the order in the database
+     */
 
     /**
      * Getter of orders from a vendor.
@@ -260,5 +265,42 @@ public class OrderService {
             throw new VendorNotFoundException(vendorID);
         }
         return orderRepository.countDishesOccurrencesFromVendor(vendorID);
+    }
+    public Order orderIsPaidUpdate(UUID orderID) throws OrderNotFoundException {
+        if (!checkUUIDIsUnique(orderID)) {
+            throw new OrderNotFoundException(orderID);
+        }
+        Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
+
+        orderRepository.updateOrderPayment(!currentOrder.get().getOrderPaid(), orderID);
+
+        Order o = currentOrder.get();
+        o.setOrderPaid(!o.getOrderPaid());
+        return o;
+    }
+
+    /**
+     * Get all past completed orders of a user based on their ID.
+     *
+     * @param customerID the id of the customer on which the SQL query is based
+     *
+     * @param filteringParam the filtering param I want to consider as correct, here
+     *                       could be "delivered"
+     *
+     * @return the list of all delivered orders of a specific customer
+     * @throws NoOrdersException when there are no orders in the database or no orders of this specific customerID
+     */
+    public List<Order> getPastOrdersByCustomerID(UUID customerID,
+                                                 FilteringParam<Order> filteringParam) throws NoOrdersException {
+        Optional<List<Order>> customerOrders = orderRepository.findOrdersByCustomerID(customerID);
+        if (customerOrders.isEmpty()) {
+            throw new NoOrdersException();
+        }
+        List<Order> fromOptional = customerOrders.get();
+        fromOptional = fromOptional.stream().filter(filteringParam::filtering).collect(Collectors.toList());
+        if (fromOptional.isEmpty()) {
+            throw new NoOrdersException();
+        }
+        return fromOptional;
     }
 }

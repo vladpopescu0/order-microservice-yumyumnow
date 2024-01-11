@@ -3,6 +3,9 @@ package nl.tudelft.sem.template.order.controllers;
 import nl.tudelft.sem.template.order.api.OrderApi;
 import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.order.commons.Order;
+import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
+import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
+import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
 import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,6 +154,27 @@ public class OrderController implements OrderApi {
             }
         } catch (OrderNotFoundException notFound) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    /**
+     * OrderID isPaid controller method to update the isPaid field.
+     * It throws a 404 if the order is not found.
+     *
+     * @param orderID the id of the order to be checked
+     * @return the order after it was updated
+     */
+
+    @Override
+    public ResponseEntity<Order> updateOrderPaid(UUID orderID) {
+        try {
+            Order updatedOrder = orderService.orderIsPaidUpdate(orderID);
+            return ResponseEntity.ok(updatedOrder);
+        } catch (OrderNotFoundException notFound) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -235,5 +259,22 @@ public class OrderController implements OrderApi {
         }
     }
 
-    //Methods
+    /** Controller for the /order/{orderID}/history endpoint.
+     *
+     * @param customerID the id of the customer on which we base the SQL query
+     *
+     * @return a response which can be 200 if there is at least a past order of this user in the database
+     *                                 404 if there are no orders of this user
+     *                                 400 if something else goes wrong
+     */
+    @Override
+    public ResponseEntity<List<Order>> getCustomerOrderHistory(UUID customerID) {
+        try {
+            FilteringParam<Order> filteringParam = new FilteringByStatus(Order.StatusEnum.DELIVERED);
+            List<Order> allOrdersByCustomerID = orderService.getPastOrdersByCustomerID(customerID, filteringParam);
+            return ResponseEntity.ok(allOrdersByCustomerID);
+        } catch (NoOrdersException noOrdersException) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }
