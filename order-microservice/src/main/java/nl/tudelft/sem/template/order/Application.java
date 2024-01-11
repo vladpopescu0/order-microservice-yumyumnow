@@ -8,6 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
  * Example microservice application.
  */
 @SpringBootApplication
+@ComponentScan({"nl.tudelft.sem.template.user","nl.tudelft.sem.template.order"})
 public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
