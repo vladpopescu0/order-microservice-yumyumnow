@@ -54,7 +54,7 @@ PMD-order-microservice:
     gradle order-microservice:pmdMain
   allow_failure: true
 
-test-order-microservice:
+pitest-order-microservice:
   extends:
     - .build_cached
   needs:
@@ -63,7 +63,32 @@ test-order-microservice:
     - gradle_build
   stage: test
   script:
+    gradle order-microservice:pitest
+  allow_failure: true
+
+test-order-microservice:
+  extends:
+    - .build_cached
+  needs:
+    - gradle_build
+    - pitest-order-microservice
+  dependencies:
+    - gradle_build
+    - pitest-order-microservice
+  stage: test
+  script:
     - gradle order-microservice:test order-microservice:jacocoTestReport --stacktrace
     - cat order-microservice/build/reports/jacoco/test/html/index.html | grep -Po "Total.*?([0-9]{1,3})%"
   coverage: /([0-9]{1,3})%/
 
+mutation-score-check:
+  stage: test
+  script:
+    - |
+      MUTATION_SCORE=$(grep -oP "(?<=<th>Mutation Score</th><td>)([0-9]+)" order-microservice/build/reports/pitest/index.html)
+      if [[ $MUTATION_SCORE -ge 70 ]]; then
+        echo "Mutation score is greater than or equal to 70%."
+      else
+        echo "Mutation score is less than 70%."
+        exit 1
+      fi
