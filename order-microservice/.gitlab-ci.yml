@@ -81,14 +81,3 @@ test-order-microservice:
     - cat order-microservice/build/reports/jacoco/test/html/index.html | grep -Po "Total.*?([0-9]{1,3})%"
   coverage: /([0-9]{1,3})%/
   allow_failure: true
-
-#mutation-score-check:
-#  extends:
-#    - .build_cached
-#  needs:
-#    - pitest-order-microservice
-#  dependencies:
-#    - pitest-order-microservice
-#  stage: test
-#  script:
-#    - ls order-microservice/build

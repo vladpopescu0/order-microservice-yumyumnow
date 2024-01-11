@@ -151,6 +151,27 @@ public class OrderController implements OrderApi {
             }
         } catch (OrderNotFoundException notFound) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    /**
+     * OrderID isPaid controller method to update the isPaid field.
+     * It throws a 404 if the order is not found.
+     *
+     * @param orderID the id of the order to be checked
+     * @return the order after it was updated
+     */
+
+    @Override
+    public ResponseEntity<Order> updateOrderPaid(UUID orderID) {
+        try {
+            Order updatedOrder = orderService.orderIsPaidUpdate(orderID);
+            return ResponseEntity.ok(updatedOrder);
+        } catch (OrderNotFoundException notFound) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 

@@ -11,6 +11,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import javax.transaction.Transactional;
+import nl.tudelft.sem.template.order.commons.Order;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+
+
 @Repository
 public interface OrderRepository extends JpaRepository<Order, UUID> {
     // additional query methods if needed
@@ -38,4 +47,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
             "ORDER BY COUNT(lod) DESC")
     List<Dish> countDishesOccurrencesFromVendor(@Param("vendorID") UUID vendorID);
 
+    @Modifying
+    @Transactional
+    @Query("update Order u set u.orderPaid = ?1 where u.orderID = ?2")
+    void updateOrderPayment(Boolean orderPaid, UUID orderID);
 }
