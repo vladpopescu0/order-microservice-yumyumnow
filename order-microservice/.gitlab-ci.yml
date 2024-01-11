@@ -64,7 +64,9 @@ pitest-order-microservice:
   stage: test
   script:
     - |
+      echo "hello" &&
       gradle order-microservice:pitest &&
+      echo "hello2" &&
       MUTATION_SCORE=$(grep -oP "(?<=<th>Mutation Score</th><td>)([0-9]+)" order-microservice/build/reports/pitest/index.html) &&
       if [[ $MUTATION_SCORE -ge 70 ]]; then
         echo "Mutation score is greater than or equal to 70%."
