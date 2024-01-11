@@ -4,6 +4,7 @@ import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.controllers.OrderController;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,9 +17,6 @@ import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -37,15 +35,11 @@ class OrderControllerTests {
     @InjectMocks
     private OrderController orderController;
 
-    Order order1;
-    Address a1;
     List<UUID> listOfDishes;
-
     List<Order> orders;
-
     Order order1;
-
     Order order2;
+    Address a1;
 
     @BeforeEach
     void setUp() {
@@ -71,7 +65,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetListOfDishes_OrderNotFoundException() throws OrderNotFoundException {
+    void testGetListOfDishes_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
         orders = new ArrayList<>();
@@ -93,7 +87,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetListOfDishes_listFound() throws OrderNotFoundException {
+    void testGetListOfDishes_listFound() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.when(orderService.getOrderById(orderId)).thenReturn(order1);
 
@@ -104,7 +98,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetSpecialRequirements_OrderNotFoundException() throws OrderNotFoundException {
+    void testGetSpecialRequirements_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
 
@@ -114,7 +108,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetSpecialRequirements_foundAndRetrieved() throws OrderNotFoundException {
+    void testGetSpecialRequirements_foundAndRetrieved() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.when(orderService.getOrderById(orderId)).thenReturn(order1);
 
@@ -125,7 +119,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetOrderAddress_OrderNotFoundException() throws OrderNotFoundException {
+    void testGetOrderAddress_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
 
@@ -135,7 +129,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetOrderAddress_foundAndRetrieved() throws OrderNotFoundException {
+    void testGetOrderAddress_foundAndRetrieved() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.when(orderService.getOrderById(orderId)).thenReturn(order1);
 
@@ -146,7 +140,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetOrderDate_OrderNotFoundException() throws OrderNotFoundException {
+    void testGetOrderDate_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
 
@@ -156,7 +150,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetOrderDate_foundAndRetrieved() throws OrderNotFoundException {
+    void testGetOrderDate_foundAndRetrieved() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
         Mockito.when(orderService.getOrderById(orderId)).thenReturn(order1);
 
