@@ -242,8 +242,6 @@ class OrderControllerTests {
         UUID customerId = UUID.randomUUID();
         List<Order> orders = new ArrayList<>();
 
-
-
         orders.add(order1);
         orders.add(order2);
 
