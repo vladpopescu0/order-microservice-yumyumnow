@@ -1,5 +1,6 @@
 package nl.tudelft.sem.template.order.domain.user;
 
+import nl.tudelft.sem.template.order.PersistentBagMock;
 import nl.tudelft.sem.template.order.commons.Dish;
 import nl.tudelft.sem.template.order.controllers.DishController;
 import nl.tudelft.sem.template.order.domain.user.DishIdAlreadyInUseException;
@@ -7,6 +8,7 @@ import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.DishService;
 import nl.tudelft.sem.template.order.domain.user.VendorNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
+import org.hibernate.collection.internal.PersistentBag;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,8 +37,12 @@ public class DishServiceTests {
     private DishService dishService;
 
     Dish d1;
+    Dish d1CopyResult;
 
     Dish d2;
+
+    List<String> ingredients = new ArrayList<>();
+
     @BeforeEach
     public void setup(){
         d1 = new Dish();
@@ -47,13 +53,32 @@ public class DishServiceTests {
         d1.setPrice(5.0f);
         List<String> allergies = new ArrayList<>();
         allergies.add("lactose");
-        d1.setListOfAllergies(allergies);
-        List<String> ingredients = new ArrayList<>();
+        PersistentBag pbAllergies = new PersistentBagMock();
+        pbAllergies.addAll(allergies);
+        d1.setListOfAllergies(pbAllergies);
+//        d1.setListOfAllergies(allergies);
+        ingredients = new ArrayList<>();
         ingredients.add("Cheese");
         ingredients.add("Salami");
         ingredients.add("Tomato Sauce");
-        d1.setListOfIngredients(ingredients);
+        PersistentBag pbIngredients = new PersistentBagMock();
+        pbIngredients.addAll(ingredients);
+        d1.setListOfIngredients(pbIngredients);
         d1.setVendorID(UUID.randomUUID());
+
+        d1CopyResult = new Dish();
+        d1CopyResult.setDishID(d1.getDishID());
+        d1CopyResult.setDescription("very tasty");
+        d1CopyResult.setImage("img");
+        d1CopyResult.setName("Pizza");
+        d1CopyResult.setPrice(5.0f);
+        d1CopyResult.setListOfAllergies(allergies);
+        ingredients = new ArrayList<>();
+        ingredients.add("Cheese");
+        ingredients.add("Salami");
+        ingredients.add("Tomato Sauce");
+        d1CopyResult.setListOfIngredients(ingredients);
+        d1CopyResult.setVendorID(d1.getVendorID());
 
         d2 = new Dish();
         d2.setDishID(UUID.randomUUID());
@@ -78,8 +103,7 @@ public class DishServiceTests {
         when(dishRepository.save(d1)).thenReturn(d1);
 
         Dish res = dishService.addDish(d1);
-
-        assertThat(res).isEqualTo(d1);
+        assertThat(res).isEqualTo(d1CopyResult);
     }
 
     @Test
@@ -97,7 +121,7 @@ public class DishServiceTests {
 
         Dish res = dishService.getDishById(d1.getDishID());
 
-        assertThat(res).isEqualTo(d1);
+        assertThat(res).isEqualTo(d1CopyResult);
     }
 
     @Test
@@ -116,7 +140,7 @@ public class DishServiceTests {
 
         Dish res = dishService.updateDish(d1.getDishID(),d1);
 
-        assertThat(res).isEqualTo(d1);
+        assertThat(res).isEqualTo(d1CopyResult);
     }
 
     @Test
@@ -152,7 +176,7 @@ public class DishServiceTests {
 
         List<Dish> res = dishService.getDishByVendorId(d1.getVendorID());
 
-        assertThat(res).contains(d1).contains(d2);
+        assertThat(res).contains(d1CopyResult).contains(d2);
     }
 
     @Test
@@ -172,7 +196,7 @@ public class DishServiceTests {
 
         List<Dish> res = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
 
-        assertThat(res).contains(d1).contains(d2);
+        assertThat(res).contains(d1CopyResult).contains(d2);
     }
 
     @Test
@@ -181,6 +205,7 @@ public class DishServiceTests {
         when(dishRepository.findDishesByVendorIDAndListOfAllergies(d1.getVendorID(),new ArrayList<>())).thenReturn(Optional.empty());
 
         List<Dish> res = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
+        assertThat(res).isInstanceOf(ArrayList.class);
         assertThat(res).isEmpty();
     }
 

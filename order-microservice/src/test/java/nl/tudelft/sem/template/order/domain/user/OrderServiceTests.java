@@ -1,12 +1,14 @@
 package nl.tudelft.sem.template.order.domain.user;
 
 
+import nl.tudelft.sem.template.order.PersistentBagMock;
 import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.order.commons.Dish;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
+import org.hibernate.collection.internal.PersistentBag;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,11 +38,14 @@ class OrderServiceTests {
     private OrderService orderService;
 
     Dish d1;
+    Dish d1CopyResult;
     Dish d2;
     Address a1;
     Address a2;
     Order order1;
+    Order order1CopyResult;
     Order order2;
+    List<String> ingredients = new ArrayList<>();
     Order order3;
     List<Order> orders;
 
@@ -54,13 +59,32 @@ class OrderServiceTests {
         d1.setPrice(5.0f);
         List<String> allergies = new ArrayList<>();
         allergies.add("lactose");
-        d1.setListOfAllergies(allergies);
-        List<String> ingredients = new ArrayList<>();
+        PersistentBag pbAllergies = new PersistentBagMock();
+        pbAllergies.addAll(allergies);
+        d1.setListOfAllergies(pbAllergies);
+//        d1.setListOfAllergies(allergies);
+        ingredients = new ArrayList<>();
         ingredients.add("Cheese");
         ingredients.add("Salami");
         ingredients.add("Tomato Sauce");
-        d1.setListOfIngredients(ingredients);
+        PersistentBag pbIngredients = new PersistentBagMock();
+        pbIngredients.addAll(ingredients);
+        d1.setListOfIngredients(pbIngredients);
         d1.setVendorID(UUID.randomUUID());
+
+        d1CopyResult = new Dish();
+        d1CopyResult.setDishID(d1.getDishID());
+        d1CopyResult.setDescription("very tasty");
+        d1CopyResult.setImage("img");
+        d1CopyResult.setName("Pizza");
+        d1CopyResult.setPrice(5.0f);
+        d1CopyResult.setListOfAllergies(allergies);
+        ingredients = new ArrayList<>();
+        ingredients.add("Cheese");
+        ingredients.add("Salami");
+        ingredients.add("Tomato Sauce");
+        d1CopyResult.setListOfIngredients(ingredients);
+        d1CopyResult.setVendorID(d1.getVendorID());
 
         d2 = new Dish();
         d2.setDishID(d1.getVendorID());
@@ -87,17 +111,32 @@ class OrderServiceTests {
 
         List<UUID> listOfDishes1 = List.of(d1.getDishID(),d2.getDishID());
 
+        PersistentBag pbDishes = new PersistentBagMock();
+        pbDishes.addAll(listOfDishes1);
+
         order1 = new Order();
         order1.setOrderID(UUID.randomUUID());
         order1.setVendorID(d1.getVendorID());
         order1.setCustomerID(UUID.randomUUID());
         order1.setAddress(a1);
         order1.setDate(new BigDecimal("1700007405000"));
-        order1.setListOfDishes(listOfDishes1);
+        order1.setListOfDishes(pbDishes);
         order1.setSpecialRequirements("Knock on the door");
         order1.setOrderPaid(true);
         order1.setStatus(Order.StatusEnum.DELIVERED);
         order1.setRating(4);
+
+        order1CopyResult = new Order();
+        order1CopyResult.setOrderID(order1.getOrderID());
+        order1CopyResult.setVendorID(order1.getVendorID());
+        order1CopyResult.setCustomerID(order1.getCustomerID());
+        order1CopyResult.setAddress(a1);
+        order1CopyResult.setDate(new BigDecimal("1700007405000"));
+        order1CopyResult.setListOfDishes(listOfDishes1);
+        order1CopyResult.setSpecialRequirements("Knock on the door");
+        order1CopyResult.setOrderPaid(true);
+        order1CopyResult.setStatus(Order.StatusEnum.DELIVERED);
+        order1CopyResult.setRating(4);
 
         Address a2 = new Address();
         a2.setStreet("Mekelweg 9");
@@ -161,7 +200,7 @@ class OrderServiceTests {
 
         Order savedOrder = orderService.createOrder(order1);
 
-        Assertions.assertEquals(savedOrder, order1);
+        Assertions.assertEquals(savedOrder, order1CopyResult);
 
     }
 
@@ -183,7 +222,7 @@ class OrderServiceTests {
 
         List<Order> orderList = orderService.getAllOrders();
 
-        Assertions.assertTrue(orderList.contains(order1));
+        Assertions.assertTrue(orderList.contains(order1CopyResult));
         Assertions.assertTrue(orderList.contains(order2));
         Assertions.assertEquals(2, orderList.size());
 
@@ -205,7 +244,7 @@ class OrderServiceTests {
 
         Order returned = orderService.getOrderById(order1.getOrderID());
 
-        Assertions.assertEquals(order1, returned);
+        Assertions.assertEquals(returned,order1CopyResult);
     }
 
     @Test
@@ -228,8 +267,8 @@ class OrderServiceTests {
         when(orderRepository.save(order1)).thenReturn(order1);
 
         Order edited = orderService.editOrderByID(order1.getOrderID(), order1);
-
-        Assertions.assertEquals(order1, edited);
+        order1CopyResult.setRating(2);
+        Assertions.assertEquals(edited,order1CopyResult);
 
     }
 
@@ -340,7 +379,7 @@ class OrderServiceTests {
 
         List<Order> result = orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),order1.getCustomerID());
 
-        assertThat(result).isEqualTo(List.of(order1,order2));
+        assertThat(result).isEqualTo(List.of(order1CopyResult,order2));
     }
 
     @Test
@@ -385,7 +424,7 @@ class OrderServiceTests {
         List<Dish> res = orderService.getDishesSortedByVolume(order1.getVendorID());
         assertThat(res.size()).isEqualTo(2);
         assertThat(res.get(0)).isEqualTo(d2);
-        assertThat(res.get(1)).isEqualTo(d1);
+        assertThat(res.get(1)).isEqualTo(d1CopyResult);
     }
 
     @Test
