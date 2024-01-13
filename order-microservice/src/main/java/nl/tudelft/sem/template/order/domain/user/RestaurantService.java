@@ -115,7 +115,7 @@ public class RestaurantService {
         double userLatitude = userLocation.get(0);
         double userLongitude = userLocation.get(1);
         double vendorLatitude = vendorLocation.get(0);
-        double vendorLongitude = vendorLocation.get(0);
+        double vendorLongitude = vendorLocation.get(1);
 
         // Calculate distance between two points using Haversine formula
         final double r = 6371D; // radius of Earth in km
