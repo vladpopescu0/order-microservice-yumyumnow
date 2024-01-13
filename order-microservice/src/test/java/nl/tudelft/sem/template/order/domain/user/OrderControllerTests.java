@@ -4,6 +4,7 @@ import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.controllers.OrderController;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
+import org.aspectj.weaver.ast.Or;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,6 +76,36 @@ class OrderControllerTests {
         order2.setStatus(Order.StatusEnum.DELIVERED);
         order2.setRating(4);
     }
+
+    @Test
+    void createOrderSuccessful() throws NullFieldException, OrderIdAlreadyInUseException {
+
+        when(orderService.createOrder(order1)).thenReturn(order1);
+        ResponseEntity<Order> order = orderController.createOrder(order1);
+        Assertions.assertEquals(order1, order.getBody());
+        Assertions.assertEquals(HttpStatus.OK, order.getStatusCode());
+
+    }
+
+    @Test
+    void createNullFieldOrder() throws NullFieldException, OrderIdAlreadyInUseException {
+
+        when(orderService.createOrder(order1)).thenThrow(NullFieldException.class);
+        ResponseEntity<Order> order = orderController.createOrder(order1);
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, order.getStatusCode());
+
+    }
+
+    @Test
+    void createOrderBadRequest() throws NullFieldException, OrderIdAlreadyInUseException {
+
+        when(orderService.createOrder(order1)).thenThrow(OrderIdAlreadyInUseException.class);
+        ResponseEntity<Order> order = orderController.createOrder(order1);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, order.getStatusCode());
+
+    }
+
+
 
     @Test
     void testGetListOfDishes_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
