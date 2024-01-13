@@ -1,7 +1,7 @@
 package nl.tudelft.sem.template.user.services;
 
 import nl.tudelft.sem.template.order.domain.user.UserIDNotFoundException;
-import nl.tudelft.sem.template.user.API.UserMicroServiceAPI;
+import nl.tudelft.sem.template.user.api.UserMicroServiceAPI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -49,7 +50,19 @@ public class UserMicroServiceService implements UserMicroServiceAPI {
                 .onStatus(HttpStatus::is4xxClientError, response -> Mono.error(new UserIDNotFoundException(userID)))
                 .onStatus(HttpStatus::is5xxServerError, response -> Mono.error(new UserIDNotFoundException(userID)))
                 .bodyToMono(String.class)
-                .block(REQUEST_TIMEOUT);
+                .block(REQUEST_TIMEOUT); // wait only 3 seconds, instead of default 30
     }
+
+    @Override
+    public List<String> getAllVendors(){
+        return userMicroServiceWebClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/vendor").build())
+                .retrieve()
+                .onStatus(HttpStatus::is4xxClientError, response -> Mono.error(new RuntimeException("no vendors in database")))
+                .bodyToFlux(String.class)
+                .collectList()
+                .block(REQUEST_TIMEOUT); // wait only 3 seconds, instead of default 30
+    }
+
 
 }
