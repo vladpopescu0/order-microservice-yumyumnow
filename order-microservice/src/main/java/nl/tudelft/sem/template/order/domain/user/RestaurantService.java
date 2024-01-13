@@ -46,16 +46,36 @@ public class RestaurantService {
      * @throws RuntimeException in case of other exceptions, just throw RunTimeException
      */
     public List<UUID> getAllRestaurants(UUID userID) throws UserIDNotFoundException, RuntimeException{
-        List<Double> userLocation;
         HashMap<UUID, List<Double>> vendors;
         // try to get the user address first
+        List<Double> userLocation = getUserLocation(userID);
+
+        // get vendor location and UUID
+        try{
+            List<String> jsonVendors = userMicroServiceService.getAllVendors();
+            if(jsonVendors == null || jsonVendors.isEmpty()){
+                throw new RuntimeException("Could not get vendors");
+            }
+             vendors = JsonParserService.parseVendorsLocation(jsonVendors);
+            if(vendors == null || vendors.isEmpty()){ // option: error thrown in the JsonParserService could be caught in this try catch
+                throw new RuntimeException("Something went wrong parsing vendors");
+            }
+        } catch (Exception e){
+            throw new RuntimeException("Could not get vendors");
+        }
+        // Get the vendor UUID nearby the customer
+        return processVendors(userLocation, vendors);
+    }
+
+    public List<Double> getUserLocation(UUID userID) throws UserIDNotFoundException {
+        List<Double> userLocation;
         try{
             Address userAddress = userMicroServiceService.getUserAddress(userID);
-            // this always returns the geo coordinates of TU Aula
+            // this always returns the geo coordinates of TU Aula, unless we catch an error
             userLocation = mockedLocationService.convertAddressToGeoCoords(userAddress);
         } catch (UserIDNotFoundException e){
 
-            // if it fails, then get the user's current location
+            // if we catch an error, then get the user's current location
             try{
                 String jsonUser = userMicroServiceService.getUserLocation(userID);
                 if(jsonUser == null || jsonUser.isEmpty()){ // in case getUserLocation timed out.
@@ -69,22 +89,7 @@ public class RestaurantService {
                 throw new UserIDNotFoundException(userID);
             }
         }
-
-        // get vendor location and UUID
-        try{
-            List<String> jsonVendors = userMicroServiceService.getAllVendors();
-            if(jsonVendors == null || jsonVendors.isEmpty()){
-                throw new RuntimeException("Could not get vendors");
-            }
-             vendors = JsonParserService.parseVendorsLocation(jsonVendors);
-            if(vendors == null){ // option: error thrown in the JsonParserService could be caught in this try catch
-                throw new RuntimeException("Something went wrong parsing vendors");
-            }
-        } catch (Exception e){
-            throw new RuntimeException("Could not get vendors");
-        }
-        // Get the vendor UUID nearby the customer
-        return processVendors(userLocation, vendors);
+        return userLocation;
     }
 
     /**
@@ -96,8 +101,11 @@ public class RestaurantService {
      */
     public List<UUID> processVendors(List<Double> userLocation,HashMap<UUID, List<Double>> vendors) {
         double radius = 5; //in km
+        double userLatitude = userLocation.get(0);
+        double userLongitude = userLocation.get(1);
+
         return vendors.entrySet().stream()
-                .filter(entry -> calculateDistance(userLocation, entry.getValue()) < radius)
+                .filter(entry -> calculateDistance(userLatitude,userLongitude, entry.getValue().get(0), entry.getValue().get(1)) < radius)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
     }
@@ -107,22 +115,19 @@ public class RestaurantService {
      * Algorithm found at:
      * <a href="https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula">...</a>
      *
-     * @param userLocation the user location
-     * @param vendorLocation geo coordinate of the vendor
+     * @param userLatitude, latitude of user
+     * @param userLongitude, latitude of user
+     * @param vendorLatitude, latitude of user
+     * @param vendorLongitude, latitude of user
      * @return the distance between two geo coordinate points
      */
-    public double calculateDistance(List<Double> userLocation, List<Double> vendorLocation) {
-        double userLatitude = userLocation.get(0);
-        double userLongitude = userLocation.get(1);
-        double vendorLatitude = vendorLocation.get(0);
-        double vendorLongitude = vendorLocation.get(1);
-
+    public double calculateDistance(double userLatitude, double userLongitude, double vendorLatitude, double vendorLongitude) {
         // Calculate distance between two points using Haversine formula
         final double r = 6371D; // radius of Earth in km
         final double p = Math.PI / 180;
 
         double a = 0.5 - Math.cos((vendorLatitude - userLatitude) * p) / 2
-                + Math.cos(userLatitude) * p *Math.cos(vendorLatitude * p) *
+                + Math.cos(userLatitude * p) * Math.cos(vendorLatitude * p) *
                 (1 - Math.cos((vendorLongitude - userLongitude) * p)) / 2;
         return 2 * r * Math.asin(Math.sqrt(a));
     }
