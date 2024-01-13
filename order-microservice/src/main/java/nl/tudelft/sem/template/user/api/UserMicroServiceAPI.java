@@ -1,5 +1,7 @@
 package nl.tudelft.sem.template.user.api;
 
+import nl.tudelft.sem.template.order.commons.Address;
+import nl.tudelft.sem.template.order.domain.user.UserIDNotFoundException;
 import org.springframework.web.context.request.NativeWebRequest;
 
 import java.util.List;
@@ -12,6 +14,7 @@ public interface UserMicroServiceAPI {
         return Optional.empty();
     }
 
-    String getUserLocation(UUID userID);
+    Address getUserAddress(UUID userID) throws UserIDNotFoundException;
+    String getUserLocation(UUID userID) throws UserIDNotFoundException;
     List<String> getAllVendors();
 }

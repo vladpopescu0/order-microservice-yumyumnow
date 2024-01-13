@@ -1,5 +1,6 @@
 package nl.tudelft.sem.template.user.services;
 
+import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.order.domain.user.UserIDNotFoundException;
 import nl.tudelft.sem.template.user.api.UserMicroServiceAPI;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,17 @@ public class UserMicroServiceService implements UserMicroServiceAPI {
         this.userMicroServiceWebClient = userMicroServiceWebClient;
     }
 
+    @Override
+    public Address getUserAddress(UUID userID) throws UserIDNotFoundException{
+        return userMicroServiceWebClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/customer/address/{userID").build(userID))
+                .retrieve()
+                .onStatus(HttpStatus::is4xxClientError, response -> Mono.error(new UserIDNotFoundException(userID)))
+                .onStatus(HttpStatus::is5xxServerError, response -> Mono.error(new UserIDNotFoundException(userID)))
+                .bodyToMono(Address.class)
+                .block(REQUEST_TIMEOUT);
+    }
+
     /**
      * This method makes an API call to the endpoint <a href="http://localhost:8081/customer/location/">...</a>{userID}
      * Given a userID, it makes the API call to the user microservice to get its location.
@@ -43,7 +55,7 @@ public class UserMicroServiceService implements UserMicroServiceAPI {
      * @param userID of the customer we want the location of.
      */
     @Override
-    public String getUserLocation(UUID userID){
+    public String getUserLocation(UUID userID) throws UserIDNotFoundException {
         return userMicroServiceWebClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/customer/location/{userID}").build(userID))
                 .retrieve()

@@ -1,6 +1,8 @@
 package nl.tudelft.sem.template.order.domain.user;
 
+import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.user.services.JsonParserService;
+import nl.tudelft.sem.template.user.services.MockLocationService;
 import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.springframework.stereotype.Service;
 
@@ -18,14 +20,17 @@ import java.util.stream.Collectors;
 public class RestaurantService {
 
     private final transient UserMicroServiceService userMicroServiceService;
+    private final transient MockLocationService mockedLocationService;
 
     /**
      * Instantiates a new Restaurant service.
      *
      * @param userMicroServiceService the user microservice service
+     * @param mockedLocationService, mocked location service
      */
-    public RestaurantService(UserMicroServiceService userMicroServiceService) {
+    public RestaurantService(UserMicroServiceService userMicroServiceService, MockLocationService mockedLocationService) {
         this.userMicroServiceService = userMicroServiceService;
+        this.mockedLocationService = mockedLocationService;
     }
 
     /**
@@ -41,21 +46,27 @@ public class RestaurantService {
      * @throws RuntimeException in case of other exceptions, just throw RunTimeException
      */
     public List<UUID> getAllRestaurants(UUID userID) throws UserIDNotFoundException, RuntimeException{
-        List<Double> latitudeLongitude;
+        List<Double> userLocation;
         HashMap<UUID, List<Double>> vendors;
-
-        // get userLocation first
+        // try to get the user address first
         try{
-            String jsonUser = userMicroServiceService.getUserLocation(userID);
-            if(jsonUser == null || jsonUser.isEmpty()){ // in case getUserLocation timed out.
+            Address userAddress = userMicroServiceService.getUserAddress(userID);
+            userLocation = mockedLocationService.convertAddressToGeoCoords(userAddress);
+        } catch (UserIDNotFoundException e){
+
+            // if it fails, then get the user's current location
+            try{
+                String jsonUser = userMicroServiceService.getUserLocation(userID);
+                if(jsonUser == null || jsonUser.isEmpty()){ // in case getUserLocation timed out.
+                    throw new UserIDNotFoundException(userID);
+                }
+                userLocation = JsonParserService.parseLocation(jsonUser);
+                if(userLocation == null){ // option: error thrown in the JsonParserService could be caught in this try catch
+                    throw new RuntimeException("Something went wrong parsing location");
+                }
+            } catch (Exception ex){
                 throw new UserIDNotFoundException(userID);
             }
-            latitudeLongitude = JsonParserService.parseLocation(jsonUser);
-            if(latitudeLongitude == null){ // option: error thrown in the JsonParserService could be caught in this try catch
-                throw new RuntimeException("Something went wrong parsing location");
-            }
-        } catch (Exception e){
-            throw new UserIDNotFoundException(userID);
         }
 
         // get vendor location and UUID
@@ -72,7 +83,7 @@ public class RestaurantService {
             throw new RuntimeException("Could not get vendors");
         }
         // Get the vendor UUID nearby the customer
-        return processVendors(latitudeLongitude, vendors);
+        return processVendors(userLocation, vendors);
     }
 
     /**
