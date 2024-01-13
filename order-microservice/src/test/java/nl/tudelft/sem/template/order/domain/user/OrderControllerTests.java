@@ -105,6 +105,31 @@ class OrderControllerTests {
 
     }
 
+    @Test
+    void getOrderByIdSuccessful() throws OrderNotFoundException, NullFieldException {
+
+        when(orderService.getOrderById(order1.getOrderID())).thenReturn(order1);
+        ResponseEntity<Order> order = orderController.getOrderById(order1.getOrderID());
+        Assertions.assertEquals(order1, order.getBody());
+        Assertions.assertEquals(HttpStatus.OK, order.getStatusCode());
+
+    }
+
+    @Test
+    void getOrderByIdNullField() throws OrderNotFoundException, NullFieldException {
+
+        when(orderService.getOrderById(order1.getOrderID())).thenThrow(NullFieldException.class);
+        ResponseEntity<Order> order = orderController.getOrderById(order1.getOrderID());
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, order.getStatusCode());
+    }
+
+    @Test
+    void getOrderByIdOrderNotFound() throws OrderNotFoundException, NullFieldException {
+
+        when(orderService.getOrderById(order1.getOrderID())).thenThrow(OrderNotFoundException.class);
+        ResponseEntity<Order> order = orderController.getOrderById(order1.getOrderID());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, order.getStatusCode());
+    }
 
 
     @Test
