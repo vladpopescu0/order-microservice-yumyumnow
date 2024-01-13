@@ -4,7 +4,6 @@ import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.controllers.OrderController;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
-import org.aspectj.weaver.ast.Or;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -130,6 +129,45 @@ class OrderControllerTests {
         ResponseEntity<Order> order = orderController.getOrderById(order1.getOrderID());
         Assertions.assertEquals(HttpStatus.NOT_FOUND, order.getStatusCode());
     }
+
+    @Test
+    void editOrderByIdSuccessful() throws OrderNotFoundException, NullFieldException {
+
+        when(orderService.editOrderByID(order1.getOrderID(), order1)).thenReturn(order1);
+        ResponseEntity<Order> order = orderController.editOrderByID(order1.getOrderID(), order1);
+        Assertions.assertEquals(order1, order.getBody());
+        Assertions.assertEquals(HttpStatus.OK, order.getStatusCode());
+
+    }
+
+    @Test
+    void editOrderByIdDifferingId() {
+
+        UUID randomID = UUID.randomUUID();
+        ResponseEntity<Order> order = orderController.editOrderByID(randomID, order1);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, order.getStatusCode());
+
+    }
+
+    @Test
+    void editOrderByIdNullField() throws OrderNotFoundException, NullFieldException {
+
+        when(orderService.editOrderByID(order1.getOrderID(), order1)).thenThrow(NullFieldException.class);
+        ResponseEntity<Order> order = orderController.editOrderByID(order1.getOrderID(), order1);
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, order.getStatusCode());
+
+    }
+
+    @Test
+    void editOrderByIdOrderNotFound() throws OrderNotFoundException, NullFieldException {
+
+        when(orderService.editOrderByID(order1.getOrderID(), order1)).thenThrow(OrderNotFoundException.class);
+        ResponseEntity<Order> order = orderController.editOrderByID(order1.getOrderID(), order1);
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, order.getStatusCode());
+
+    }
+
+
 
 
     @Test
