@@ -109,10 +109,11 @@ checkstyle {
 	showViolations = true // Set to true to display Checkstyle violations in the console
 
 	checkstyleMain {
-		source = project.sourceSets.main.allJava.filter { file ->
-			{
-				return !file.path.contains('generated') && !file.path.contains('commons') && !file.path.contains('api')
-			}
+		source = project.sourceSets.main.allJava.filter { File file ->
+			// Exclude directories or files associated with generated code
+			!file.path.contains('generated') &&
+					!file.path.contains('commons') &&
+					!file.path.contains('api')
 		}
 		excludes = ['**/generated/.*']
 	}
