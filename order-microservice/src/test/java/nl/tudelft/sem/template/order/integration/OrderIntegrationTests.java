@@ -1,12 +1,10 @@
 package nl.tudelft.sem.template.order.integration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
-import org.aspectj.weaver.ast.Or;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +23,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -53,7 +50,7 @@ public class OrderIntegrationTests {
     Address a2;
 
     @BeforeEach
-    public void setup() throws Exception {
+    public void setup()  {
         a1 = new Address();
         a1.setStreet("Mekelweg 5");
         a1.setCity("Delft");
@@ -269,9 +266,47 @@ public class OrderIntegrationTests {
         orderService.createOrder(order1);
         order1.setRating(1);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}", order2.getOrderID(), order1)
+        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}", order2.getOrderID(), order2)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(order1))
+                        .content(objectMapper.writeValueAsString(order2))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
+
+    }
+
+    @Transactional
+    @Test
+    public void deleteOrderByIdSuccessful() throws Exception {
+
+        orderService.createOrder(order1);
+        orderService.createOrder(order2);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/order/{orderID}", order1.getOrderID())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        MvcResult dbReturn = mockMvc.perform(MockMvcRequestBuilders.get("/order")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        List<Order> allOrders = objectMapper.readValue(dbReturn.getResponse().getContentAsString(), new TypeReference<List<Order>>() {});
+        Assertions.assertFalse(allOrders.contains(order1));
+        Assertions.assertTrue(allOrders.contains(order2));
+        Assertions.assertEquals(1, allOrders.size());
+
+    }
+
+    @Transactional
+    @Test
+    public void deleteOrderByIdOrderNotFound() throws Exception {
+
+        orderService.createOrder(order2);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/order/{orderID}/",order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
 
