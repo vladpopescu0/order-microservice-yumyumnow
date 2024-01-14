@@ -9,7 +9,8 @@ public class ApiUtil {
     }
 
     /**
-     * Method to set an example response
+     * Method to set an example response.
+     *
      * @param req Request
      * @param contentType Type of the content
      * @param example Text in the request

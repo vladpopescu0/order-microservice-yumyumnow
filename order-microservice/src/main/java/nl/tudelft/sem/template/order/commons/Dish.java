@@ -201,7 +201,7 @@ public class Dish {
         if (this == o) {
             return true;
         } else if (o != null && this.getClass() == o.getClass()) {
-            Dish dish = (Dish)o;
+            Dish dish = (Dish) o;
             return Objects.equals(this.dishID, dish.dishID) && Objects.equals(this.vendorID, dish.vendorID) && Objects.equals(this.name, dish.name) && Objects.equals(this.price, dish.price) && Objects.equals(this.description, dish.description) && Objects.equals(this.listOfIngredients, dish.listOfIngredients) && Objects.equals(this.listOfAllergies, dish.listOfAllergies) && Objects.equals(this.image, dish.image);
         } else {
             return false;
@@ -231,4 +231,3 @@ public class Dish {
         return o == null ? "null" : o.toString().replace("\n", "\n    ");
     }
 }
-
