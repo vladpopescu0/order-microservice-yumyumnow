@@ -269,7 +269,7 @@ public class OrderService {
             throw new VendorNotFoundException(vendorID);
         }
         List<Dish> res = orderRepository.countDishesOccurrencesFromVendor(vendorID);
-        for(Dish d : res){
+        for (Dish d : res) {
             d.setListOfIngredients(new ArrayList<>(d.getListOfIngredients()));
             d.setListOfAllergies(new ArrayList<>(d.getListOfAllergies()));
         }
@@ -283,11 +283,10 @@ public class OrderService {
      * @throws OrderNotFoundException when the method cannot find the order in the database
      */
     public Order orderIsPaidUpdate(UUID orderID) throws OrderNotFoundException {
-        if (!checkUUIDIsUnique(orderID)) {
+        Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
+        if (currentOrder.isEmpty()) {
             throw new OrderNotFoundException(orderID);
         }
-        Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
-
         orderRepository.updateOrderPayment(!currentOrder.get().getOrderPaid(), orderID);
 
         Order o = currentOrder.get();

@@ -208,6 +208,13 @@ class OrderServiceTests {
                 () -> orderService.createOrder(order1));
 
     }
+    @Test
+    void testCreateOrderNullOrder() {
+
+        Assertions.assertThrows(NullFieldException.class,
+                () -> orderService.createOrder(null));
+
+    }
 
     @Test
     void testGetAllOrdersSuccessful() throws NoOrdersException {
@@ -242,6 +249,14 @@ class OrderServiceTests {
     }
 
     @Test
+    void testGetOrderByIdNull() {
+
+        Assertions.assertThrows(NullFieldException.class,
+                () -> orderService.getOrderById(null));
+
+    }
+
+    @Test
     void testGetOrderByIdNotFound() throws OrderNotFoundException {
 
         when(orderRepository.findOrderByOrderID(order1.getOrderID()))
@@ -273,6 +288,21 @@ class OrderServiceTests {
 
         Assertions.assertThrows(OrderNotFoundException.class,
                 () -> orderService.editOrderByID(order1.getOrderID(), order1));
+
+    }
+
+    @Test
+    void testEditOrderByIDNullId() {
+
+        Assertions.assertThrows(NullFieldException.class,
+                () -> orderService.editOrderByID(null, order1));
+
+    }
+    @Test
+    void testEditOrderByIDNullOrder() {
+
+        Assertions.assertThrows(NullFieldException.class,
+                () -> orderService.editOrderByID(order1.getOrderID(), null));
 
     }
 
@@ -508,5 +538,29 @@ class OrderServiceTests {
 
         Assertions.assertThrows(NoOrdersException.class, () -> orderService.getPastOrdersByCustomerID(randomUUID, filteringParam));
         verifyNoInteractions(filteringParam);
+    }
+
+    @Test
+    void testOrderIsPaidUpdateIdNotFound(){
+        UUID randomId = UUID.randomUUID();
+        when(orderRepository.findOrderByOrderID(randomId)).thenReturn(Optional.empty());
+        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.orderIsPaidUpdate(randomId));
+    }
+
+    @Test
+    void testOrderIsPaidUpdateTrueToFalseCase() throws OrderNotFoundException{
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.of(order1));
+        Order o1 = orderService.orderIsPaidUpdate(order1.getOrderID());
+        Assertions.assertFalse(o1.getOrderPaid());
+        Mockito.verify(orderRepository, Mockito.times(1)).updateOrderPayment(false, order1.getOrderID());
+    }
+
+    @Test
+    void testOrderIsPaidUpdateFalseToTrueCase() throws OrderNotFoundException{
+        order1.setOrderPaid(false);
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.of(order1));
+        Order o1 = orderService.orderIsPaidUpdate(order1.getOrderID());
+        Assertions.assertTrue(o1.getOrderPaid());
+        Mockito.verify(orderRepository, Mockito.times(1)).updateOrderPayment(true, order1.getOrderID());
     }
 }
