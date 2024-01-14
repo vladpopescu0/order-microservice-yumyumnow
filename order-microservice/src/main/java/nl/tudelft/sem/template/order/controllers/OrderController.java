@@ -45,7 +45,6 @@ public class OrderController implements OrderApi {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-
     }
 
     /**
