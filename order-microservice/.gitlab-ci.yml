@@ -54,16 +54,30 @@ PMD-order-microservice:
     gradle order-microservice:pmdMain
   allow_failure: true
 
-#test-order-microservice:
-#  extends:
-#    - .build_cached
-#  needs:
-#    - gradle_build
-#  dependencies:
-#    - gradle_build
-#  stage: test
-#  script:
-#    - gradle order-microservice:test order-microservice:jacocoTestReport
-#    - cat order-microservice/build/reports/jacoco/test/html/index.html | grep -Po "Total.*?([0-9]{1,3})%"
-#  coverage: /([0-9]{1,3})%/
+pitest-order-microservice:
+  extends:
+    - .build_cached
+  needs:
+    - gradle_build
+  dependencies:
+    - gradle_build
+  stage: test
+  script:
+    gradle order-microservice:pitest
+  allow_failure: false
 
+test-order-microservice:
+  extends:
+    - .build_cached
+  needs:
+    - gradle_build
+    - pitest-order-microservice
+  dependencies:
+    - gradle_build
+    - pitest-order-microservice
+  stage: test
+  script:
+    - gradle order-microservice:test order-microservice:jacocoTestReport --stacktrace
+    - cat order-microservice/build/reports/jacoco/test/html/index.html | grep -Po "Total.*?([0-9]{1,3})%"
+  coverage: /([0-9]{1,3})%/
+  allow_failure: true

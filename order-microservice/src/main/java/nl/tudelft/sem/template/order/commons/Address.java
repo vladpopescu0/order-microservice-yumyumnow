@@ -3,24 +3,15 @@ package nl.tudelft.sem.template.order.commons;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import org.hibernate.annotations.GenericGenerator;
-
-import javax.persistence.Embeddable;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import java.util.Objects;
-import java.util.UUID;
+import javax.persistence.Embeddable;
+
 @Embeddable
 public class Address {
     private String street;
     private String city;
     private String country;
     private String zip;
-//    @Id
-//    @GeneratedValue(generator = "uuid-hibernate-generator")
-//    @GenericGenerator(name = "uuid-hibernate-generator", strategy = "org.hibernate.id.UUIDGenerator")
-//    private UUID addressID;
 
     public Address() {
     }
@@ -105,7 +96,7 @@ public class Address {
         if (this == o) {
             return true;
         } else if (o != null && this.getClass() == o.getClass()) {
-            Address address = (Address)o;
+            Address address = (Address) o;
             return Objects.equals(this.street, address.street) && Objects.equals(this.city, address.city) && Objects.equals(this.country, address.country) && Objects.equals(this.zip, address.zip);
         } else {
             return false;
@@ -130,13 +121,4 @@ public class Address {
     private String toIndentedString(Object o) {
         return o == null ? "null" : o.toString().replace("\n", "\n    ");
     }
-
-//    public void setAddressID(UUID addressID) {
-//        this.addressID = addressID;
-//    }
-//
-//    public UUID getAddressID() {
-//        return addressID;
-//    }
 }
-

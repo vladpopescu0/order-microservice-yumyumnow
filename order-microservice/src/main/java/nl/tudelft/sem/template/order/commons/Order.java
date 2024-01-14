@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import org.hibernate.annotations.GenericGenerator;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -238,7 +236,7 @@ public class Order {
         if (this == o) {
             return true;
         } else if (o != null && this.getClass() == o.getClass()) {
-            Order order = (Order)o;
+            Order order = (Order) o;
             return Objects.equals(this.orderID, order.orderID) && Objects.equals(this.vendorID, order.vendorID) && Objects.equals(this.customerID, order.customerID) && Objects.equals(this.address, order.address) && Objects.equals(this.date, order.date) && Objects.equals(this.listOfDishes, order.listOfDishes) && Objects.equals(this.specialRequirements, order.specialRequirements) && Objects.equals(this.orderPaid, order.orderPaid) && Objects.equals(this.status, order.status) && Objects.equals(this.rating, order.rating);
         } else {
             return false;
@@ -299,7 +297,7 @@ public class Order {
             StatusEnum[] var1 = values();
             int var2 = var1.length;
 
-            for(int var3 = 0; var3 < var2; ++var3) {
+            for (int var3 = 0; var3 < var2; ++var3) {
                 StatusEnum b = var1[var3];
                 if (b.value.equals(value)) {
                     return b;

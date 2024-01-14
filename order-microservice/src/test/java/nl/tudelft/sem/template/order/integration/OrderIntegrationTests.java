@@ -1,7 +1,15 @@
 package nl.tudelft.sem.template.order.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.order.commons.Order;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,14 +27,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
@@ -96,7 +96,7 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void checkOrderIsPaidIsCorrect() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/order/{orderID}/isPaid",order1.getOrderID())
+        mockMvc.perform(MockMvcRequestBuilders.get("/order/{orderID}/isPaid", order1.getOrderID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
@@ -106,14 +106,15 @@ public class OrderIntegrationTests {
     @Test
     public void checkOrderIsPaidWrongParameter() throws Exception {
         UUID uuid = UUID.randomUUID();
-        if(uuid.equals(order1.getOrderID())){
+        if (uuid.equals(order1.getOrderID())) {
             uuid = UUID.randomUUID();
         }
-        mockMvc.perform(MockMvcRequestBuilders.get("/order/{orderID}/isPaid",uuid)
+        mockMvc.perform(MockMvcRequestBuilders.get("/order/{orderID}/isPaid", uuid)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
+
     @Transactional
     @Test
     public void checkOrderIsPaidNotPaid() throws Exception {
@@ -123,11 +124,12 @@ public class OrderIntegrationTests {
                 .content(objectMapper.writeValueAsString(order2)));
         resultActions2.andExpect(status().isOk());
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/order/{orderID}/isPaid",order2.getOrderID())
+        mockMvc.perform(MockMvcRequestBuilders.get("/order/{orderID}/isPaid", order2.getOrderID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isPaymentRequired());
     }
+
     @Transactional
     @Test
     public void checkOrderPaidUpdate() throws Exception {
@@ -137,15 +139,34 @@ public class OrderIntegrationTests {
                 .content(objectMapper.writeValueAsString(order2)));
         resultActions2.andExpect(status().isOk());
 
-
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/isPaid",order2.getOrderID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/isPaid", order2.getOrderID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        Boolean isPaid = objectMapper.readValue(res.getResponse().getContentAsString(),new TypeReference<Order>() {}).getOrderPaid();
+        Boolean isPaid = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<Order>() {}).getOrderPaid();
         assertThat(isPaid).isTrue();
     }
+
+    @Transactional
+    @Test
+    public void checkOrderPaidUpdateOrderWasPaid() throws Exception {
+        order2.setOrderPaid(true);
+        ResultActions resultActions2 = mockMvc.perform(post("/order")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(order2)));
+        resultActions2.andExpect(status().isOk());
+
+
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/isPaid", order2.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
+        Boolean isPaid = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<Order>() {}).getOrderPaid();
+        assertThat(isPaid).isFalse();
+    }
+
     @Transactional
     @Test
     public void checkOrderPaidUpdateNotFound() throws Exception {
@@ -157,7 +178,78 @@ public class OrderIntegrationTests {
 
         UUID notExistent = UUID.randomUUID();
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/isPaid",notExistent)
+        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/isPaid", notExistent)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
+    }
+
+    @Transactional
+    @Test
+    public void testGetHistoryOrdersOfUser() throws Exception {
+        Order order3 = new Order();
+        order3.setOrderID(UUID.randomUUID());
+        order3.setVendorID(UUID.randomUUID());
+        order3.setCustomerID(order1.getCustomerID());
+        order3.setAddress(a1);
+        order3.setDate(new BigDecimal("1700006405000"));
+        order3.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
+        order3.setSpecialRequirements("Knock on the door");
+        order3.setOrderPaid(true);
+        order3.setStatus(Order.StatusEnum.DELIVERED);
+        order3.setRating(4);
+
+        Order order4 = new Order();
+        order4.setOrderID(UUID.randomUUID());
+        order4.setVendorID(UUID.randomUUID());
+        order4.setCustomerID(order1.getCustomerID());
+        order4.setAddress(a1);
+        order4.setDate(new BigDecimal("1700006405000"));
+        order4.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
+        order4.setSpecialRequirements("Knock on the door");
+        order4.setOrderPaid(true);
+        order4.setStatus(Order.StatusEnum.DELIVERED);
+        order4.setRating(4);
+
+        //Action
+        ResultActions resultActions = mockMvc.perform(post("/order")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(order3)));
+        // Assert
+        resultActions.andExpect(status().isOk());
+
+        //Action
+        ResultActions resultActions2 = mockMvc.perform(post("/order")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(order4)));
+        // Assert
+        resultActions2.andExpect(status().isOk());
+
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/order/{customerID}/history", order1.getCustomerID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
+        List<Order> orders = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<>() {});
+        assertThat(orders).containsExactlyInAnyOrder(order3, order4);
+
+    }
+
+    @Transactional
+    @Test
+    public void testGetHistoryOrdersOfUserNoMatchingInDatabase() throws Exception {
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/order/{customerID}/history", order1.getCustomerID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
+    }
+
+    @Transactional
+    @Test
+    public void testGetHistoryOrdersOfUserNoUserFound() throws Exception {
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/order/{customerID}/history", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
