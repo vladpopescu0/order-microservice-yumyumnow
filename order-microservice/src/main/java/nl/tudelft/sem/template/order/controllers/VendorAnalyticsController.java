@@ -98,7 +98,9 @@ public class VendorAnalyticsController implements VendorApi {
         try {
             List<Order> orders = orderService.getOrdersFromCustomerAtVendor(vendorID, customerID);
             return ResponseEntity.ok(orders);
-        } catch (VendorNotFoundException | CustomerNotFoundException e) {
+        } catch (VendorNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (CustomerNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (NoOrdersException e) {
             return ResponseEntity.ok(new ArrayList<>());

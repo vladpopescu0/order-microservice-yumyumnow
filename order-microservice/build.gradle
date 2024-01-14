@@ -68,12 +68,16 @@ dependencies {
 	implementation 'io.swagger.core.v3:swagger-core:2.2.15'
 }
 
+jacoco {
+	toolVersion = "0.8.6"
+}
+
 test {
 	useJUnitPlatform()
 	jacoco {
 		enabled = true
 		includes = ['nl.tudelft.sem.template.*']
-		excludes = []
+		excludes = ['nl.tudelft.sem.template.api.*','nl.tudelft.sem.template.order.commons.*','nl.tudelft.sem.template.commons.*','nl.tudelft.sem.template.order.api.*','nl.tudelft.sem.template.model.*']
 	}
 }
 
@@ -88,11 +92,10 @@ jacocoTestCoverageVerification() {
 			enabled = true
 			element = 'CLASS'
 			includes = ['nl.tudelft.sem.template.*']
-
 			limit {
 				counter = 'BRANCH'
 				value = 'COVEREDRATIO'
-				minimum = 0.1
+				minimum = 0.8
 			}
 		}
 	}
@@ -135,11 +138,13 @@ pitest {
 	//adds dependency to org.pitest:pitest-junit5-plugin and sets "testPlugin" to "junit5"
 	junit5PluginVersion = '0.12'
 
-	targetClasses = ['nl.tudelft.sem.template.*']  //by default "${project.group}.*"
+	targetClasses = ['nl.tudelft.sem.template.order.controllers.*','nl.tudelft.sem.template.order.domain.*']  //by default "${project.group}.*"
+	excludedTestClasses =['nl.tudelft.sem.template.order.integration.*']
 	pitestVersion = '1.5.1' //not needed when a default PIT version should be used
 	threads = 4
 	outputFormats = ['XML', 'HTML']
 	timestampedReports = false
+	mutationThreshold = 70
 }
 
 apply plugin: 'org.openapi.generator'

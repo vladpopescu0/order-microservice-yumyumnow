@@ -1,5 +1,12 @@
 package nl.tudelft.sem.template.order.domain.user;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import nl.tudelft.sem.template.order.commons.Dish;
 import nl.tudelft.sem.template.order.controllers.DishController;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,14 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class DishControllerTests {
@@ -30,8 +29,9 @@ public class DishControllerTests {
     Dish d1;
 
     Dish d2;
+
     @BeforeEach
-    public void setup(){
+    public void setup() {
         d1 = new Dish();
         d1.setDishID(UUID.randomUUID());
         d1.setDescription("very tasty");
@@ -115,16 +115,16 @@ public class DishControllerTests {
 
     @Test
     public void update_dish_different_id() {
-        ResponseEntity<Dish> res = dishController.updateDishByID(UUID.randomUUID(),d1);
+        ResponseEntity<Dish> res = dishController.updateDishByID(UUID.randomUUID(), d1);
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
     public void update_dish_correct_id() throws DishNotFoundException {
-        when(dishService.updateDish(d1.getDishID(),d1)).thenReturn(d1);
+        when(dishService.updateDish(d1.getDishID(), d1)).thenReturn(d1);
 
-        ResponseEntity<Dish> res = dishController.updateDishByID(d1.getDishID(),d1);
+        ResponseEntity<Dish> res = dishController.updateDishByID(d1.getDishID(), d1);
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(res.getBody()).isEqualTo(d1);
@@ -132,18 +132,18 @@ public class DishControllerTests {
 
     @Test
     public void update_dish_not_found() throws DishNotFoundException {
-        when(dishService.updateDish(d1.getDishID(),d1)).thenThrow(DishNotFoundException.class);
+        when(dishService.updateDish(d1.getDishID(), d1)).thenThrow(DishNotFoundException.class);
 
-        ResponseEntity<Dish> res = dishController.updateDishByID(d1.getDishID(),d1);
+        ResponseEntity<Dish> res = dishController.updateDishByID(d1.getDishID(), d1);
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     public void update_dish_bad_request() throws DishNotFoundException {
-        when(dishService.updateDish(d1.getDishID(),d1)).thenThrow(NullPointerException.class);
+        when(dishService.updateDish(d1.getDishID(), d1)).thenThrow(NullPointerException.class);
 
-        ResponseEntity<Dish> res = dishController.updateDishByID(d1.getDishID(),d1);
+        ResponseEntity<Dish> res = dishController.updateDishByID(d1.getDishID(), d1);
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
@@ -175,7 +175,7 @@ public class DishControllerTests {
 
     @Test
     public void get_dishes_by_vendor_correct_id() throws VendorNotFoundException {
-        when(dishService.getDishByVendorId(d1.getVendorID())).thenReturn(List.of(d1,d2));
+        when(dishService.getDishByVendorId(d1.getVendorID())).thenReturn(List.of(d1, d2));
 
         ResponseEntity<List<Dish>> res = dishController.getDishesByVendorID(d1.getVendorID());
 
@@ -203,9 +203,9 @@ public class DishControllerTests {
 
     @Test
     public void get_dishes_with_allergies_correct() throws VendorNotFoundException {
-        when(dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>())).thenReturn(List.of(d1,d2));
+        when(dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>())).thenReturn(List.of(d1, d2));
 
-        ResponseEntity<List<Dish>> res = dishController.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
+        ResponseEntity<List<Dish>> res = dishController.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(res.getBody()).contains(d1).contains(d2);
@@ -213,18 +213,18 @@ public class DishControllerTests {
 
     @Test
     public void get_dishes_with_allergies_not_found() throws VendorNotFoundException {
-        doThrow(VendorNotFoundException.class).when(dishService).getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
+        doThrow(VendorNotFoundException.class).when(dishService).getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
-        ResponseEntity<List<Dish>> res = dishController.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
+        ResponseEntity<List<Dish>> res = dishController.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     public void get_dishes_with_allergies_bad_request() throws VendorNotFoundException {
-        doThrow(NullPointerException.class).when(dishService).getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
+        doThrow(NullPointerException.class).when(dishService).getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
-        ResponseEntity<List<Dish>> res = dishController.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
+        ResponseEntity<List<Dish>> res = dishController.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
