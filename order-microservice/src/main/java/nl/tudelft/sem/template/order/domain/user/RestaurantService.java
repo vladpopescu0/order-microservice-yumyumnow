@@ -46,30 +46,28 @@ public class RestaurantService {
      * @throws RuntimeException in case of other exceptions, just throw RunTimeException
      */
     public List<UUID> getAllRestaurants(UUID userID) throws UserIDNotFoundException, RuntimeException{
-        HashMap<UUID, List<Double>> vendors;
         // try to get the user address first
         List<Double> userLocation = getUserLocation(userID);
 
         // get vendor location and UUID
         try{
             List<String> jsonVendors = userMicroServiceService.getAllVendors();
-             vendors = JsonParserService.parseVendorsLocation(jsonVendors);
+            HashMap<UUID, List<Double>> vendors = JsonParserService.parseVendorsLocation(jsonVendors);
             if(vendors == null || vendors.isEmpty()){ // option: error thrown in the JsonParserService could be caught in this try catch
                 throw new RuntimeException("Something went wrong parsing vendors");
             }
+            // Get the vendor UUID nearby the customer
+            return processVendors(userLocation, vendors);
         } catch (Exception e){
             throw new RuntimeException("Could not get vendors");
         }
-        // Get the vendor UUID nearby the customer
-        return processVendors(userLocation, vendors);
     }
 
     public List<Double> getUserLocation(UUID userID) throws UserIDNotFoundException {
-        List<Double> userLocation;
         try{
             Address userAddress = userMicroServiceService.getUserAddress(userID);
             // this always returns the geo coordinates of TU Aula, unless we catch an error
-            userLocation = mockedLocationService.convertAddressToGeoCoords(userAddress);
+            return mockedLocationService.convertAddressToGeoCoords(userAddress);
         } catch (UserIDNotFoundException e){
 
             // if we catch an error, then get the user's current location
@@ -78,15 +76,15 @@ public class RestaurantService {
                 if(jsonUser == null || jsonUser.isEmpty()){ // in case getUserLocation timed out.
                     throw new UserIDNotFoundException(userID);
                 }
-                userLocation = JsonParserService.parseLocation(jsonUser);
+                List<Double> userLocation = JsonParserService.parseLocation(jsonUser);
                 if(userLocation == null){ // option: error thrown in the JsonParserService could be caught in this try catch
                     throw new RuntimeException("Something went wrong parsing location");
                 }
+                return userLocation;
             } catch (Exception ex){
                 throw new UserIDNotFoundException(userID);
             }
         }
-        return userLocation;
     }
 
     /**
