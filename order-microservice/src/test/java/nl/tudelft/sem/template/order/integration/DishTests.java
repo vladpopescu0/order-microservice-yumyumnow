@@ -82,7 +82,7 @@ public class DishTests {
     @Transactional
     @Test
     public void createDish_withValidData_worksCorrectly() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/dish")
+        mockMvc.perform(MockMvcRequestBuilders.post("/dish/{vendorID}", d1.getVendorID())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(d1))
                 .accept(MediaType.APPLICATION_JSON))
@@ -93,11 +93,20 @@ public class DishTests {
         assertThat(persistedDish).isEqualTo(d1);
     }
 
+    @Test
+    public void createDish_withValidData_differentVendor() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/dish/{vendorID}", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(d1))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
     @Transactional
     @Test
     public void createDish_withNullData() throws Exception {
         d1.setDishID(null);
-        mockMvc.perform(MockMvcRequestBuilders.post("/dish")
+        mockMvc.perform(MockMvcRequestBuilders.post("/dish/{vendorID}", d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -107,7 +116,7 @@ public class DishTests {
     @Transactional
     @Test
     public void createDish_duplicate() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/dish")
+        mockMvc.perform(MockMvcRequestBuilders.post("/dish/{vendorID}", d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -117,7 +126,7 @@ public class DishTests {
         assertThat(d1).isEqualTo(persistedDish);
         assertThat(persistedDish).isEqualTo(d1);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/dish")
+        mockMvc.perform(MockMvcRequestBuilders.post("/dish/{vendorID}", d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -145,7 +154,7 @@ public class DishTests {
     @Transactional
     @Test
     public void getDishThatExists() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/dish")
+        mockMvc.perform(MockMvcRequestBuilders.post("/dish/{vendorID}", d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))

@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class DishController implements DishApi {
+public class DishController implements DishApi{
     private final transient DishService dishService;
 
     /**
@@ -29,12 +29,17 @@ public class DishController implements DishApi {
     /**
      * Endpoint for adding a dish.
      *
+     * @param vendorId id of the vendor, from whom the new dish is
      * @param dish The Dish that has to be added to the database
      * @return 200 OK if the addition of the dish was successful, including the added dish
      *         400 BAD REQUEST if the addition was unsuccessful
      */
-    public ResponseEntity<Dish> addDish(Dish dish) {
+    @Override
+    public ResponseEntity<Dish> addDish(UUID vendorId, Dish dish) {
         try {
+            if (!vendorId.equals(dish.getVendorID())) {
+                return ResponseEntity.badRequest().build();
+            }
             Dish d = dishService.addDish(dish);
             return ResponseEntity.ok(d);
         } catch (Exception e) {

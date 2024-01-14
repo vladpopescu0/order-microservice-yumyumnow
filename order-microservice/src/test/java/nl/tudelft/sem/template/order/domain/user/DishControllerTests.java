@@ -71,17 +71,24 @@ public class DishControllerTests {
     public void add_dish_successful() throws DishIdAlreadyInUseException {
         when(dishService.addDish(d1)).thenReturn(d1);
 
-        ResponseEntity<Dish> res = dishController.addDish(d1);
+        ResponseEntity<Dish> res = dishController.addDish(d1.getVendorID(), d1);
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(res.getBody()).isEqualTo(d1);
     }
 
     @Test
-    public void add_dish_unsuccessful() throws DishIdAlreadyInUseException {
+    public void add_dish_unsuccessful_different_vendor() throws DishIdAlreadyInUseException {
+        ResponseEntity<Dish> res = dishController.addDish(UUID.randomUUID(), d1);
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void add_dish_unsuccessful_id_already_exists() throws DishIdAlreadyInUseException {
         when(dishService.addDish(d1)).thenThrow(DishIdAlreadyInUseException.class);
 
-        ResponseEntity<Dish> res = dishController.addDish(d1);
+        ResponseEntity<Dish> res = dishController.addDish(d1.getVendorID(), d1);
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
