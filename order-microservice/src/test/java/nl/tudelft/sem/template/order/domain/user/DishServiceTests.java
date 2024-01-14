@@ -1,11 +1,13 @@
 package nl.tudelft.sem.template.order.domain.user;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import nl.tudelft.sem.template.order.commons.Dish;
-import nl.tudelft.sem.template.order.controllers.DishController;
-import nl.tudelft.sem.template.order.domain.user.DishIdAlreadyInUseException;
-import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
-import nl.tudelft.sem.template.order.domain.user.DishService;
-import nl.tudelft.sem.template.order.domain.user.VendorNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,17 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class DishServiceTests {
@@ -37,8 +28,9 @@ public class DishServiceTests {
     Dish d1;
 
     Dish d2;
+
     @BeforeEach
-    public void setup(){
+    public void setup() {
         d1 = new Dish();
         d1.setDishID(UUID.randomUUID());
         d1.setDescription("very tasty");
@@ -83,10 +75,10 @@ public class DishServiceTests {
     }
 
     @Test
-    public void add_dish_unsuccessful(){
+    public void add_dish_unsuccessful() {
         when(dishRepository.existsByDishID(d1.getDishID())).thenReturn(true);
 
-        Assertions.assertThrows(DishIdAlreadyInUseException.class, () ->{
+        Assertions.assertThrows(DishIdAlreadyInUseException.class, () -> {
             dishService.addDish(d1);
         });
     }
@@ -104,7 +96,7 @@ public class DishServiceTests {
     public void get_dish_not_exists() throws DishNotFoundException {
         when(dishRepository.findDishByDishID(d1.getDishID())).thenReturn(Optional.empty());
 
-        Assertions.assertThrows(DishNotFoundException.class, () ->{
+        Assertions.assertThrows(DishNotFoundException.class, () -> {
             dishService.getDishById(d1.getDishID());
         });
     }
@@ -114,15 +106,15 @@ public class DishServiceTests {
         when(dishRepository.existsByDishID(d1.getDishID())).thenReturn(true);
         when(dishRepository.save(d1)).thenReturn(d1);
 
-        Dish res = dishService.updateDish(d1.getDishID(),d1);
+        Dish res = dishService.updateDish(d1.getDishID(), d1);
 
         assertThat(res).isEqualTo(d1);
     }
 
     @Test
     public void update_dish_not_found() throws DishNotFoundException {
-        Assertions.assertThrows(DishNotFoundException.class, () ->{
-            dishService.updateDish(d1.getDishID(),d1);
+        Assertions.assertThrows(DishNotFoundException.class, () -> {
+            dishService.updateDish(d1.getDishID(), d1);
         });
     }
 
@@ -132,23 +124,23 @@ public class DishServiceTests {
         when(dishRepository.existsByDishID(d1.getDishID())).thenReturn(true);
         dishService.deleteDishByDishId(d1.getDishID());
 
-        verify(dishRepository,times(1)).existsByDishID(d1.getDishID());
-        verify(dishRepository,times(1)).deleteById(d1.getDishID());
+        verify(dishRepository, times(1)).existsByDishID(d1.getDishID());
+        verify(dishRepository, times(1)).deleteById(d1.getDishID());
     }
 
     @Test
     public void delete_dish_not_found() throws DishNotFoundException {
         when(dishRepository.existsByDishID(d1.getDishID())).thenReturn(false);
-        Assertions.assertThrows(DishNotFoundException.class, () ->{
+        Assertions.assertThrows(DishNotFoundException.class, () -> {
             dishService.deleteDishByDishId(d1.getDishID());
         });
-        verify(dishRepository,times(1)).existsByDishID(d1.getDishID());
-        verify(dishRepository,never()).deleteById(d1.getDishID());
+        verify(dishRepository, times(1)).existsByDishID(d1.getDishID());
+        verify(dishRepository, never()).deleteById(d1.getDishID());
     }
 
     @Test
     public void get_dishes_by_vendor_correct_id() throws VendorNotFoundException {
-        when(dishRepository.findDishesByVendorID(d1.getVendorID())).thenReturn(Optional.of(List.of(d1,d2)));
+        when(dishRepository.findDishesByVendorID(d1.getVendorID())).thenReturn(Optional.of(List.of(d1, d2)));
 
         List<Dish> res = dishService.getDishByVendorId(d1.getVendorID());
 
@@ -159,18 +151,17 @@ public class DishServiceTests {
     public void get_dishes_by_vendor_not_found() throws VendorNotFoundException {
         when(dishRepository.findDishesByVendorID(d1.getVendorID())).thenReturn(Optional.empty());
 
-        Assertions.assertThrows(VendorNotFoundException.class, () ->{
+        Assertions.assertThrows(VendorNotFoundException.class, () -> {
             dishService.getDishByVendorId(d1.getVendorID());
         });
     }
 
-
     @Test
     public void get_dishes_with_allergies_correct() throws VendorNotFoundException {
         when(dishRepository.existsByVendorID(d1.getVendorID())).thenReturn(true);
-        when(dishRepository.findDishesByVendorIDAndListOfAllergies(d1.getVendorID(),new ArrayList<>())).thenReturn(Optional.of(List.of(d1,d2)));
+        when(dishRepository.findDishesByVendorIDAndListOfAllergies(d1.getVendorID(), new ArrayList<>())).thenReturn(Optional.of(List.of(d1, d2)));
 
-        List<Dish> res = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
+        List<Dish> res = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
         assertThat(res).contains(d1).contains(d2);
     }
@@ -178,18 +169,18 @@ public class DishServiceTests {
     @Test
     public void get_dishes_with_no_dish_found() throws VendorNotFoundException {
         when(dishRepository.existsByVendorID(d1.getVendorID())).thenReturn(true);
-        when(dishRepository.findDishesByVendorIDAndListOfAllergies(d1.getVendorID(),new ArrayList<>())).thenReturn(Optional.empty());
+        when(dishRepository.findDishesByVendorIDAndListOfAllergies(d1.getVendorID(), new ArrayList<>())).thenReturn(Optional.empty());
 
-        List<Dish> res = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
+        List<Dish> res = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
         assertThat(res).isEmpty();
     }
 
     @Test
     public void get_dishes_with_allergies_not_found() throws VendorNotFoundException {
         when(dishRepository.existsByVendorID(d1.getVendorID())).thenReturn(false);
-        Assertions.assertThrows(VendorNotFoundException.class, () ->{
-            dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),new ArrayList<>());
+        Assertions.assertThrows(VendorNotFoundException.class, () -> {
+            dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
         });
-        verify(dishRepository,never()).findDishesByVendorIDAndListOfAllergies(d1.getDishID(),new ArrayList<>());
+        verify(dishRepository, never()).findDishesByVendorIDAndListOfAllergies(d1.getDishID(), new ArrayList<>());
     }
 }

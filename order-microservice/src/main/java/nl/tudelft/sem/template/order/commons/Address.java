@@ -3,9 +3,9 @@ package nl.tudelft.sem.template.order.commons;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-
-import javax.persistence.Embeddable;
 import java.util.Objects;
+import javax.persistence.Embeddable;
+
 @Embeddable
 public class Address {
     private String street;
@@ -100,7 +100,7 @@ public class Address {
         if (this == o) {
             return true;
         } else if (o != null && this.getClass() == o.getClass()) {
-            Address address = (Address)o;
+            Address address = (Address) o;
             return Objects.equals(this.street, address.street) && Objects.equals(this.city, address.city) && Objects.equals(this.country, address.country) && Objects.equals(this.zip, address.zip);
         } else {
             return false;
