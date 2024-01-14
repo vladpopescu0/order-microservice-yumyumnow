@@ -1,0 +1,917 @@
+openapi: 3.0.0
+info:
+  title: YumYumNow Orders - OpenAPI 3.0
+  description: >-
+    This is the final version of the OpenAPI Specification of the scenario YumYumNow - Orders
+  version: "1.0"
+servers:
+  - url: localhost:8083
+tags:
+  - name: Dish
+    description: everything about dishes
+  - name: Order
+    description: everything about orders
+  - name: Analytics Vendor
+    description: all the necessary analytics for the vendor
+  - name: Restaurants Around
+    description: filter all restaurants based on some queries
+paths:
+  /restaurants/{userID}:
+    get:
+      tags:
+        - Restaurants Around
+      summary: Find all restaurants around the location of an user
+      description: Using a constant radius, the endpoint should be able to return all restaurants UUIDs that are within the Euclidean distance
+      operationId: getAllRestaurants
+      parameters:
+        - name: userID
+          in: path
+          description: ID of user where the rule is applied
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: UUID
+        '400':
+          description: Bad Request. The provided user ID is invalid.
+        '404':
+          description: Not Found. No restaurants found around the area of the user.
+  /restaurants/{userID}/{searchQuery}:
+    get:
+      tags:
+        - Restaurants Around
+      summary: Find all restaurants around the location of an user and filter the names
+      description: Using a constant radius, the endpoint should be able to return all restaurants UUIDs that are within the Euclidean distance and the name matches the query string
+      operationId: getAllRestaurantsWithQuery
+      parameters:
+        - name: userID
+          in: path
+          description: ID of user where the rule is applied
+          required: true
+          schema:
+            type: string
+            format: UUID
+        - name: searchQuery
+          in: path
+          description: string query to search by name, must be URL safe
+          required: true
+          schema:
+            type: string
+            format: URLSAFE
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: UUID
+        '400':
+          description: Bad Request. The provided user ID or search query is invalid.
+        '404':
+          description: Not Found. No restaurants found within radius or with that name
+  /dish/{vendorID}:
+    post:
+      tags:
+        - Dish
+      summary: Add a new dish of a restaurant
+      description: Add a new dish of a restaurant
+      operationId: addDish
+      parameters:
+        - name: vendorID
+          in: path
+          description: ID of the vendor from who the dishes will be returned
+          required: true
+          schema:
+            type: string
+            format: UUID
+      requestBody:
+        description: Add a new dish of a restaurant
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Dish'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dish'
+        '400':
+          description: Bad Request. The provided dish is malformed
+  /dish/{dishID}:
+    get:
+      tags:
+        - Dish
+      summary: Find dish by ID
+      description: Returns a single dish
+      operationId: getDishByID
+      parameters:
+        - name: dishID
+          in: path
+          description: ID of dish to return
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dish'
+        '400':
+          description: Bad Request. The provided ID is malformed
+        '404':
+          description: Not Found. No dish found with that ID.
+    put:
+      tags:
+        - Dish
+      summary: Update an existing dish
+      description: Update an existing dish by ID
+      operationId: updateDishByID
+      parameters:
+        - name: dishID
+          in: path
+          description: ID of dish
+          required: true
+          schema:
+            type: string
+            format: UUID
+      requestBody:
+        description: Update an existent dish
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Dish'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dish'
+        '400':
+          description: Bad Request. The provided ID is malformed
+        '404':
+          description: Not Found. No dish found with that ID.
+    delete:
+      tags:
+        - Dish
+      summary: Deletes a dish
+      description: delete a dish
+      operationId: deleteDishByID
+      parameters:
+        - name: dishID
+          in: path
+          description: Dish id to delete
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: Bad Request. The provided ID is malformed
+        '404':
+          description: Not Found. No dish found with that ID.
+  /dish/list/{vendorID}:
+    get:
+      tags:
+        - Dish
+      summary: Find dishes by vendor id
+      description: Return all dishes from a vendor
+      operationId: getDishesByVendorID
+      parameters:
+        - name: vendorID
+          in: path
+          description: ID of the vendor from who the dishes will be returned
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dish'
+        '400':
+          description: Bad Request. The provided ID is malformed
+        '404':
+          description: Not Found. Vendor not found
+  /dish/allergy-list/{vendorID}:
+    get:
+      tags:
+        - Dish
+      summary: Get all dishes offered by a vendor filtered by allergy
+      description: ''
+      operationId: getAllergyFilteredDishesFromVendor
+      parameters:
+        - name: vendorID
+          in: path
+          description: ID of vendor to retrieve dishes from
+          required: true
+          schema:
+            type: string
+            format: UUID
+        - name: allergies
+          in: query
+          description: Comma-separated list of allergies to filter by
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dish'
+        '400':
+          description: Bad Request. The provided ID or allergies are malformed
+        '404':
+          description: Not Found. Vendor not found
+  /order:
+    post:
+      tags:
+        - Order
+      summary: Create new order
+      description: Creating new order and adding it to the database.
+      operationId: createOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Bad Request. The provided order is malformed
+    get:
+      tags:
+        - Order
+      summary: Get all orders from the database
+      description: An admin operation to retrieve all orders
+      operationId: getAllOrders
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        '404':
+          description: Not Found. There are no orders in the database
+  /order/{orderID}:
+    put:
+      tags:
+        - Order
+      summary: Edit an existing order
+      description: Editing an existing order in the database. Functioning as adding and removing dishes from the order.
+      operationId: editOrderByID
+      parameters:
+        - name: orderID
+          in: path
+          description: ID of vendor to retrieve dishes from
+          required: true
+          schema:
+            type: string
+            format: UUID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Bad Request. The provided order is malformed
+        '404':
+          description: Not Found. Order not found
+    get:
+      tags:
+        - Order
+      summary: Find order by ID
+      description: Get order by orderID
+      operationId: getOrderById
+      parameters:
+        - name: orderID
+          in: path
+          description: ID of order to return
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Bad Request. The provided ID is malformed
+        '404':
+          description: Not Found. Order not found
+    delete:
+      tags:
+        - Order
+      summary: Delete purchase order by ID
+      description: Given an orderID, delete it
+      operationId: deleteOrderByID
+      parameters:
+        - name: orderID
+          in: path
+          description: ID of the order that needs to be deleted
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Operation succesful
+        '400':
+          description: Bad Request. The provided ID is malformed
+        '404':
+          description: Not Found. Order not found
+  /order/{orderID}/orderRating:
+    get:
+      tags:
+        - Order
+      summary: Get the rating of an order
+      description: Get the rating of an order by orderID
+      operationId: getOrderRatingByID
+      parameters:
+        - name: orderID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: integer
+                description: Return a rating
+                example: 4
+        '400':
+          description: Bad Request. The provided ID is malformed
+        '404':
+          description: Not Found. Order not found
+    put:
+      tags:
+        - Order
+      summary: Edit the rating of an existing order
+      description: Editing an existing order rating in the database.
+      operationId: editOrderRatingByID
+      parameters:
+        - name: orderID
+          in: path
+          description: ID of order
+          required: true
+          schema:
+            type: string
+            format: UUID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: integer
+              description: Between 1 and 5
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Bad Request. rating exceeded the boundaries of [1-5]
+        '404':
+          description: Not Found. Order not found
+  /order/{orderID}/totalCost:
+    get:
+      tags:
+        - Order
+      summary: Get total cost of order
+      description: This request will send the total cost of an order given an orderID
+      parameters:
+        - name: orderID
+          in: path
+          description: ID of order that needs to be fetched
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: number
+                format: float
+                example: 21.39
+        '400':
+          description: Bad Request. The provided ID is malformed
+        '404':
+          description: Not Found. Order not found
+  /order/{orderID}/isPaid:
+    get:
+      tags:
+        - Order
+      summary: Checks if order is paid before being sent to the customer.
+      parameters:
+        - in: path
+          name: orderID
+          required: true
+          schema:
+            type: string
+            format: UUID
+            maximum: 1
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: Bad Request. The provided ID is malformed
+        '404':
+          description: Not Found. Order not found
+    put:
+      tags:
+        - Order
+      summary: Invert the orderPaid field of an order
+      description: If the orderPaid field is true make it false or true otherwise
+      operationId: updateOrderPaid
+      parameters:
+        - name: orderID
+          in: path
+          description: ID of order
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Bad Request. The orderPaid field is NULL/not set
+        '404':
+          description: Not Found. Order not found
+  /order/{orderID}/status:
+    get:
+      tags:
+        - Order
+      summary: Find the status of an order by ID
+      description: Returns the status of the order an inquiry was made about
+      operationId: getStatusOfOrderById
+      parameters:
+        - name: orderID
+          in: path
+          description: ID of order to return
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: string
+                description: Order Status
+                example: accepted
+                enum:
+                  - pending
+                  - accepted
+                  - rejected
+                  - preparing
+                  - given to courier
+                  - 'on-transit'
+                  - delivered
+        '400':
+          description: Bad Request. The provided ID is malformed
+        '404':
+          description: Not Found. Order not found
+    put:
+      tags:
+        - Order
+      summary: Update the status of an order by ID
+      description: Updates the status of an order by ID
+      operationId: updateStatusOfOrderById
+      parameters:
+        - name: orderID
+          in: path
+          description: ID of order to update
+          required: true
+          schema:
+            type: string
+            format: UUID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              description: it must be one of the enums listed in the order status values
+              enum:
+                - pending
+                - accepted
+                - rejected
+                - preparing
+                - given to courier
+                - 'on-transit'
+                - delivered
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: Bad Request. The provided ID is malformed
+        '404':
+          description: Not Found. Order not found
+        '415':
+          description: Unsupported Media Type. Invalid Enum Value
+  /order/{customerID}/history:
+    get:
+      tags:
+        - Order
+      summary: get all the past orders of a specific customer
+      description: Returns a list of all past orders of the specified customer
+      operationId: getCustomerOrderHistory
+      parameters:
+        - name: customerID
+          in: path
+          description: ID of customer whose past orders will be returned
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        '400':
+          description: Bad Request. The provided ID is malformed
+        '404':
+          description: Not Found. Customer not found
+  /order/fromVendorID/{vendorID}:
+    get:
+      tags:
+        - Order
+      summary: get the number of orders of a vendor
+      parameters:
+        - in: path
+          name: vendorID
+          required: true
+          schema:
+            type: string
+            format: UUID
+            maximum: 1
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: integer
+                example: 10
+        '400':
+          description: Bad Request. The provided ID is malformed
+        '404':
+          description: Not Found. Vendor not found
+  /order/{orderID}/vendor:
+    get:
+      tags:
+        - Order
+      summary: Retrieves an order as it should look for the vendor.
+      parameters:
+        - in: path
+          name: orderID
+          required: true
+          schema:
+            type: string
+            format: UUID
+            maximum: 1
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        '400':
+          description: Bad Request. The provided ID is malformed
+        '404':
+          description: Not Found. Order not found
+  /vendor/{vendorID}/analytics/history/{customerID}:
+    get:
+      tags:
+        - Analytics Vendor
+      summary: Get history of orders made by specific customers of a vendor
+      description: Retrieve the history of orders made by a specific customer of a vendor
+      parameters:
+        - name: vendorID
+          in: path
+          description: ID of the vendor
+          required: true
+          schema:
+            type: string
+            format: UUID
+        - name: customerID
+          in: path
+          description: ID of the customer
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        '400':
+          description: Bad Request. The provided ID(s) are malformed
+        '404':
+          description: Not Found. Vendor/Customer not found
+  /vendor/{vendorID}/analytics/orderVolumes:
+    get:
+      tags:
+        - Analytics Vendor
+      summary: Get the order volumes of a vendor
+      description: Get the order volumes analytics of a vendor
+      parameters:
+        - name: vendorID
+          in: path
+          description: ID of the vendor
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: integer
+                example: 100
+        '400':
+          description: Bad Request. The provided ID(s) are malformed
+        '404':
+          description: Not Found. Vendor not found
+  /vendor/{vendorID}/analytics/popularItems:
+    get:
+      tags:
+        - Analytics Vendor
+      summary: Get the popular items of a vendor
+      description: Get the popular items of a menu of a vendor
+      parameters:
+        - name: vendorID
+          in: path
+          description: ID of the vendor
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dish'
+        '400':
+          description: Bad Request. The provided ID(s) are malformed
+        '404':
+          description: Not Found. Vendor not found
+  /vendor/{vendorID}/analytics/peakTimes:
+    get:
+      tags:
+        - Analytics Vendor
+      summary: Get the peak ordering times of a vendor
+      description: Get the peak ordering times of a vendor
+      parameters:
+        - name: vendorID
+          in: path
+          description: ID of the vendor
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                description: array of length 24 representing a day, with as values the numbers of orders
+                type: array
+                items:
+                  type: integer
+                  example:
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 0
+                    - 1
+                    - 2
+                    - 0
+                    - 4
+                    - 3
+                    - 1
+                    - 0
+                    - 0
+                    - 2
+                    - 7
+                    - 5
+                    - 7
+                    - 3
+                    - 1
+                    - 0
+        '400':
+          description: Bad Request. The provided ID(s) are malformed
+        '404':
+          description: Not Found. Vendor not found
+components:
+  schemas:
+    Dish:
+      type: object
+      properties:
+        dishID:
+          type: string
+          format: UUID
+          example: 550e8400-e29b-41d4-a716-446655440000
+        vendorID:
+          type: string
+          format: UUID
+          example: 550e8400-e29b-41d4-a716-446655440000
+        name:
+          type: string
+          example:  Kapsalon
+        price:
+          type: number
+          format: float
+          example: 3.25
+        description:
+          type: string
+          example: Lamb kapsalon with cheese
+        listOfIngredients:
+          type: array
+          items:
+            type: string
+          example:
+            - Fries
+            - Lamb
+            - Cheese
+        listOfAllergies:
+          type: array
+          items:
+            type: string
+          example:
+            - lactose
+            - gluten
+        image:
+          type: string
+          format: base64
+          description: Base64 encoded image data
+    Order:
+      type: object
+      properties:
+        orderID:
+          type: string
+          format: UUID
+          example: 550e8400-e29b-41d4-a716-446655440000
+        vendorID:
+          type: string
+          format: UUID
+          example: 550e8400-e29b-41d4-a716-446655440000
+        customerID:
+          type: string
+          format: UUID
+          example: 550e8400-e29b-41d4-a716-446655440000
+        address:
+          $ref: '#/components/schemas/Address'
+        date:
+          type: number
+          format: Long
+          example: 1700006405000
+        listOfDishes:
+          type: array
+          items:
+            type: string
+            format: UUID
+        specialRequirements:
+          type: string
+          example: please knock three times instead of using the bell
+        orderPaid:
+          type: boolean
+          example: true
+        status:
+          type: string
+          description: Order Status
+          example: delivered
+          enum:
+            - pending
+            - accepted
+            - rejected
+            - preparing
+            - given to courier
+            - on-transit
+            - delivered
+        rating:
+          type: integer
+          description: Rating of the order
+          example: 1
+        price:
+          type: number
+          format: float
+          description: The price of the whole order as a sum of dishes and additional costs
+          example: 17.38
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+          example: Mekelweg 5
+        city:
+          type: string
+          example: Delft
+        country:
+          type: string
+          example: Netherlands
+        zip:
+          type: string
+          example: '2628CC'
+
+  requestBodies:
+    Dish:
+      description: Dish object that needs to be added
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Dish'
+    Order:
+      description: Order object that needs to be added
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Order'
