@@ -13,7 +13,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 
-
 @Repository
 public interface OrderRepository extends JpaRepository<Order, UUID> {
     // additional query methods if needed
@@ -32,13 +31,13 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     Optional<List<Order>> findOrdersByVendorID(UUID vendorID);
 
-    @Query(value = "SELECT d " +
-            "FROM Order o " +
-            "JOIN o.listOfDishes lod " +
-            "JOIN Dish d on d.dishID = lod " +
-            "WHERE o.vendorID = :vendorID " +
-            "GROUP BY lod " +
-            "ORDER BY COUNT(lod) DESC")
+    @Query(value = "SELECT d "
+            + "FROM Order o "
+            + "JOIN o.listOfDishes lod "
+            + "JOIN Dish d on d.dishID = lod "
+            + "WHERE o.vendorID = :vendorID "
+            + "GROUP BY lod "
+            + "ORDER BY COUNT(lod) DESC")
     List<Dish> countDishesOccurrencesFromVendor(@Param("vendorID") UUID vendorID);
 
     @Modifying
