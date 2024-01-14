@@ -5,9 +5,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import nl.tudelft.sem.template.order.api.VendorApi;
-import nl.tudelft.sem.template.order.commons.Dish;
-import nl.tudelft.sem.template.order.commons.Order;
+
+import nl.tudelft.sem.template.api.VendorApi;
+import nl.tudelft.sem.template.model.Dish;
+import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.user.CustomerNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.NoOrdersException;

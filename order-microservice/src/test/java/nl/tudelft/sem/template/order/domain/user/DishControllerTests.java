@@ -7,7 +7,8 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import nl.tudelft.sem.template.order.commons.Dish;
+
+import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.order.controllers.DishController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
