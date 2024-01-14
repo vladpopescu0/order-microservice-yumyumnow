@@ -53,9 +53,6 @@ public class RestaurantService {
         // get vendor location and UUID
         try{
             List<String> jsonVendors = userMicroServiceService.getAllVendors();
-            if(jsonVendors == null || jsonVendors.isEmpty()){
-                throw new RuntimeException("Could not get vendors");
-            }
              vendors = JsonParserService.parseVendorsLocation(jsonVendors);
             if(vendors == null || vendors.isEmpty()){ // option: error thrown in the JsonParserService could be caught in this try catch
                 throw new RuntimeException("Something went wrong parsing vendors");

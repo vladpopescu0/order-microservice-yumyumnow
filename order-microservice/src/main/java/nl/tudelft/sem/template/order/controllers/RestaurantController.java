@@ -2,7 +2,6 @@ package nl.tudelft.sem.template.order.controllers;
 
 import nl.tudelft.sem.template.order.api.RestaurantsApi;
 import nl.tudelft.sem.template.order.domain.user.RestaurantService;
-import nl.tudelft.sem.template.order.domain.user.UserIDNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,11 +26,12 @@ public class RestaurantController implements RestaurantsApi {
 
     @Override
     public ResponseEntity<List<UUID>> getAllRestaurants(UUID userID){
+        if(userID == null){
+            return ResponseEntity.badRequest().build();
+        }
         try {
             List<UUID> list = restaurantService.getAllRestaurants(userID);
             return ResponseEntity.ok(list);
-        } catch(UserIDNotFoundException e){
-            return ResponseEntity.badRequest().build();
         } catch(Exception e){
             return ResponseEntity.notFound().build();
         }
