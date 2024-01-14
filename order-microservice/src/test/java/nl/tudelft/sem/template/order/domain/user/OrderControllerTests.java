@@ -1,5 +1,14 @@
 package nl.tudelft.sem.template.order.domain.user;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.order.commons.Order;
 import nl.tudelft.sem.template.order.controllers.OrderController;
@@ -14,17 +23,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-
 
 @ExtendWith(MockitoExtension.class)
 class OrderControllerTests {
@@ -251,6 +249,7 @@ class OrderControllerTests {
         order2.setStatus(Order.StatusEnum.DELIVERED);
         order2.setRating(4);
     }
+
     @Test
     void testOrderOrderIDIsPaidGet_OrderIsPaid() throws OrderNotFoundException {
         UUID orderID = UUID.randomUUID();
@@ -292,8 +291,9 @@ class OrderControllerTests {
         ResponseEntity<Order> response = orderController.updateOrderPaid(orderID);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(order,response.getBody());
+        assertEquals(order, response.getBody());
     }
+
     @Test
     void testPaymentWhenNotExists() throws OrderNotFoundException {
         UUID orderIDFake = UUID.randomUUID();
