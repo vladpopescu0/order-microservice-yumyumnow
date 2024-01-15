@@ -28,21 +28,21 @@ import org.springframework.http.ResponseEntity;
 public class VendorAnalyticsControllerTests {
 
     @Mock
-    private OrderController orderController;
+    private transient OrderController orderController;
 
     @Mock
-    private OrderService orderService;
+    private transient OrderService orderService;
     @Mock
-    private DishController dishController;
+    private transient DishController dishController;
 
     @InjectMocks
-    private VendorAnalyticsController vendorAnalyticsController;
+    private transient VendorAnalyticsController vendorAnalyticsController;
 
-    Order order1;
-    Address a1;
-    Dish dish1;
-    Dish dish2;
-    List<UUID> listOfDishes;
+    transient Order order1;
+    transient Address a1;
+    transient Dish dish1;
+    transient Dish dish2;
+    transient List<UUID> listOfDishes;
 
     @BeforeEach
     void setUp() {

@@ -28,19 +28,21 @@ import org.springframework.http.ResponseEntity;
 class OrderControllerTests {
 
     @Mock
-    private OrderService orderService;
+    private transient OrderService orderService;
 
     @InjectMocks
-    private OrderController orderController;
+    private transient OrderController orderController;
 
-    List<UUID> listOfDishes;
-    List<Order> orders;
-    Order order1;
-    Order order2;
-    Address a1;
+    transient List<UUID> listOfDishes;
+    transient List<Order> orders;
+    transient Order order1;
+    transient Order order2;
+    transient Address a1;
+    transient String date;
 
     @BeforeEach
     void setUp() {
+        date = "1700006405000";
         a1 = new Address();
         a1.setStreet("Mekelweg 5");
         a1.setCity("Delft");
@@ -53,7 +55,7 @@ class OrderControllerTests {
         order1.setVendorID(UUID.randomUUID());
         order1.setCustomerID(UUID.randomUUID());
         order1.setAddress(a1);
-        order1.setDate(new BigDecimal("1700006405000"));
+        order1.setDate(new BigDecimal(date));
         listOfDishes = Arrays.asList(UUID.randomUUID(), UUID.randomUUID());
         order1.setListOfDishes(listOfDishes);
         order1.setSpecialRequirements("Knock on the door");
@@ -66,9 +68,9 @@ class OrderControllerTests {
         order2.setVendorID(UUID.randomUUID());
         order2.setCustomerID(order1.getCustomerID());
         order2.setAddress(null);
-        order2.setDate(new BigDecimal("1700006405000"));
+        order2.setDate(new BigDecimal(date));
         order2.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
-        order2.setSpecialRequirements("Knock on the door");
+        order2.setSpecialRequirements("Knock on the door as well");
         order2.setOrderPaid(true);
         order2.setStatus(Order.StatusEnum.DELIVERED);
         order2.setRating(4);
@@ -113,7 +115,7 @@ class OrderControllerTests {
         ResponseEntity<String> response = orderController.getSpecialRequirements(orderId);
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        Assertions.assertEquals("Knock on the door", response.getBody());
+        Assertions.assertEquals("Knock on the door as well", response.getBody());
     }
 
     @Test
@@ -155,19 +157,7 @@ class OrderControllerTests {
         ResponseEntity<BigDecimal> response = orderController.getOrderDate(orderId);
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        Assertions.assertEquals(new BigDecimal("1700006405000"), response.getBody());
-
-        order2 = new Order();
-        order2.setOrderID(UUID.randomUUID());
-        order2.setVendorID(UUID.randomUUID());
-        order2.setCustomerID(order1.getCustomerID());
-        order2.setAddress(null);
-        order2.setDate(new BigDecimal("1700006405000"));
-        order2.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
-        order2.setSpecialRequirements("Knock on the door");
-        order2.setOrderPaid(true);
-        order2.setStatus(Order.StatusEnum.DELIVERED);
-        order2.setRating(4);
+        Assertions.assertEquals(new BigDecimal(date), response.getBody());
     }
 
     @Test

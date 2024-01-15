@@ -27,24 +27,24 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class OrderServiceTests {
 
     @Mock
-    private OrderRepository orderRepository;
+    private transient OrderRepository orderRepository;
     @Mock
-    private DishRepository dishRepository;
+    private transient DishRepository dishRepository;
 
     @InjectMocks
-    private OrderService orderService;
+    private transient OrderService orderService;
 
-    Dish d1;
-    Dish d1CopyResult;
-    Dish d2;
-    Address a1;
-    Address a2;
-    Order order1;
-    Order order1CopyResult;
-    Order order2;
-    List<String> ingredients = new ArrayList<>();
-    Order order3;
-    List<Order> orders;
+    transient Dish d1;
+    transient Dish d1CopyResult;
+    transient Dish d2;
+    transient Address a1;
+    transient Address a2;
+    transient Order order1;
+    transient Order order1CopyResult;
+    transient Order order2;
+    transient List<String> ingredients = new ArrayList<>();
+    transient Order order3;
+    transient List<Order> orders;
 
     @BeforeEach
     void setup() {
@@ -470,10 +470,10 @@ class OrderServiceTests {
 
     @Test
     void getOrderVolumeByTime_LargeTest() throws VendorNotFoundException, NoOrdersException {
-        Random r = new Random();
         int[] time = new int[24];
         List<Order> orders = new ArrayList<>();
         for (int i = 0; i < 1000; i++) {
+            Random r = new Random();
             long cur = r.nextInt();
             Order o = new Order();
             o.setDate(BigDecimal.valueOf(cur));
@@ -482,7 +482,7 @@ class OrderServiceTests {
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(cur);
             int hours = calendar.get(Calendar.HOUR_OF_DAY);
-            time[hours]++;
+            time[hours]+=1;
         }
         List<Integer> correctTime = new ArrayList<>();
         for (int j : time) {

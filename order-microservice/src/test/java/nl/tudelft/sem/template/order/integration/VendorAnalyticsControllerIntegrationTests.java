@@ -33,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 public class VendorAnalyticsControllerIntegrationTests {
     @Autowired
-    private MockMvc mockMvc;
+    private transient MockMvc mockMvc;
 
     @Autowired
     private transient DishService dishService;
@@ -42,14 +42,16 @@ public class VendorAnalyticsControllerIntegrationTests {
     private transient OrderService orderService;
 
     @Autowired
-    private ObjectMapper objectMapper; // Used for converting Java objects to JSON
+    private transient ObjectMapper objectMapper; // Used for converting Java objects to JSON
 
-    Dish d1;
+    transient Dish d1;
 
-    Dish d2;
+    transient Dish d2;
 
-    Order order1;
-    Order order2;
+    transient Order order1;
+    transient Order order2;
+    transient String historyPath = "/vendor/{vendorID}/analytics/history/{customerID}";
+    transient String popularItemPath = "/vendor/{vendorID}/analytics/popularItems";
 
     @BeforeEach
     public void setup() {
@@ -131,7 +133,7 @@ public class VendorAnalyticsControllerIntegrationTests {
         orderService.createOrder(order1);
         order2.setCustomerID(order1.getCustomerID());
         orderService.createOrder(order2);
-        mockMvc.perform(MockMvcRequestBuilders.get("/vendor/{vendorID}/analytics/history/{customerID}", UUID.randomUUID(), order1.getCustomerID())
+        mockMvc.perform(MockMvcRequestBuilders.get(historyPath, UUID.randomUUID(), order1.getCustomerID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -145,7 +147,7 @@ public class VendorAnalyticsControllerIntegrationTests {
         orderService.createOrder(order1);
         order2.setCustomerID(order1.getCustomerID());
         orderService.createOrder(order2);
-        mockMvc.perform(MockMvcRequestBuilders.get("/vendor/{vendorID}/analytics/history/{customerID}", order1.getVendorID(), UUID.randomUUID())
+        mockMvc.perform(MockMvcRequestBuilders.get(historyPath, order1.getVendorID(), UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -159,7 +161,7 @@ public class VendorAnalyticsControllerIntegrationTests {
         orderService.createOrder(order1);
         order2.setVendorID(UUID.randomUUID());
         orderService.createOrder(order2);
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/vendor/{vendorID}/analytics/history/{customerID}", order1.getVendorID(), order2.getCustomerID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(historyPath, order1.getVendorID(), order2.getCustomerID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -178,7 +180,7 @@ public class VendorAnalyticsControllerIntegrationTests {
         order2.setCustomerID(order1.getCustomerID());
         order2.setVendorID(UUID.randomUUID());
         orderService.createOrder(order2);
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/vendor/{vendorID}/analytics/history/{customerID}", order1.getVendorID(), order1.getCustomerID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(historyPath, order1.getVendorID(), order1.getCustomerID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -195,7 +197,7 @@ public class VendorAnalyticsControllerIntegrationTests {
         dishService.addDish(d2);
         orderService.createOrder(order1);
         orderService.createOrder(order2);
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/vendor/{vendorID}/analytics/history/{customerID}", order1.getVendorID(), order1.getCustomerID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(historyPath, order1.getVendorID(), order1.getCustomerID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -213,7 +215,7 @@ public class VendorAnalyticsControllerIntegrationTests {
         orderService.createOrder(order1);
         order2.setCustomerID(order1.getCustomerID());
         orderService.createOrder(order2);
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/vendor/{vendorID}/analytics/history/{customerID}", order1.getVendorID(), order1.getCustomerID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(historyPath, order1.getVendorID(), order1.getCustomerID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -302,9 +304,9 @@ public class VendorAnalyticsControllerIntegrationTests {
         dishService.addDish(d1);
         dishService.addDish(d2);
         order2.setVendorID(UUID.randomUUID());
-        Random r = new Random();
         int[] time = new int[24];
         for (int i = 0; i < 1000; i++) {
+            Random r = new Random(); // pmd moment
             long cur = r.nextInt();
             order1.setOrderID(UUID.randomUUID());
             order1.setDate(BigDecimal.valueOf(cur));
@@ -312,8 +314,8 @@ public class VendorAnalyticsControllerIntegrationTests {
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(cur);
             int hours = calendar.get(Calendar.HOUR_OF_DAY);
-            time[hours]++;
-            if (i % 10 == 1) {
+            time[hours]+=1;
+            if (i % 10 == 0) {
                 order2.setOrderID(UUID.randomUUID());
                 order2.setDate(BigDecimal.valueOf(r.nextInt()));
                 orderService.createOrder(order2);
@@ -336,7 +338,7 @@ public class VendorAnalyticsControllerIntegrationTests {
         orderService.createOrder(order1);
         orderService.createOrder(order2);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/vendor/{vendorID}/analytics/popularItems", UUID.randomUUID())
+        mockMvc.perform(MockMvcRequestBuilders.get(popularItemPath, UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -351,7 +353,7 @@ public class VendorAnalyticsControllerIntegrationTests {
         order1.setVendorID(UUID.randomUUID());
         orderService.createOrder(order1);
 
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/vendor/{vendorID}/analytics/popularItems", order2.getVendorID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(popularItemPath, order2.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -369,7 +371,7 @@ public class VendorAnalyticsControllerIntegrationTests {
         orderService.createOrder(order2);
         orderService.createOrder(order1);
 
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/vendor/{vendorID}/analytics/popularItems", order2.getVendorID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(popularItemPath, order2.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -389,7 +391,7 @@ public class VendorAnalyticsControllerIntegrationTests {
         order1.setListOfDishes(List.of(d2.getDishID(), d2.getDishID()));
         orderService.createOrder(order1);
 
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/vendor/{vendorID}/analytics/popularItems", order2.getVendorID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(popularItemPath, order2.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())

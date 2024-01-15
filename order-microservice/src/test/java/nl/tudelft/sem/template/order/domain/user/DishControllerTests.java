@@ -21,14 +21,14 @@ import org.springframework.http.ResponseEntity;
 @ExtendWith(MockitoExtension.class)
 public class DishControllerTests {
     @Mock
-    private DishService dishService;
+    private transient DishService dishService;
 
     @InjectMocks
-    private DishController dishController;
+    private transient DishController dishController;
 
-    Dish d1;
+    transient Dish d1;
 
-    Dish d2;
+    transient Dish d2;
 
     @BeforeEach
     public void setup() {

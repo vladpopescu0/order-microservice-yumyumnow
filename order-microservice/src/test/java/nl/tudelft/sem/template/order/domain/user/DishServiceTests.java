@@ -22,17 +22,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class DishServiceTests {
     @Mock
-    private DishRepository dishRepository;
+    private transient DishRepository dishRepository;
 
     @InjectMocks
-    private DishService dishService;
+    private transient DishService dishService;
 
-    Dish d1;
-    Dish d1CopyResult;
+    transient Dish d1;
+    transient Dish d1CopyResult;
 
-    Dish d2;
+    transient Dish d2;
 
-    List<String> ingredients = new ArrayList<>();
+    transient List<String> ingredients = new ArrayList<>();
 
     @BeforeEach
     public void setup() {

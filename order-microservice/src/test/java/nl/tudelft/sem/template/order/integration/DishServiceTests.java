@@ -28,9 +28,9 @@ public class DishServiceTests {
     @Autowired
     private transient DishService dishService;
 
-    Dish d1;
+    transient Dish d1;
 
-    Dish d2;
+    transient Dish d2;
 
     @BeforeEach
     public void setup() {
