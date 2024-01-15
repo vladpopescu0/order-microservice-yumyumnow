@@ -1,5 +1,20 @@
 package nl.tudelft.sem.template.order.domain.user;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.user.services.MockLocationService;
 import nl.tudelft.sem.template.user.services.UserMicroServiceService;
@@ -9,14 +24,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 @ExtendWith(MockitoExtension.class)
 class RestaurantServiceTest {
@@ -32,8 +39,9 @@ class RestaurantServiceTest {
     UUID user;
 
     List<String> vendors;
+
     @BeforeEach
-    void setup(){
+    void setup() {
         user = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         address = new Address();
         address.setCity("Delft");
@@ -89,13 +97,13 @@ class RestaurantServiceTest {
     void getAllRestaurantsVendorsNull() throws UserIDNotFoundException {
         // userLocation setup
         when(mockUserService.getUserAddress(user)).thenReturn(address);
-        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.008513,4.37127));
+        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.008513, 4.37127));
 
         when(mockUserService.getAllVendors()).thenReturn(null);
         boolean thrown = false;
-        try{
+        try {
             restaurantService.getAllRestaurants(user);
-        } catch (RuntimeException e){
+        } catch (RuntimeException e) {
             thrown = true;
         }
 
@@ -107,13 +115,13 @@ class RestaurantServiceTest {
     void getAllRestaurantsVendorsEmpty() throws UserIDNotFoundException {
         // userLocation setup
         when(mockUserService.getUserAddress(user)).thenReturn(address);
-        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.008513,4.37127));
+        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.008513, 4.37127));
 
         when(mockUserService.getAllVendors()).thenReturn(List.of());
         boolean thrown = false;
-        try{
+        try {
             restaurantService.getAllRestaurants(user);
-        } catch (RuntimeException e){
+        } catch (RuntimeException e) {
             thrown = true;
         }
 
@@ -125,14 +133,14 @@ class RestaurantServiceTest {
     void getAllRestaurantsNoVendors() throws UserIDNotFoundException {
         // userLocation setup
         when(mockUserService.getUserAddress(user)).thenReturn(address);
-        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.008513,4.37127));
+        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.008513, 4.37127));
 
         when(mockUserService.getAllVendors()).thenThrow(RuntimeException.class);
 
         boolean thrown = false;
-        try{
+        try {
             restaurantService.getAllRestaurants(user);
-        } catch (RuntimeException e){
+        } catch (RuntimeException e) {
             thrown = true;
         }
 
@@ -236,8 +244,8 @@ class RestaurantServiceTest {
     @Test
     void getUserAddressValid() throws UserIDNotFoundException {
         when(mockUserService.getUserAddress(user)).thenReturn(address);
-        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.998513,4.37127));
-        List<Double> expected = List.of(51.998513,4.37127);
+        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.998513, 4.37127));
+        List<Double> expected = List.of(51.998513, 4.37127);
         List<Double> result = restaurantService.getUserLocation(user);
 
         verify(mockUserService, times(1)).getUserAddress(user);
@@ -251,7 +259,7 @@ class RestaurantServiceTest {
         when(mockUserService.getUserAddress(user)).thenThrow(UserIDNotFoundException.class);
         when(mockUserService.getUserLocation(user)).thenReturn(location);
 
-        List<Double> expected = List.of(51.998513,4.37127);
+        List<Double> expected = List.of(51.998513, 4.37127);
         List<Double> result = restaurantService.getUserLocation(user);
 
         verify(mockUserService, times(1)).getUserLocation(user);
@@ -265,9 +273,9 @@ class RestaurantServiceTest {
         when(mockUserService.getUserLocation(user)).thenReturn(null);
 
         boolean thrown = false;
-        try{
+        try {
             restaurantService.getUserLocation(user);
-        } catch (UserIDNotFoundException e){
+        } catch (UserIDNotFoundException e) {
             thrown = true;
         }
         verify(mockUserService, times(1)).getUserLocation(user);
@@ -281,9 +289,9 @@ class RestaurantServiceTest {
         when(mockUserService.getUserLocation(user)).thenReturn("");
 
         boolean thrown = false;
-        try{
+        try {
             restaurantService.getUserLocation(user);
-        } catch (UserIDNotFoundException e){
+        } catch (UserIDNotFoundException e) {
             thrown = true;
         }
         verify(mockUserService, times(1)).getUserLocation(user);
@@ -296,9 +304,9 @@ class RestaurantServiceTest {
         when(mockUserService.getUserLocation(user)).thenReturn("oh hi");
 
         boolean thrown = false;
-        try{
+        try {
             restaurantService.getUserLocation(user);
-        } catch (UserIDNotFoundException e){
+        } catch (UserIDNotFoundException e) {
             thrown = true;
         }
         verify(mockUserService, times(1)).getUserLocation(user);
@@ -307,14 +315,14 @@ class RestaurantServiceTest {
 
     @Test
     void processVendorsValid() {
-        List<Double> userLocation = Arrays.asList(52.001665,4.373281);
+        List<Double> userLocation = Arrays.asList(52.001665, 4.373281);
         UUID uuid1 = UUID.randomUUID();
         UUID uuid2 = UUID.randomUUID();
         UUID uuid3 = UUID.randomUUID();
-        HashMap<UUID,List<Double>> map = new HashMap<>(Map.of(uuid1, List.of(52.001665,4.373281),
+        HashMap<UUID, List<Double>> map = new HashMap<>(Map.of(uuid1, List.of(52.001665, 4.373281),
                 uuid2, List.of(52.1583, 4.4931),
-                uuid3, List.of(52.011665,4.373281)));
-        List<UUID> result  = restaurantService.processVendors(userLocation,map);
+                uuid3, List.of(52.011665, 4.373281)));
+        List<UUID> result  = restaurantService.processVendors(userLocation, map);
         List<UUID> expected = List.of(uuid1, uuid3);
 
         // convert to set for comparison, because stream doesn't process things in order
@@ -325,27 +333,27 @@ class RestaurantServiceTest {
 
     @Test
     void processVendorsNoVendors() {
-        List<Double> userLocation = Arrays.asList(52.001665,4.373281);
+        List<Double> userLocation = Arrays.asList(52.001665, 4.373281);
         UUID uuid1 = UUID.randomUUID();
         UUID uuid2 = UUID.randomUUID();
         UUID uuid3 = UUID.randomUUID();
-        HashMap<UUID,List<Double>> map = new HashMap<>(Map.of(uuid1, List.of(50.001665,4.373281),
+        HashMap<UUID, List<Double>> map = new HashMap<>(Map.of(uuid1, List.of(50.001665, 4.373281),
                 uuid2, List.of(54.1583, 4.4931),
-                uuid3, List.of(53.011665,4.373281)));
-        List<UUID> result  = restaurantService.processVendors(userLocation,map);
+                uuid3, List.of(53.011665, 4.373281)));
+        List<UUID> result  = restaurantService.processVendors(userLocation, map);
 
         assertThat(result).isEmpty();
     }
 
     @Test
     void calculateDistanceWithin100m() {
-        double result = restaurantService.calculateDistance(52.001665,4.373281,52.001480, 4.372610);
+        double result = restaurantService.calculateDistance(52.001665, 4.373281, 52.001480, 4.372610);
         assertThat(result).isCloseTo(0.05, within(0.01));
     }
 
     @Test
     void calculateDistanceAround20km() {
-        double result = restaurantService.calculateDistance(52.0067, 4.3556,52.1583, 4.4931 );
+        double result = restaurantService.calculateDistance(52.0067, 4.3556, 52.1583, 4.4931);
         assertThat(result).isCloseTo(19, within(1d));
     }
 }

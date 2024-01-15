@@ -1,12 +1,15 @@
 package nl.tudelft.sem.template.user.unit;
 
-import nl.tudelft.sem.template.user.services.JsonParserService;
-import org.junit.jupiter.api.Test;
-
-import java.util.*;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+import nl.tudelft.sem.template.user.services.JsonParserService;
+import org.junit.jupiter.api.Test;
 
 class JsonParserServiceTest {
 
@@ -232,7 +235,7 @@ class JsonParserServiceTest {
     void parseLocationValid() {
         List<Double> list = Arrays.asList(51.998513, 4.37127);
         List<Double> result = JsonParserService.parseLocation(jsonValid);
-        assertEquals(list,result);
+        assertEquals(list, result);
     }
 
     @Test
@@ -257,7 +260,7 @@ class JsonParserServiceTest {
     void parseLocationExtraAttr() {
         List<Double> list = Arrays.asList(51.998513, 4.37127);
         List<Double> result = JsonParserService.parseLocation(jsonExtraAttr);
-        assertEquals(list,result);
+        assertEquals(list, result);
     }
     
 

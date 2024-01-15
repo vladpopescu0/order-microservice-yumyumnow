@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-
 import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.model.Order;
@@ -24,18 +23,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import javax.validation.constraints.Null;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class VendorAnalyticsControllerTests {
@@ -175,9 +162,12 @@ public class VendorAnalyticsControllerTests {
 
         when(orderController.getListOfDishes(orderID)).thenReturn(respList);
 
-        when(dishController.getDishByID(listOfDishes.get(0))).thenReturn(new ResponseEntity<>(dish1, HttpStatus.INTERNAL_SERVER_ERROR));
-        when(dishController.getDishByID(listOfDishes.get(0))).thenReturn(new ResponseEntity<>(dish1, HttpStatus.OK));
-        when(dishController.getDishByID(listOfDishes.get(1))).thenReturn(new ResponseEntity<>(dish2, HttpStatus.OK));
+        when(dishController.getDishByID(listOfDishes.get(0)))
+                .thenReturn(new ResponseEntity<>(dish1, HttpStatus.INTERNAL_SERVER_ERROR));
+        when(dishController.getDishByID(listOfDishes.get(0)))
+                .thenReturn(new ResponseEntity<>(dish1, HttpStatus.OK));
+        when(dishController.getDishByID(listOfDishes.get(1)))
+                .thenReturn(new ResponseEntity<>(dish2, HttpStatus.OK));
 
         ResponseEntity<Float> response = vendorAnalyticsController.getOrderEarnings(orderID);
 
