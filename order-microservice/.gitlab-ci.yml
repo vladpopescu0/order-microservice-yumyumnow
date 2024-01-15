@@ -39,7 +39,7 @@ checkStyle-order-microservice:
   stage: staticAnalysis
   script:
     gradle order-microservice:checkstyleMain order-microservice:checkStyleTest
-  allow_failure: true
+  allow_failure: false
 
 
 PMD-order-microservice:
@@ -52,7 +52,7 @@ PMD-order-microservice:
   stage: staticAnalysis
   script:
     gradle order-microservice:pmdMain
-  allow_failure: true
+  allow_failure: false
 
 pitest-order-microservice:
   extends:
