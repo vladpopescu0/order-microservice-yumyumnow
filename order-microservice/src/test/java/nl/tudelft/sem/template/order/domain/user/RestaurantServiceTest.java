@@ -1,0 +1,351 @@
+package nl.tudelft.sem.template.order.domain.user;
+
+import nl.tudelft.sem.template.order.commons.Address;
+import nl.tudelft.sem.template.user.services.MockLocationService;
+import nl.tudelft.sem.template.user.services.UserMicroServiceService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
+
+@ExtendWith(MockitoExtension.class)
+class RestaurantServiceTest {
+    @Mock
+    UserMicroServiceService mockUserService;
+    @Mock
+    MockLocationService mockLocationService;
+    @InjectMocks
+    RestaurantService restaurantService;
+
+    String location;
+    Address address;
+    UUID user;
+
+    List<String> vendors;
+    @BeforeEach
+    void setup(){
+        user = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+        address = new Address();
+        address.setCity("Delft");
+        address.setCity("Netherlands");
+        address.setStreet("Mekelweg 5");
+        address.setZip("2628CC");
+        location = """
+                {
+                    "latitude": 51.998513,
+                    "longitude": 4.37127
+                },""";
+        vendors = new ArrayList<>();
+        vendors.add("""
+                {
+                  "userID": "550e8400-e29b-41d4-a716-446655440000",
+                  "user": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "firstname": "John",
+                    "surname": "James",
+                    "email": "john@email.com",
+                    "avatar": "www.avatar.com/avatar.png",
+                    "password": "12345",
+                    "verified": false,
+                    "userType": "Customer"
+                  },
+                  "location": {
+                    "latitude": 51.998513,
+                    "longitude": 4.37127
+                  }
+                }""");
+        vendors.add("""
+                {
+                  "userID": "110e8400-e29b-41d4-a716-446655440000",
+                  "user": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "firstname": "John",
+                    "surname": "James",
+                    "email": "john@email.com",
+                    "avatar": "www.avatar.com/avatar.png",
+                    "password": "12345",
+                    "verified": false,
+                    "userType": "Customer"
+                  },
+                  "location": {
+                    "latitude": 55.998513,
+                    "longitude": 4.37127
+                  }
+                }""");
+
+    }
+
+    @Test
+    void getAllRestaurantsVendorsNull() throws UserIDNotFoundException {
+        // userLocation setup
+        when(mockUserService.getUserAddress(user)).thenReturn(address);
+        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.008513,4.37127));
+
+        when(mockUserService.getAllVendors()).thenReturn(null);
+        boolean thrown = false;
+        try{
+            restaurantService.getAllRestaurants(user);
+        } catch (RuntimeException e){
+            thrown = true;
+        }
+
+        verify(mockUserService, times(1)).getAllVendors();
+        assertTrue(thrown);
+    }
+
+    @Test
+    void getAllRestaurantsVendorsEmpty() throws UserIDNotFoundException {
+        // userLocation setup
+        when(mockUserService.getUserAddress(user)).thenReturn(address);
+        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.008513,4.37127));
+
+        when(mockUserService.getAllVendors()).thenReturn(List.of());
+        boolean thrown = false;
+        try{
+            restaurantService.getAllRestaurants(user);
+        } catch (RuntimeException e){
+            thrown = true;
+        }
+
+        verify(mockUserService, times(1)).getAllVendors();
+        assertTrue(thrown);
+    }
+
+    @Test
+    void getAllRestaurantsNoVendors() throws UserIDNotFoundException {
+        // userLocation setup
+        when(mockUserService.getUserAddress(user)).thenReturn(address);
+        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.008513,4.37127));
+
+        when(mockUserService.getAllVendors()).thenThrow(RuntimeException.class);
+
+        boolean thrown = false;
+        try{
+            restaurantService.getAllRestaurants(user);
+        } catch (RuntimeException e){
+            thrown = true;
+        }
+
+        verify(mockUserService, times(1)).getAllVendors();
+        assertTrue(thrown);
+    }
+
+    @Test
+    void getAllRestaurantsPartialVendors() throws UserIDNotFoundException {
+        // userLocation setup
+        when(mockUserService.getUserAddress(user)).thenReturn(address);
+        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.990013, 4.37127));
+
+        when(mockUserService.getAllVendors()).thenReturn(vendors);
+
+        List<UUID> result = restaurantService.getAllRestaurants(user);
+        List<UUID> expected = List.of(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
+        // convert list to sets, because processVendors does not return list in an order
+        Set<UUID> setResult = new HashSet<>(result);
+        Set<UUID> setExpected = new HashSet<>(expected);
+
+
+        verify(mockUserService, times(1)).getAllVendors();
+        assertThat(setResult).isEqualTo(setExpected);
+    }
+
+    @Test
+    void getAllRestaurantsAllVendors() throws UserIDNotFoundException {
+        // userLocation setup
+        when(mockUserService.getUserAddress(user)).thenReturn(address);
+        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.990013, 4.37127));
+        List<String> vendorsAll = new ArrayList<>();
+        vendorsAll.add("""
+                {
+                  "userID": "550e8400-e29b-41d4-a716-446655440000",
+                  "user": {
+                    "id": "550e8400-e29b-41d4-a716-446655440000",
+                    "firstname": "John",
+                    "surname": "James",
+                    "email": "john@email.com",
+                    "avatar": "www.avatar.com/avatar.png",
+                    "password": "12345",
+                    "verified": false,
+                    "userType": "Customer"
+                  },
+                  "location": {
+                    "latitude": 51.998513,
+                    "longitude": 4.37127
+                  }
+                }""");
+        vendorsAll.add("""
+                {
+                  "userID": "110e8400-e29b-41d4-a716-446655440000",
+                  "user": {
+                    "id": "110e8400-e29b-41d4-a716-446655440000",
+                    "firstname": "John",
+                    "surname": "James",
+                    "email": "john@email.com",
+                    "avatar": "www.avatar.com/avatar.png",
+                    "password": "12345",
+                    "verified": false,
+                    "userType": "Customer"
+                  },
+                  "location": {
+                    "latitude": 51.990513,
+                    "longitude": 4.37127
+                  }
+                }""");
+
+        when(mockUserService.getAllVendors()).thenReturn(vendorsAll);
+
+        List<UUID> result = restaurantService.getAllRestaurants(user);
+        List<UUID> expected = List.of(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"),
+                UUID.fromString("110e8400-e29b-41d4-a716-446655440000"));
+        // convert list to sets, because processVendors does not return list in an order
+        Set<UUID> setResult = new HashSet<>(result);
+        Set<UUID> setExpected = new HashSet<>(expected);
+
+
+        verify(mockUserService, times(1)).getAllVendors();
+        assertThat(setResult).isEqualTo(setExpected);
+    }
+
+    @Test
+    void getAllRestaurantsNoVendorsMatch() throws UserIDNotFoundException {
+        // userLocation setup
+        when(mockUserService.getUserAddress(user)).thenReturn(address);
+        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(49.990013, 4.37127));
+
+        when(mockUserService.getAllVendors()).thenReturn(vendors);
+
+        List<UUID> result = restaurantService.getAllRestaurants(user);
+
+        // convert list to sets, because processVendors does not return list in an order
+        Set<UUID> setResult = new HashSet<>(result);
+
+        verify(mockUserService, times(1)).getAllVendors();
+        assertThat(setResult).isEmpty();
+    }
+
+    @Test
+    void getUserAddressValid() throws UserIDNotFoundException {
+        when(mockUserService.getUserAddress(user)).thenReturn(address);
+        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.998513,4.37127));
+        List<Double> expected = List.of(51.998513,4.37127);
+        List<Double> result = restaurantService.getUserLocation(user);
+
+        verify(mockUserService, times(1)).getUserAddress(user);
+        verify(mockLocationService, times(1)).convertAddressToGeoCoords(address);
+
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    void getUserLocationValid() throws UserIDNotFoundException {
+        when(mockUserService.getUserAddress(user)).thenThrow(UserIDNotFoundException.class);
+        when(mockUserService.getUserLocation(user)).thenReturn(location);
+
+        List<Double> expected = List.of(51.998513,4.37127);
+        List<Double> result = restaurantService.getUserLocation(user);
+
+        verify(mockUserService, times(1)).getUserLocation(user);
+
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    void getUserLocationJsonNull() throws UserIDNotFoundException {
+        when(mockUserService.getUserAddress(user)).thenThrow(UserIDNotFoundException.class);
+        when(mockUserService.getUserLocation(user)).thenReturn(null);
+
+        boolean thrown = false;
+        try{
+            restaurantService.getUserLocation(user);
+        } catch (UserIDNotFoundException e){
+            thrown = true;
+        }
+        verify(mockUserService, times(1)).getUserLocation(user);
+        assertTrue(thrown);
+
+    }
+
+    @Test
+    void getUserLocationJsonEmpty() throws UserIDNotFoundException {
+        when(mockUserService.getUserAddress(user)).thenThrow(UserIDNotFoundException.class);
+        when(mockUserService.getUserLocation(user)).thenReturn("");
+
+        boolean thrown = false;
+        try{
+            restaurantService.getUserLocation(user);
+        } catch (UserIDNotFoundException e){
+            thrown = true;
+        }
+        verify(mockUserService, times(1)).getUserLocation(user);
+        assertTrue(thrown);
+    }
+
+    @Test
+    void getUserLocationJsonParserFail() throws UserIDNotFoundException {
+        when(mockUserService.getUserAddress(user)).thenThrow(UserIDNotFoundException.class);
+        when(mockUserService.getUserLocation(user)).thenReturn("oh hi");
+
+        boolean thrown = false;
+        try{
+            restaurantService.getUserLocation(user);
+        } catch (UserIDNotFoundException e){
+            thrown = true;
+        }
+        verify(mockUserService, times(1)).getUserLocation(user);
+        assertTrue(thrown);
+    }
+
+    @Test
+    void processVendorsValid() {
+        List<Double> userLocation = Arrays.asList(52.001665,4.373281);
+        UUID uuid1 = UUID.randomUUID();
+        UUID uuid2 = UUID.randomUUID();
+        UUID uuid3 = UUID.randomUUID();
+        HashMap<UUID,List<Double>> map = new HashMap<>(Map.of(uuid1, List.of(52.001665,4.373281),
+                uuid2, List.of(52.1583, 4.4931),
+                uuid3, List.of(52.011665,4.373281)));
+        List<UUID> result  = restaurantService.processVendors(userLocation,map);
+        List<UUID> expected = List.of(uuid1, uuid3);
+
+        // convert to set for comparison, because stream doesn't process things in order
+        Set<UUID> setResult = new HashSet<>(result);
+        Set<UUID> setExpected = new HashSet<>(expected);
+        assertThat(setResult).isEqualTo(setExpected);
+    }
+
+    @Test
+    void processVendorsNoVendors() {
+        List<Double> userLocation = Arrays.asList(52.001665,4.373281);
+        UUID uuid1 = UUID.randomUUID();
+        UUID uuid2 = UUID.randomUUID();
+        UUID uuid3 = UUID.randomUUID();
+        HashMap<UUID,List<Double>> map = new HashMap<>(Map.of(uuid1, List.of(50.001665,4.373281),
+                uuid2, List.of(54.1583, 4.4931),
+                uuid3, List.of(53.011665,4.373281)));
+        List<UUID> result  = restaurantService.processVendors(userLocation,map);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void calculateDistanceWithin100m() {
+        double result = restaurantService.calculateDistance(52.001665,4.373281,52.001480, 4.372610);
+        assertThat(result).isCloseTo(0.05, within(0.01));
+    }
+
+    @Test
+    void calculateDistanceAround20km() {
+        double result = restaurantService.calculateDistance(52.0067, 4.3556,52.1583, 4.4931 );
+        assertThat(result).isCloseTo(19, within(1d));
+    }
+}
