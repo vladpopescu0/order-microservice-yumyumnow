@@ -1,6 +1,7 @@
 package nl.tudelft.sem.template.order.domain.user;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -9,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-
 import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.controllers.OrderController;
@@ -29,19 +29,21 @@ import org.springframework.http.ResponseEntity;
 class OrderControllerTests {
 
     @Mock
-    private OrderService orderService;
+    private transient OrderService orderService;
 
     @InjectMocks
-    private OrderController orderController;
+    private transient OrderController orderController;
 
-    List<UUID> listOfDishes;
-    List<Order> orders;
-    Order order1;
-    Order order2;
-    Address a1;
+    transient List<UUID> listOfDishes;
+    transient List<Order> orders;
+    transient Order order1;
+    transient Order order2;
+    transient Address a1;
+    transient String date;
 
     @BeforeEach
     void setUp() {
+        date = "1700006405000";
         a1 = new Address();
         a1.setStreet("Mekelweg 5");
         a1.setCity("Delft");
@@ -54,7 +56,7 @@ class OrderControllerTests {
         order1.setVendorID(UUID.randomUUID());
         order1.setCustomerID(UUID.randomUUID());
         order1.setAddress(a1);
-        order1.setDate(new BigDecimal("1700006405000"));
+        order1.setDate(new BigDecimal(date));
         listOfDishes = Arrays.asList(UUID.randomUUID(), UUID.randomUUID());
         order1.setListOfDishes(listOfDishes);
         order1.setSpecialRequirements("Knock on the door");
@@ -67,13 +69,125 @@ class OrderControllerTests {
         order2.setVendorID(UUID.randomUUID());
         order2.setCustomerID(order1.getCustomerID());
         order2.setAddress(null);
-        order2.setDate(new BigDecimal("1700006405000"));
+        order2.setDate(new BigDecimal(date));
         order2.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
-        order2.setSpecialRequirements("Knock on the door");
+        order2.setSpecialRequirements("Knock on the door as well");
         order2.setOrderPaid(true);
         order2.setStatus(Order.StatusEnum.DELIVERED);
         order2.setRating(4);
     }
+
+    @Test
+    void createOrderSuccessful() throws NullFieldException, OrderIdAlreadyInUseException {
+
+        when(orderService.createOrder(order1)).thenReturn(order1);
+        ResponseEntity<Order> order = orderController.createOrder(order1);
+        Assertions.assertEquals(order1, order.getBody());
+        Assertions.assertEquals(HttpStatus.OK, order.getStatusCode());
+
+    }
+
+    @Test
+    void createNullFieldOrder() throws NullFieldException, OrderIdAlreadyInUseException {
+
+        when(orderService.createOrder(order1)).thenThrow(NullFieldException.class);
+        ResponseEntity<Order> order = orderController.createOrder(order1);
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, order.getStatusCode());
+
+    }
+
+    @Test
+    void createOrderBadRequest() throws NullFieldException, OrderIdAlreadyInUseException {
+
+        when(orderService.createOrder(order1)).thenThrow(OrderIdAlreadyInUseException.class);
+        ResponseEntity<Order> order = orderController.createOrder(order1);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, order.getStatusCode());
+
+    }
+
+    @Test
+    void getOrderByIdSuccessful() throws OrderNotFoundException, NullFieldException {
+
+        when(orderService.getOrderById(order1.getOrderID())).thenReturn(order1);
+        ResponseEntity<Order> order = orderController.getOrderById(order1.getOrderID());
+        Assertions.assertEquals(order1, order.getBody());
+        Assertions.assertEquals(HttpStatus.OK, order.getStatusCode());
+
+    }
+
+    @Test
+    void getOrderByIdNullField() throws OrderNotFoundException, NullFieldException {
+
+        when(orderService.getOrderById(order1.getOrderID())).thenThrow(NullFieldException.class);
+        ResponseEntity<Order> order = orderController.getOrderById(order1.getOrderID());
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, order.getStatusCode());
+    }
+
+    @Test
+    void getOrderByIdOrderNotFound() throws OrderNotFoundException, NullFieldException {
+
+        when(orderService.getOrderById(order1.getOrderID())).thenThrow(OrderNotFoundException.class);
+        ResponseEntity<Order> order = orderController.getOrderById(order1.getOrderID());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, order.getStatusCode());
+    }
+    
+    @Test
+    void getOrderByIdException() throws OrderNotFoundException, NullFieldException {
+        
+        when(orderService.getOrderById(order1.getOrderID())).thenThrow(RuntimeException.class);
+        ResponseEntity<Order> order = orderController.getOrderById(order1.getOrderID());
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, order.getStatusCode());
+        
+    }
+
+    @Test
+    void editOrderByIdSuccessful() throws OrderNotFoundException, NullFieldException {
+
+        when(orderService.editOrderByID(order1.getOrderID(), order1)).thenReturn(order1);
+        ResponseEntity<Order> order = orderController.editOrderByID(order1.getOrderID(), order1);
+        Assertions.assertEquals(order1, order.getBody());
+        Assertions.assertEquals(HttpStatus.OK, order.getStatusCode());
+
+    }
+
+    @Test
+    void editOrderByIdDifferingId() {
+
+        UUID randomID = UUID.randomUUID();
+        ResponseEntity<Order> order = orderController.editOrderByID(randomID, order1);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, order.getStatusCode());
+
+    }
+
+    @Test
+    void editOrderByIdNullField() throws OrderNotFoundException, NullFieldException {
+
+        when(orderService.editOrderByID(order1.getOrderID(), order1)).thenThrow(NullFieldException.class);
+        ResponseEntity<Order> order = orderController.editOrderByID(order1.getOrderID(), order1);
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, order.getStatusCode());
+
+    }
+
+    @Test
+    void editOrderByIdOrderNotFound() throws OrderNotFoundException, NullFieldException {
+
+        when(orderService.editOrderByID(order1.getOrderID(), order1)).thenThrow(OrderNotFoundException.class);
+        ResponseEntity<Order> order = orderController.editOrderByID(order1.getOrderID(), order1);
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, order.getStatusCode());
+
+    }
+
+    @Test
+    void editOrderByIdOrderException() throws OrderNotFoundException, NullFieldException {
+
+        when(orderService.editOrderByID(order1.getOrderID(), order1)).thenThrow(RuntimeException.class);
+        ResponseEntity<Order> order = orderController.editOrderByID(order1.getOrderID(), order1);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, order.getStatusCode());
+
+    }
+
+
+
 
     @Test
     void testGetListOfDishes_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
@@ -236,19 +350,7 @@ class OrderControllerTests {
         ResponseEntity<BigDecimal> response = orderController.getOrderDate(orderId);
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        Assertions.assertEquals(new BigDecimal("1700006405000"), response.getBody());
-
-        order2 = new Order();
-        order2.setOrderID(UUID.randomUUID());
-        order2.setVendorID(UUID.randomUUID());
-        order2.setCustomerID(order1.getCustomerID());
-        order2.setAddress(null);
-        order2.setDate(new BigDecimal("1700006405000"));
-        order2.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
-        order2.setSpecialRequirements("Knock on the door");
-        order2.setOrderPaid(true);
-        order2.setStatus(Order.StatusEnum.DELIVERED);
-        order2.setRating(4);
+        Assertions.assertEquals(new BigDecimal(date), response.getBody());
     }
 
     @Test
@@ -334,9 +436,63 @@ class OrderControllerTests {
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(orders, response.getBody());
     }
+
     @Test
-    void testTotalCostNotNull(){
+    void testTotalCostNotNull() {
         UUID randomID = UUID.randomUUID();
-        assertNotNull(orderController.orderOrderIDTotalCostGet(randomID));
+        Assertions.assertNotNull(orderController.orderOrderIDTotalCostGet(randomID));
     }
+
+    @Test
+    void deleteOrderByIdSuccessful() {
+
+        ResponseEntity<Void> order = orderController.deleteOrderByID(order1.getOrderID());
+        Assertions.assertEquals(HttpStatus.OK, order.getStatusCode());
+
+    }
+
+    @Test
+    void deleteOrderByIdOrderNotFoundException() throws OrderNotFoundException {
+
+        Mockito.doThrow(OrderNotFoundException.class).when(orderService).deleteOrderByID(order1.getOrderID());
+        ResponseEntity<Void> order = orderController.deleteOrderByID(order1.getOrderID());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, order.getStatusCode());
+
+    }
+
+    @Test
+    void deleteOrderByIdException() throws OrderNotFoundException {
+
+        Mockito.doThrow(RuntimeException.class).when(orderService).deleteOrderByID(order1.getOrderID());
+        ResponseEntity<Void> order = orderController.deleteOrderByID(order1.getOrderID());
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, order.getStatusCode());
+
+    }
+
+    @Test
+    void getAllOrdersSuccessful() throws NoOrdersException {
+
+        List<Order> allOrders = new ArrayList<>();
+        allOrders.add(order1);
+        allOrders.add(order2);
+
+        when(orderService.getAllOrders()).thenReturn(allOrders);
+
+        ResponseEntity<List<Order>> orders = orderController.getAllOrders();
+
+        Assertions.assertEquals(allOrders, orders.getBody());
+        Assertions.assertEquals(HttpStatus.OK, orders.getStatusCode());
+
+    }
+
+    @Test
+    void getAllOrdersException() throws NoOrdersException {
+
+        when(orderService.getAllOrders()).thenThrow(NoOrdersException.class);
+        ResponseEntity<List<Order>> orders = orderController.getAllOrders();
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, orders.getStatusCode());
+
+
+    }
+
 }

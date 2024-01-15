@@ -6,8 +6,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class WebClientConfig {
+    /**
+     * configurations for webclient.
+     *
+     * @return Webclient
+     */
     @Bean
-    public WebClient userMicroServiceWebClient(){
+    public WebClient userMicroServiceWebClient() {
         return WebClient.builder()
                 .baseUrl("http://localhost:8081")
                 .build();

@@ -1,16 +1,18 @@
 package nl.tudelft.sem.template.order.domain.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 import nl.tudelft.sem.template.model.Dish;
-import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
 import nl.tudelft.sem.template.order.PersistentBagMock;
+import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
 import org.hibernate.collection.internal.PersistentBag;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,18 +25,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class DishServiceTests {
     @Mock
-    private DishRepository dishRepository;
+    private transient DishRepository dishRepository;
 
     @InjectMocks
-    private DishService dishService;
+    private transient DishService dishService;
 
-    Dish d1;
-    Dish d1CopyResult;
+    transient Dish d1;
+    transient Dish d1CopyResult;
 
-    Dish d2;
+    transient Dish d2;
 
-    List<String> ingredients = new ArrayList<>();
+    transient List<String> ingredients = new ArrayList<>();
 
+    /**
+     * setup for the dishServiceTests.
+     */
     @BeforeEach
     public void setup() {
         d1 = new Dish();
@@ -48,7 +53,6 @@ public class DishServiceTests {
         PersistentBag pbAllergies = new PersistentBagMock();
         pbAllergies.addAll(allergies);
         d1.setListOfAllergies(pbAllergies);
-//        d1.setListOfAllergies(allergies);
         ingredients = new ArrayList<>();
         ingredients.add("Cheese");
         ingredients.add("Salami");
@@ -183,7 +187,9 @@ public class DishServiceTests {
     @Test
     public void get_dishes_with_allergies_correct() throws VendorNotFoundException {
         when(dishRepository.existsByVendorID(d1.getVendorID())).thenReturn(true);
-        when(dishRepository.findDishesByVendorIDAndListOfAllergies(d1.getVendorID(), new ArrayList<>())).thenReturn(Optional.of(List.of(d1, d2)));
+        when(dishRepository
+                .findDishesByVendorIDAndListOfAllergies(d1.getVendorID(), new ArrayList<>()))
+                .thenReturn(Optional.of(List.of(d1, d2)));
 
         List<Dish> res = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
@@ -193,7 +199,9 @@ public class DishServiceTests {
     @Test
     public void get_dishes_with_no_dish_found() throws VendorNotFoundException {
         when(dishRepository.existsByVendorID(d1.getVendorID())).thenReturn(true);
-        when(dishRepository.findDishesByVendorIDAndListOfAllergies(d1.getVendorID(), new ArrayList<>())).thenReturn(Optional.empty());
+        when(dishRepository
+                .findDishesByVendorIDAndListOfAllergies(d1.getVendorID(), new ArrayList<>()))
+                .thenReturn(Optional.empty());
 
         List<Dish> res = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
         assertThat(res).isInstanceOf(ArrayList.class);

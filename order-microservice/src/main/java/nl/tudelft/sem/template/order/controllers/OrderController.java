@@ -297,7 +297,8 @@ public class OrderController implements OrderApi {
      */
     @Override
     public ResponseEntity<Float> orderOrderIDTotalCostGet(UUID orderID) {
-        VendorAnalyticsController vendorAnalyticsController = new VendorAnalyticsController(this,dishController,orderService);
+        VendorAnalyticsController vendorAnalyticsController =
+                new VendorAnalyticsController(this, dishController, orderService);
         return vendorAnalyticsController.getOrderEarnings(orderID);
     }
 }

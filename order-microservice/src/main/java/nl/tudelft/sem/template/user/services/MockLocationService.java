@@ -1,11 +1,10 @@
 package nl.tudelft.sem.template.user.services;
 
+import java.util.ArrayList;
+import java.util.List;
 import nl.tudelft.sem.template.model.Address;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class MockLocationService {
@@ -17,7 +16,7 @@ public class MockLocationService {
      *
      */
     @Autowired
-    public MockLocationService(){
+    public MockLocationService() {
     }
 
 
@@ -27,7 +26,7 @@ public class MockLocationService {
      * @param address the address
      * @return the list
      */
-    public List<Double> convertAddressToGeoCoords(Address address){
+    public List<Double> convertAddressToGeoCoords(Address address) {
         System.out.println(address);
         List<Double> list = new ArrayList<>(2);
         list.add(52.0021256d);

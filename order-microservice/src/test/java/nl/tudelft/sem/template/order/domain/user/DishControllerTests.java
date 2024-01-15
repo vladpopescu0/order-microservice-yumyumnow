@@ -7,7 +7,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.order.controllers.DishController;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,15 +21,18 @@ import org.springframework.http.ResponseEntity;
 @ExtendWith(MockitoExtension.class)
 public class DishControllerTests {
     @Mock
-    private DishService dishService;
+    private transient DishService dishService;
 
     @InjectMocks
-    private DishController dishController;
+    private transient DishController dishController;
 
-    Dish d1;
+    transient Dish d1;
 
-    Dish d2;
+    transient Dish d2;
 
+    /**
+     * setup for the dish controller tests.
+     */
     @BeforeEach
     public void setup() {
         d1 = new Dish();
@@ -211,9 +213,11 @@ public class DishControllerTests {
 
     @Test
     public void get_dishes_with_allergies_correct() throws VendorNotFoundException {
-        when(dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>())).thenReturn(List.of(d1, d2));
+        when(dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),
+                new ArrayList<>())).thenReturn(List.of(d1, d2));
 
-        ResponseEntity<List<Dish>> res = dishController.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
+        ResponseEntity<List<Dish>> res = dishController
+                .getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(res.getBody()).contains(d1).contains(d2);
@@ -221,18 +225,22 @@ public class DishControllerTests {
 
     @Test
     public void get_dishes_with_allergies_not_found() throws VendorNotFoundException {
-        doThrow(VendorNotFoundException.class).when(dishService).getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
+        doThrow(VendorNotFoundException.class).when(dishService)
+                .getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
-        ResponseEntity<List<Dish>> res = dishController.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
+        ResponseEntity<List<Dish>> res = dishController
+                .getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     public void get_dishes_with_allergies_bad_request() throws VendorNotFoundException {
-        doThrow(NullPointerException.class).when(dishService).getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
+        doThrow(NullPointerException.class).when(dishService)
+                .getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
-        ResponseEntity<List<Dish>> res = dishController.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
+        ResponseEntity<List<Dish>> res = dishController
+                .getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }

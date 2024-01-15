@@ -80,7 +80,7 @@ test {
 	jacoco {
 		enabled = true
 		includes = ['nl.tudelft.sem.template.*']
-		excludes = ['nl.tudelft.sem.template.api.*','nl.tudelft.sem.template.order.commons.*','nl.tudelft.sem.template.commons.*','nl.tudelft.sem.template.order.api.*','nl.tudelft.sem.template.model.*']
+		excludes = ['nl.tudelft.sem.template.api.*','nl.tudelft.sem.template.model.*']
 	}
 }
 
@@ -95,6 +95,7 @@ jacocoTestCoverageVerification() {
 			enabled = true
 			element = 'CLASS'
 			includes = ['nl.tudelft.sem.template.*']
+			excludes = ['nl.tudelft.sem.template.api.*','nl.tudelft.sem.template.model.*']
 			limit {
 				counter = 'BRANCH'
 				value = 'COVEREDRATIO'
@@ -104,36 +105,63 @@ jacocoTestCoverageVerification() {
 	}
 }
 
-// Define a task to run Checkstyle
-task customCheckstyle(type: Checkstyle) {
-	// Set the Checkstyle configuration file
-	configFile = file("${rootDir}/config/checkstyle/checkstyle.xml") // Modify the path as needed
-
-	// Apply Checkstyle to the main source set while excluding generated code
-	source = sourceSets.main.allJava.filter { file ->
-		// Exclude directories or files associated with generated code
-		!file.path.contains('generated') // Example condition, modify as per your generated code path
-	}
-	// Set Checkstyle classpath
-	classpath = configurations.checkstyle // Use the 'checkstyle' configuration
-
+checkstyle {
+	toolVersion "8.37"
 	// Link Checkstyle task to customCheckstyle
-	checkstyle {
-		toolVersion "10.12.5"
-		// configFile has already been set in customCheckstyle task
-		ignoreFailures = false // Set to true if you want the build to ignore Checkstyle failures
-		showViolations = true // Set to true to display Checkstyle violations in the console
+	configFile = file("${projectDir}/../config/checkstyle/checkstyle.xml")
+	ignoreFailures = false // Set to true if you want the build to ignore Checkstyle failures
+	showViolations = true // Set to true to display Checkstyle violations in the console
+
+	checkstyleMain {
+		source = project.sourceSets.main.allJava.filter { file ->
+			// Exclude directories or files associated with generated code or containing the word 'api'
+			!file.path.contains('generated')
+		}
+		excludes = ['**/generated/.*']
+	}
+
+	checkstyleTest {
+		source = project.sourceSets.test.allJava.filter { file ->
+			// Exclude directories or files associated with generated code
+			!file.path.contains('generated') // Example condition, modify as per your generated code path
+		}
+		excludes = ['**/generated/.*']
 	}
 }
+
+tasks.withType(Checkstyle).each { checkstyleTask ->
+	checkstyleTask.doLast {
+		reports.all { report ->
+			def outputFile = report.destination
+			if (outputFile.exists() && outputFile.text.contains("<error ")) {
+				throw new GradleException("There were checkstyle warnings! For more info check $outputFile")
+			}
+		}
+	}
+}
+
 
 pmd {
 	incrementalAnalysis = true
 	ignoreFailures = true
-	sourceSets = [sourceSets.main]
 	// Exclude specific rules or files/directories
 	pmdMain {
+		source = project.sourceSets.main.allJava.filter { file ->
+			// Exclude directories or files associated with generated code
+			!file.path.contains('generated') && !file.path.contains('commons') && !file.path.contains('api')
+		}
+		excludes = ['**/generated/.*','**/commons/.*','**/api/.*']
+	}
+
+	pmdTest {
+		source = project.sourceSets.test.allJava.filter { file ->
+			// Exclude directories or files associated with generated code
+			!file.path.contains('generated') // Example condition, modify as per your generated code path
+
+		}
 		excludes = ['**/generated/.*']
 	}
+
 }
 
 apply plugin: 'info.solidsoft.pitest'
