@@ -2,8 +2,8 @@ package nl.tudelft.sem.template.order.controllers;
 
 import java.util.List;
 import java.util.UUID;
-import nl.tudelft.sem.template.order.api.DishApi;
-import nl.tudelft.sem.template.order.commons.Dish;
+import nl.tudelft.sem.template.api.DishApi;
+import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.DishService;
 import nl.tudelft.sem.template.order.domain.user.VendorNotFoundException;
@@ -28,13 +28,17 @@ public class DishController implements DishApi {
     /**
      * Endpoint for adding a dish.
      *
+     * @param vendorId id of the vendor, from whom the new dish is
      * @param dish The Dish that has to be added to the database
      * @return 200 OK if the addition of the dish was successful, including the added dish
      *         400 BAD REQUEST if the addition was unsuccessful
      */
     @Override
-    public ResponseEntity<Dish> addDish(Dish dish) {
+    public ResponseEntity<Dish> addDish(UUID vendorId, Dish dish) {
         try {
+            if (!vendorId.equals(dish.getVendorID())) {
+                return ResponseEntity.badRequest().build();
+            }
             Dish d = dishService.addDish(dish);
             return ResponseEntity.ok(d);
         } catch (Exception e) {

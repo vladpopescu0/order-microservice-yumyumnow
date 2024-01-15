@@ -9,8 +9,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import nl.tudelft.sem.template.order.commons.Address;
-import nl.tudelft.sem.template.order.commons.Order;
+
+import nl.tudelft.sem.template.model.Address;
+import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.controllers.OrderController;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
 import org.junit.jupiter.api.Assertions;
@@ -333,5 +334,9 @@ class OrderControllerTests {
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(orders, response.getBody());
     }
-
+    @Test
+    void testTotalCostNotNull(){
+        UUID randomID = UUID.randomUUID();
+        assertNotNull(orderController.orderOrderIDTotalCostGet(randomID));
+    }
 }

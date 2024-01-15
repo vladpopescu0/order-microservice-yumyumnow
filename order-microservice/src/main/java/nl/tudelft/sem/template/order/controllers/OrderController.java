@@ -3,9 +3,9 @@ package nl.tudelft.sem.template.order.controllers;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
-import nl.tudelft.sem.template.order.api.OrderApi;
-import nl.tudelft.sem.template.order.commons.Address;
-import nl.tudelft.sem.template.order.commons.Order;
+import nl.tudelft.sem.template.api.OrderApi;
+import nl.tudelft.sem.template.model.Address;
+import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
 import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
@@ -20,10 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderController implements OrderApi {
 
     private final transient OrderService orderService;
+    private final transient DishController dishController;
 
     @Autowired
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, DishController dishController) {
         this.orderService = orderService;
+        this.dishController = dishController;
     }
 
     /**
@@ -284,5 +286,18 @@ public class OrderController implements OrderApi {
         } catch (NoOrdersException noOrdersException) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    /**Controller for the /order/{orderID}/totalCost endpoint.
+     * It takes the implementation provided in VendorAnalyticsController.
+     *
+     * @param orderID ID of order that needs to be fetched (required)
+     * @return a response where for 200 returns the total sum of the
+     *          dishes that can be found in the database
+     */
+    @Override
+    public ResponseEntity<Float> orderOrderIDTotalCostGet(UUID orderID) {
+        VendorAnalyticsController vendorAnalyticsController = new VendorAnalyticsController(this,dishController,orderService);
+        return vendorAnalyticsController.getOrderEarnings(orderID);
     }
 }

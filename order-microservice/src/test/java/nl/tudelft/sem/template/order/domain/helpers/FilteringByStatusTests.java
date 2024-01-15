@@ -1,6 +1,6 @@
 package nl.tudelft.sem.template.order.domain.helpers;
 
-import nl.tudelft.sem.template.order.commons.Order;
+import nl.tudelft.sem.template.model.Order;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
