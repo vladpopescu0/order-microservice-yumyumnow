@@ -222,6 +222,20 @@ class OrderServiceTests {
     }
 
     @Test
+    void testCreateOrderNullField() {
+
+        Assertions.assertThrows(NullFieldException.class, () -> orderService.createOrder(null));
+
+    }
+
+    @Test
+    void testGetOrderByIdNullId() {
+
+        Assertions.assertThrows(NullFieldException.class, () -> orderService.getOrderById(null));
+
+    }
+
+    @Test
     void testGetAllOrdersSuccessful() throws NoOrdersException {
 
         when(orderRepository.findAll()).thenReturn(Arrays.asList(order1, order2));
