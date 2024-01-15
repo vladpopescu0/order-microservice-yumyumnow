@@ -793,13 +793,32 @@ paths:
           description: Not Found. Vendor not found
 components:
   schemas:
+    Address:
+      type: object
+      x-class-extra-annotation: '@javax.persistence.Embeddable @lombok.Data @lombok.NoArgsConstructor @lombok.AllArgsConstructor'
+      x-field-extra-annotation: "@javax.persistence.Embedded"
+      properties:
+        street:
+          type: string
+          example: Mekelweg 5
+        city:
+          type: string
+          example: Delft
+        country:
+          type: string
+          example: Netherlands
+        zip:
+          type: string
+          example: '2628CC'
     Dish:
       type: object
+      x-class-extra-annotation: '@javax.persistence.Entity @lombok.Data @lombok.NoArgsConstructor @lombok.AllArgsConstructor'
       properties:
         dishID:
           type: string
           format: UUID
           example: 550e8400-e29b-41d4-a716-446655440000
+          x-field-extra-annotation: "@javax.persistence.Id"
         vendorID:
           type: string
           format: UUID
@@ -822,6 +841,7 @@ components:
             - Fries
             - Lamb
             - Cheese
+          x-field-extra-annotation: "@javax.persistence.ElementCollection"
         listOfAllergies:
           type: array
           items:
@@ -829,17 +849,20 @@ components:
           example:
             - lactose
             - gluten
+          x-field-extra-annotation: "@javax.persistence.ElementCollection"
         image:
           type: string
           format: base64
           description: Base64 encoded image data
     Order:
       type: object
+      x-class-extra-annotation: '@javax.persistence.Entity @javax.persistence.Table(name="orders") @lombok.Data @lombok.NoArgsConstructor @lombok.AllArgsConstructor'
       properties:
         orderID:
           type: string
           format: UUID
           example: 550e8400-e29b-41d4-a716-446655440000
+          x-field-extra-annotation: "@javax.persistence.Id"
         vendorID:
           type: string
           format: UUID
@@ -856,6 +879,7 @@ components:
           example: 1700006405000
         listOfDishes:
           type: array
+          x-field-extra-annotation: "@javax.persistence.ElementCollection"
           items:
             type: string
             format: UUID
@@ -886,21 +910,6 @@ components:
           format: float
           description: The price of the whole order as a sum of dishes and additional costs
           example: 17.38
-    Address:
-      type: object
-      properties:
-        street:
-          type: string
-          example: Mekelweg 5
-        city:
-          type: string
-          example: Delft
-        country:
-          type: string
-          example: Netherlands
-        zip:
-          type: string
-          example: '2628CC'
 
   requestBodies:
     Dish:

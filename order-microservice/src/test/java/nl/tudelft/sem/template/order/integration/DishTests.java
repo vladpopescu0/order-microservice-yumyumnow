@@ -7,7 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import nl.tudelft.sem.template.order.commons.Dish;
+
+import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.order.domain.user.DishService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,8 +43,7 @@ public class DishTests {
 
     transient Dish d2;
 
-    transient String postPath = "/dish";
-    transient String getPath = "/dish/{dishID}";
+    transient String postGetPath = "/dish/{dishID}";
     transient String getListPath = "/dish/list/{dishId}";
     transient String allergiesPath = "/dish/allergy-list/{vendorId}";
 
@@ -91,7 +91,7 @@ public class DishTests {
     @Transactional
     @Test
     public void createDish_withValidData_worksCorrectly() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post(postPath)
+        mockMvc.perform(MockMvcRequestBuilders.post(postGetPath, d1.getVendorID())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(d1))
                 .accept(MediaType.APPLICATION_JSON))
@@ -102,11 +102,20 @@ public class DishTests {
         assertThat(persistedDish).isEqualTo(d1);
     }
 
+    @Test
+    public void createDish_withValidData_differentVendor() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/dish/{vendorID}", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(d1))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+    }
+
     @Transactional
     @Test
     public void createDish_withNullData() throws Exception {
         d1.setDishID(null);
-        mockMvc.perform(MockMvcRequestBuilders.post(postPath)
+        mockMvc.perform(MockMvcRequestBuilders.post(postGetPath, d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -116,7 +125,7 @@ public class DishTests {
     @Transactional
     @Test
     public void createDish_duplicate() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post(postPath)
+        mockMvc.perform(MockMvcRequestBuilders.post(postGetPath, d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -126,7 +135,7 @@ public class DishTests {
         assertThat(d1).isEqualTo(persistedDish);
         assertThat(persistedDish).isEqualTo(d1);
 
-        mockMvc.perform(MockMvcRequestBuilders.post(postPath)
+        mockMvc.perform(MockMvcRequestBuilders.post(postGetPath, d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -136,7 +145,7 @@ public class DishTests {
     @Transactional
     @Test
     public void getDishThatDoesNotExist() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get(getPath, d1.getDishID())
+        mockMvc.perform(MockMvcRequestBuilders.get(postGetPath, d1.getDishID())
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -145,7 +154,7 @@ public class DishTests {
     @Transactional
     @Test
     public void getDishWithWrongParameter() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get(getPath, new Object())
+        mockMvc.perform(MockMvcRequestBuilders.get(postGetPath, new Object())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -154,14 +163,14 @@ public class DishTests {
     @Transactional
     @Test
     public void getDishThatExists() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post(postPath)
+        mockMvc.perform(MockMvcRequestBuilders.post(postGetPath, d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
 
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(getPath, d1.getDishID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(postGetPath, d1.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                         .andExpect(MockMvcResultMatchers.status().isOk())
@@ -226,7 +235,7 @@ public class DishTests {
     @Transactional
     @Test
     public void deleteNonExistentDish() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.delete(getPath, UUID.randomUUID())
+        mockMvc.perform(MockMvcRequestBuilders.delete(postGetPath, UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -237,7 +246,7 @@ public class DishTests {
     public void deleteExistingDish() throws Exception {
         dishService.addDish(d1);
         assertThat(dishService.checkDishUuidIsUnique(d1.getDishID())).isFalse();
-        mockMvc.perform(MockMvcRequestBuilders.delete(getPath, d1.getDishID())
+        mockMvc.perform(MockMvcRequestBuilders.delete(postGetPath, d1.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
@@ -247,7 +256,7 @@ public class DishTests {
     @Transactional
     @Test
     public void deleteExistingDishWithWrongParameter() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.delete(getPath, new Object())
+        mockMvc.perform(MockMvcRequestBuilders.delete(postGetPath, new Object())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -256,7 +265,7 @@ public class DishTests {
     @Transactional
     @Test
     public void updateNonExistingDish() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.put(getPath, d1.getDishID())
+        mockMvc.perform(MockMvcRequestBuilders.put(postGetPath, d1.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -268,7 +277,7 @@ public class DishTests {
     public void updateWithDifferentId() throws Exception {
         dishService.addDish(d1);
         dishService.addDish(d2);
-        mockMvc.perform(MockMvcRequestBuilders.put(getPath, d2.getDishID())
+        mockMvc.perform(MockMvcRequestBuilders.put(postGetPath, d2.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -279,7 +288,7 @@ public class DishTests {
     @Test
     public void updateWithBadParameters() throws Exception {
         dishService.addDish(d1);
-        mockMvc.perform(MockMvcRequestBuilders.put(getPath, new Object())
+        mockMvc.perform(MockMvcRequestBuilders.put(postGetPath, new Object())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -291,7 +300,7 @@ public class DishTests {
     public void updateWithBadDish() throws Exception {
         dishService.addDish(d1);
         d1.setListOfIngredients(null);
-        mockMvc.perform(MockMvcRequestBuilders.put(getPath, d1.getDishID())
+        mockMvc.perform(MockMvcRequestBuilders.put(postGetPath, d1.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -316,7 +325,7 @@ public class DishTests {
         ingredients.add("egg");
         d1.setListOfIngredients(ingredients2);
         dishService.updateDish(d1.getDishID(), d1);
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.put(getPath, d1.getDishID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.put(postGetPath, d1.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))

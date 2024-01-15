@@ -1,6 +1,6 @@
 package nl.tudelft.sem.template.user.api;
 
-import nl.tudelft.sem.template.order.commons.Address;
+import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.order.domain.user.UserIDNotFoundException;
 
 import java.util.List;
