@@ -13,33 +13,33 @@ import org.junit.jupiter.api.Test;
 
 class JsonParserServiceTest {
 
-    String jsonValid = """
+    transient String jsonValid = """
             {
               "latitude": 51.998513,
               "longitude": 4.37127
             }""";
-    String jsonNoLat = """
+    transient String jsonNoLat = """
             {
               "latitude": ,
               "longitude": 4.37127
             }""";
-    String jsonNoLong = """
+    transient String jsonNoLong = """
             {
               "latitude": 51.998513,
               "longitude":
             }""";
-    String jsonString = """
+    transient String jsonString = """
             {
               "latitude": oh hi,
               "longitude": 4.37127
             }""";
-    String jsonExtraAttr = """
+    transient String jsonExtraAttr = """
             {
               "latitude": 51.998513,
               "longitude": 4.37127,
               "angle": 30
             }""";
-    List<String> vendor2 = Arrays.asList("""
+    transient List<String> vendor2 = Arrays.asList("""
               {
                 "userID": "550e8400-e29b-41d4-a716-446655440000",
                 "user": {
@@ -87,7 +87,7 @@ class JsonParserServiceTest {
                   "longitude": 41.37127
                 }
             }""");
-    List<String> vendor2NotValid = Arrays.asList("""
+    transient List<String> vendor2NotValid = Arrays.asList("""
               {
                 "userID": "550e8400-e29b-41d4-a716-446655440000",
                 "user": {
@@ -132,7 +132,7 @@ class JsonParserServiceTest {
                 }
                 
             }""");
-    List<String> vendor2NoLoc = Arrays.asList("""
+    transient List<String> vendor2NoLoc = Arrays.asList("""
               {
                 "userID": "550e8400-e29b-41d4-a716-446655440000",
                 "user": {
@@ -180,7 +180,7 @@ class JsonParserServiceTest {
                   "longitude": "oh hi"
                 }
             }""");
-    List<String> vendor1InValidUUID = List.of("""
+    transient List<String> vendor1InValidUUID = List.of("""
               {
                 "userID": "oh hi",
                 "user": {
@@ -205,7 +205,7 @@ class JsonParserServiceTest {
                 }
               }
             """);
-    List<String> vendorInvalidJson = List.of("""
+    transient List<String> vendorInvalidJson = List.of("""
               {
                 userID : "oh hi",
                 "user": {
