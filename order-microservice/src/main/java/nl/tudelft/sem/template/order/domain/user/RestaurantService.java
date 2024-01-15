@@ -46,7 +46,6 @@ public class RestaurantService {
      */
     public List<UUID> getAllRestaurants(UUID userID) throws UserIDNotFoundException, RuntimeException {
         // try to get the user address first
-        List<Double> userLocation = getUserLocation(userID);
 
         // get vendor location and UUID
         try {
@@ -57,6 +56,7 @@ public class RestaurantService {
                 throw new RuntimeException("Something went wrong parsing vendors");
             }
             // Get the vendor UUID nearby the customer
+            List<Double> userLocation = getUserLocation(userID);
             return processVendors(userLocation, vendors);
         } catch (Exception e) {
             throw new RuntimeException("Could not get vendors");
@@ -103,13 +103,9 @@ public class RestaurantService {
      * @return a list of vendor UUIDs
      */
     public List<UUID> processVendors(List<Double> userLocation, HashMap<UUID, List<Double>> vendors) {
-        double radius = 5; //in km
-        double userLatitude = userLocation.get(0);
-        double userLongitude = userLocation.get(1);
-
         return vendors.entrySet().stream()
-                .filter(entry -> calculateDistance(userLatitude, userLongitude,
-                        entry.getValue().get(0), entry.getValue().get(1)) < radius)
+                .filter(entry -> calculateDistance(userLocation.get(0), userLocation.get(1),
+                        entry.getValue().get(0), entry.getValue().get(1)) < 5)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
     }

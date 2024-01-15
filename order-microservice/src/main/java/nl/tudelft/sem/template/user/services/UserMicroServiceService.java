@@ -19,8 +19,8 @@ import reactor.core.publisher.Mono;
 @Component
 public class UserMicroServiceService implements UserMicroServiceAPI {
 
-    private final Duration requestTimeout = Duration.ofSeconds(3);
-    private final WebClient userMicroServiceWebClient;
+    private final transient Duration requestTimeout = Duration.ofSeconds(3);
+    private final transient WebClient userMicroServiceWebClient;
 
     /**
      * Instantiates a new UserMicroService service.

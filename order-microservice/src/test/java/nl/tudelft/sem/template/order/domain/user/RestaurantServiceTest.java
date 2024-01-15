@@ -2,6 +2,7 @@ package nl.tudelft.sem.template.order.domain.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,17 +29,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class RestaurantServiceTest {
     @Mock
-    UserMicroServiceService mockUserService;
+    transient UserMicroServiceService mockUserService;
     @Mock
-    MockLocationService mockLocationService;
+    transient MockLocationService mockLocationService;
     @InjectMocks
-    RestaurantService restaurantService;
+    transient RestaurantService restaurantService;
 
-    String location;
-    Address address;
-    UUID user;
+    transient String location;
+    transient Address address;
+    transient UUID user;
 
-    List<String> vendors;
+    transient List<String> vendors;
 
     @BeforeEach
     void setup() {
@@ -95,57 +96,35 @@ class RestaurantServiceTest {
 
     @Test
     void getAllRestaurantsVendorsNull() throws UserIDNotFoundException {
-        // userLocation setup
-        when(mockUserService.getUserAddress(user)).thenReturn(address);
-        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.008513, 4.37127));
-
         when(mockUserService.getAllVendors()).thenReturn(null);
-        boolean thrown = false;
-        try {
+
+        assertThrows(RuntimeException.class, () -> {
             restaurantService.getAllRestaurants(user);
-        } catch (RuntimeException e) {
-            thrown = true;
-        }
+        });
 
         verify(mockUserService, times(1)).getAllVendors();
-        assertTrue(thrown);
     }
 
     @Test
     void getAllRestaurantsVendorsEmpty() throws UserIDNotFoundException {
-        // userLocation setup
-        when(mockUserService.getUserAddress(user)).thenReturn(address);
-        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.008513, 4.37127));
-
         when(mockUserService.getAllVendors()).thenReturn(List.of());
-        boolean thrown = false;
-        try {
+
+        assertThrows(RuntimeException.class, () -> {
             restaurantService.getAllRestaurants(user);
-        } catch (RuntimeException e) {
-            thrown = true;
-        }
+        });
 
         verify(mockUserService, times(1)).getAllVendors();
-        assertTrue(thrown);
     }
 
     @Test
     void getAllRestaurantsNoVendors() throws UserIDNotFoundException {
-        // userLocation setup
-        when(mockUserService.getUserAddress(user)).thenReturn(address);
-        when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.008513, 4.37127));
-
         when(mockUserService.getAllVendors()).thenThrow(RuntimeException.class);
 
-        boolean thrown = false;
-        try {
+        assertThrows(RuntimeException.class, () -> {
             restaurantService.getAllRestaurants(user);
-        } catch (RuntimeException e) {
-            thrown = true;
-        }
+        });
 
         verify(mockUserService, times(1)).getAllVendors();
-        assertTrue(thrown);
     }
 
     @Test
@@ -272,15 +251,11 @@ class RestaurantServiceTest {
         when(mockUserService.getUserAddress(user)).thenThrow(UserIDNotFoundException.class);
         when(mockUserService.getUserLocation(user)).thenReturn(null);
 
-        boolean thrown = false;
-        try {
+        assertThrows(UserIDNotFoundException.class, () -> {
             restaurantService.getUserLocation(user);
-        } catch (UserIDNotFoundException e) {
-            thrown = true;
-        }
-        verify(mockUserService, times(1)).getUserLocation(user);
-        assertTrue(thrown);
+        });
 
+        verify(mockUserService, times(1)).getUserLocation(user);
     }
 
     @Test
@@ -288,14 +263,11 @@ class RestaurantServiceTest {
         when(mockUserService.getUserAddress(user)).thenThrow(UserIDNotFoundException.class);
         when(mockUserService.getUserLocation(user)).thenReturn("");
 
-        boolean thrown = false;
-        try {
+        assertThrows(UserIDNotFoundException.class, () -> {
             restaurantService.getUserLocation(user);
-        } catch (UserIDNotFoundException e) {
-            thrown = true;
-        }
+        });
+
         verify(mockUserService, times(1)).getUserLocation(user);
-        assertTrue(thrown);
     }
 
     @Test
@@ -303,14 +275,11 @@ class RestaurantServiceTest {
         when(mockUserService.getUserAddress(user)).thenThrow(UserIDNotFoundException.class);
         when(mockUserService.getUserLocation(user)).thenReturn("oh hi");
 
-        boolean thrown = false;
-        try {
+        assertThrows(UserIDNotFoundException.class, () -> {
             restaurantService.getUserLocation(user);
-        } catch (UserIDNotFoundException e) {
-            thrown = true;
-        }
+        });
+
         verify(mockUserService, times(1)).getUserLocation(user);
-        assertTrue(thrown);
     }
 
     @Test

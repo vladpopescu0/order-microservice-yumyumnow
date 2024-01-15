@@ -22,13 +22,13 @@ import org.springframework.http.ResponseEntity;
 class RestaurantControllerUnitTest {
 
     @Mock
-    RestaurantService mockRestaurantService;
+    transient RestaurantService mockRestaurantService;
 
     @InjectMocks
-    RestaurantController restaurantController;
+    transient RestaurantController restaurantController;
 
-    UUID user;
-    List<UUID> list;
+    transient UUID user;
+    transient List<UUID> list;
 
     @BeforeEach
     void setup() {

@@ -164,6 +164,17 @@ pmd {
 
 }
 
+tasks.withType(Pmd).each { pmdTask ->
+	pmdTask.doLast {
+		reports.all { report ->
+			def outputFile = report.destination
+			if (outputFile.exists() && outputFile.text.contains("<violation ")) {
+				throw new GradleException("There were PMD violations! For more info check $outputFile")
+			}
+		}
+	}
+}
+
 apply plugin: 'info.solidsoft.pitest'
 pitest {
 	//adds dependency to org.pitest:pitest-junit5-plugin and sets "testPlugin" to "junit5"
