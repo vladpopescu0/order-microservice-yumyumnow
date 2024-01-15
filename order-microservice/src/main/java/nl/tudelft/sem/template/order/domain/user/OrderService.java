@@ -249,7 +249,7 @@ public class OrderService {
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(t);
             int hours = calendar.get(Calendar.HOUR_OF_DAY);
-            times[hours]++;
+            times[hours] += 1;
         }
         return Arrays.stream(times).boxed().collect(Collectors.toList());
     }

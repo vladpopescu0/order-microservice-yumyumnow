@@ -3,7 +3,7 @@ package nl.tudelft.sem.template.order.domain.helpers;
 import nl.tudelft.sem.template.model.Order;
 
 public class FilteringByStatus implements FilteringParam<Order> {
-    private final Order.StatusEnum status;
+    private final transient Order.StatusEnum status;
 
     /**
      * constructor.

@@ -22,8 +22,8 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class VendorAnalyticsController implements VendorApi {
-    private final OrderController orderController;
-    private final DishController dishController;
+    private final transient OrderController orderController;
+    private final transient DishController dishController;
     private final transient OrderService orderService;
 
     /**

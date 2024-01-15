@@ -20,8 +20,8 @@ import java.util.UUID;
 @Component
 public class UserMicroServiceService implements UserMicroServiceAPI {
 
-    private final Duration REQUEST_TIMEOUT = Duration.ofSeconds(3);
-    private final WebClient userMicroServiceWebClient;
+    private final transient Duration REQUEST_TIMEOUT = Duration.ofSeconds(3);
+    private final transient WebClient userMicroServiceWebClient;
 
     /**
      * Instantiates a new UserMicroService service.
