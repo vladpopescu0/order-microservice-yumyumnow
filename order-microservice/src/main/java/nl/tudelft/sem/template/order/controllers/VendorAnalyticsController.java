@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import nl.tudelft.sem.template.api.VendorApi;
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.model.Order;
@@ -22,8 +21,8 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class VendorAnalyticsController implements VendorApi {
-    private final OrderController orderController;
-    private final DishController dishController;
+    private final transient OrderController orderController;
+    private final transient DishController dishController;
     private final transient OrderService orderService;
 
     /**
@@ -63,7 +62,6 @@ public class VendorAnalyticsController implements VendorApi {
                         while (t < 3) {
                             dishResponse = dishController.getDishByID(id);
                             HttpStatus dishResponseStatus = dishResponse.getStatusCode();
-
                             if (dishResponseStatus.equals(HttpStatus.OK)) {
                                 Dish dish = dishController.getDishByID(id).getBody();
                                 earnings += dish.getPrice();

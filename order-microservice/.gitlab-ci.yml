@@ -38,8 +38,9 @@ checkStyle-order-microservice:
     - gradle_build
   stage: staticAnalysis
   script:
-    gradle order-microservice:checkstyleMain order-microservice:checkStyleTest
-  allow_failure: true
+    - gradle order-microservice:checkstyleMain order-microservice:checkStyleTest
+    - gradle order-microservice:checkstyleTest order-microservice:checkStyleTest
+  allow_failure: false
 
 
 PMD-order-microservice:

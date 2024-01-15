@@ -1,13 +1,12 @@
 package nl.tudelft.sem.template.order.controllers;
 
+import java.util.List;
+import java.util.UUID;
 import nl.tudelft.sem.template.api.RestaurantsApi;
 import nl.tudelft.sem.template.order.domain.user.RestaurantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.UUID;
 
 @RestController
 public class RestaurantController implements RestaurantsApi {
@@ -25,14 +24,14 @@ public class RestaurantController implements RestaurantsApi {
     }
 
     @Override
-    public ResponseEntity<List<UUID>> getAllRestaurants(UUID userID){
-        if(userID == null){
+    public ResponseEntity<List<UUID>> getAllRestaurants(UUID userID) {
+        if (userID == null) {
             return ResponseEntity.badRequest().build();
         }
         try {
             List<UUID> list = restaurantService.getAllRestaurants(userID);
             return ResponseEntity.ok(list);
-        } catch(Exception e){
+        } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
     }

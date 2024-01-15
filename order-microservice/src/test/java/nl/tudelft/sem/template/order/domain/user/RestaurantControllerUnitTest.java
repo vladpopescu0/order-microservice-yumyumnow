@@ -1,5 +1,13 @@
 package nl.tudelft.sem.template.order.domain.user;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import nl.tudelft.sem.template.order.controllers.RestaurantController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,16 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
-
 
 @ExtendWith(MockitoExtension.class)
 class RestaurantControllerUnitTest {
@@ -31,8 +29,9 @@ class RestaurantControllerUnitTest {
 
     UUID user;
     List<UUID> list;
+
     @BeforeEach
-    void setup(){
+    void setup() {
         user = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
         list = new ArrayList<>();
         list.add(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));

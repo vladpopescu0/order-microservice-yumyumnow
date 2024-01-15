@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.order.domain.user.DishService;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,18 +30,27 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 public class DishTests {
     @Autowired
-    private MockMvc mockMvc;
+    private transient MockMvc mockMvc;
 
     @Autowired
     private transient DishService dishService;
 
     @Autowired
-    private ObjectMapper objectMapper; // Used for converting Java objects to JSON
+    private transient ObjectMapper objectMapper; // Used for converting Java objects to JSON
 
-    Dish d1;
+    transient Dish d1;
 
-    Dish d2;
+    transient Dish d2;
 
+    transient String postGetPath = "/dish/{dishID}";
+    transient String getListPath = "/dish/list/{dishId}";
+    transient String allergiesPath = "/dish/allergy-list/{vendorId}";
+
+    transient String allergiesString = "allergies";
+
+    /**
+     * setup for DishTests.
+     */
     @BeforeEach
     public void setup() {
         d1 = new Dish();
@@ -82,7 +90,7 @@ public class DishTests {
     @Transactional
     @Test
     public void createDish_withValidData_worksCorrectly() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/dish/{vendorID}", d1.getVendorID())
+        mockMvc.perform(MockMvcRequestBuilders.post(postGetPath, d1.getVendorID())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(d1))
                 .accept(MediaType.APPLICATION_JSON))
@@ -106,7 +114,7 @@ public class DishTests {
     @Test
     public void createDish_withNullData() throws Exception {
         d1.setDishID(null);
-        mockMvc.perform(MockMvcRequestBuilders.post("/dish/{vendorID}", d1.getVendorID())
+        mockMvc.perform(MockMvcRequestBuilders.post(postGetPath, d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -116,7 +124,7 @@ public class DishTests {
     @Transactional
     @Test
     public void createDish_duplicate() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/dish/{vendorID}", d1.getVendorID())
+        mockMvc.perform(MockMvcRequestBuilders.post(postGetPath, d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -126,7 +134,7 @@ public class DishTests {
         assertThat(d1).isEqualTo(persistedDish);
         assertThat(persistedDish).isEqualTo(d1);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/dish/{vendorID}", d1.getVendorID())
+        mockMvc.perform(MockMvcRequestBuilders.post(postGetPath, d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -136,7 +144,7 @@ public class DishTests {
     @Transactional
     @Test
     public void getDishThatDoesNotExist() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/dish/{dishID}", d1.getDishID())
+        mockMvc.perform(MockMvcRequestBuilders.get(postGetPath, d1.getDishID())
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -145,7 +153,7 @@ public class DishTests {
     @Transactional
     @Test
     public void getDishWithWrongParameter() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/dish/{dishID}", new Object())
+        mockMvc.perform(MockMvcRequestBuilders.get(postGetPath, new Object())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -154,14 +162,14 @@ public class DishTests {
     @Transactional
     @Test
     public void getDishThatExists() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/dish/{vendorID}", d1.getVendorID())
+        mockMvc.perform(MockMvcRequestBuilders.post(postGetPath, d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
 
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/dish/{dishID}", d1.getDishID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(postGetPath, d1.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                         .andExpect(MockMvcResultMatchers.status().isOk())
@@ -174,7 +182,7 @@ public class DishTests {
     @Test
     public void vendorDoesNotExist() throws Exception {
         dishService.addDish(d1);
-        mockMvc.perform(MockMvcRequestBuilders.get("/dish/list/{dishID}", UUID.randomUUID())
+        mockMvc.perform(MockMvcRequestBuilders.get(getListPath, UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -183,7 +191,7 @@ public class DishTests {
     @Transactional
     @Test
     public void getDishesFromVendorWithWrongParameter() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/dish/list/{dishID}", new Object())
+        mockMvc.perform(MockMvcRequestBuilders.get(getListPath, new Object())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -194,12 +202,13 @@ public class DishTests {
     public void vendorDoesExist() throws Exception {
         dishService.addDish(d1);
         dishService.addDish(d2);
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/dish/list/{dishID}", d1.getVendorID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(getListPath, d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> returnedDishes = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+        List<Dish> returnedDishes = objectMapper.readValue(res.getResponse()
+                .getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(returnedDishes.size()).isEqualTo(1);
         assertThat(returnedDishes).contains(d1).doesNotContain(d2);
     }
@@ -210,12 +219,14 @@ public class DishTests {
         dishService.addDish(d1);
         d2.setVendorID(d1.getVendorID());
         dishService.addDish(d2);
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/dish/list/{dishID}", d1.getVendorID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(getListPath, d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> returnedDishes = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+                .andExpect(MockMvcResultMatchers.content()
+                        .contentType(MediaType.APPLICATION_JSON)).andReturn();
+        List<Dish> returnedDishes = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(returnedDishes.size()).isEqualTo(2);
         assertThat(returnedDishes).contains(d1).contains(d2);
     }
@@ -223,7 +234,7 @@ public class DishTests {
     @Transactional
     @Test
     public void deleteNonExistentDish() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.delete("/dish/{dishID}", UUID.randomUUID())
+        mockMvc.perform(MockMvcRequestBuilders.delete(postGetPath, UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -234,7 +245,7 @@ public class DishTests {
     public void deleteExistingDish() throws Exception {
         dishService.addDish(d1);
         assertThat(dishService.checkDishUuidIsUnique(d1.getDishID())).isFalse();
-        mockMvc.perform(MockMvcRequestBuilders.delete("/dish/{dishID}", d1.getDishID())
+        mockMvc.perform(MockMvcRequestBuilders.delete(postGetPath, d1.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
@@ -244,7 +255,7 @@ public class DishTests {
     @Transactional
     @Test
     public void deleteExistingDishWithWrongParameter() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.delete("/dish/{dishID}", new Object())
+        mockMvc.perform(MockMvcRequestBuilders.delete(postGetPath, new Object())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
@@ -253,7 +264,7 @@ public class DishTests {
     @Transactional
     @Test
     public void updateNonExistingDish() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.put("/dish/{dishId}", d1.getDishID())
+        mockMvc.perform(MockMvcRequestBuilders.put(postGetPath, d1.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -265,7 +276,7 @@ public class DishTests {
     public void updateWithDifferentId() throws Exception {
         dishService.addDish(d1);
         dishService.addDish(d2);
-        mockMvc.perform(MockMvcRequestBuilders.put("/dish/{dishId}", d2.getDishID())
+        mockMvc.perform(MockMvcRequestBuilders.put(postGetPath, d2.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -276,7 +287,7 @@ public class DishTests {
     @Test
     public void updateWithBadParameters() throws Exception {
         dishService.addDish(d1);
-        mockMvc.perform(MockMvcRequestBuilders.put("/dish/{dishId}", new Object())
+        mockMvc.perform(MockMvcRequestBuilders.put(postGetPath, new Object())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -288,7 +299,7 @@ public class DishTests {
     public void updateWithBadDish() throws Exception {
         dishService.addDish(d1);
         d1.setListOfIngredients(null);
-        mockMvc.perform(MockMvcRequestBuilders.put("/dish/{dishId}", d1.getDishID())
+        mockMvc.perform(MockMvcRequestBuilders.put(postGetPath, d1.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -313,15 +324,19 @@ public class DishTests {
         ingredients.add("egg");
         d1.setListOfIngredients(ingredients2);
         dishService.updateDish(d1.getDishID(), d1);
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.put("/dish/{dishId}", d1.getDishID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.put(postGetPath, d1.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        Dish databaseDish2 = objectMapper.readValue(res.getResponse().getContentAsString(), Dish.class);
-        assertThat(databaseDish2.getName()).isEqualTo("name 2").isNotEqualTo("name");
-        assertThat(databaseDish2.getListOfIngredients()).isEqualTo(ingredients2).isNotEqualTo(ingredients);
+                .andExpect(MockMvcResultMatchers.content()
+                        .contentType(MediaType.APPLICATION_JSON)).andReturn();
+        Dish databaseDish2 = objectMapper.readValue(res.getResponse()
+                .getContentAsString(), Dish.class);
+        assertThat(databaseDish2.getName()).isEqualTo("name 2")
+                .isNotEqualTo("name");
+        assertThat(databaseDish2.getListOfIngredients())
+                .isEqualTo(ingredients2).isNotEqualTo(ingredients);
     }
 
 
@@ -329,7 +344,7 @@ public class DishTests {
     @Test
     public void filterOnNonExistentVendor() throws Exception {
         List<String> allergies = new ArrayList<>();
-        mockMvc.perform(MockMvcRequestBuilders.get("/dish/allergy-list/{vendorId}", d1.getVendorID())
+        mockMvc.perform(MockMvcRequestBuilders.get(allergiesPath, d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(allergies))
                         .accept(MediaType.APPLICATION_JSON))
@@ -344,13 +359,14 @@ public class DishTests {
         dishService.addDish(d2);
         List<String> allergies = new ArrayList<>();
         allergies.add("lactose");
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/dish/allergy-list/{vendorId}", d1.getVendorID())
-                        .param("allergies", allergies.toArray(new String[0]))
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(allergiesPath, d1.getVendorID())
+                        .param(allergiesString, allergies.toArray(new String[0]))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> filteredDishes = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+        List<Dish> filteredDishes = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(filteredDishes.size()).isEqualTo(0);
         assertThat(filteredDishes).doesNotContain(d1).doesNotContain(d2);
     }
@@ -363,13 +379,14 @@ public class DishTests {
         dishService.addDish(d2);
         List<String> allergies = new ArrayList<>();
         allergies.add("gluten");
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/dish/allergy-list/{vendorId}", d1.getVendorID())
-                        .param("allergies", allergies.toArray(new String[0]))
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(allergiesPath, d1.getVendorID())
+                        .param(allergiesString, allergies.toArray(new String[0]))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> filteredDishes = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+        List<Dish> filteredDishes = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(filteredDishes.size()).isEqualTo(1);
         assertThat(filteredDishes).doesNotContain(d2).contains(d1);
     }
@@ -383,13 +400,14 @@ public class DishTests {
         List<String> allergies = new ArrayList<>();
         allergies.add("chicken");
         allergies.add("grain");
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/dish/allergy-list/{vendorId}", d1.getVendorID())
-                        .param("allergies", allergies.toArray(new String[0]))
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(allergiesPath, d1.getVendorID())
+                        .param(allergiesString, allergies.toArray(new String[0]))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> filteredDishes = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+        List<Dish> filteredDishes = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(filteredDishes.size()).isEqualTo(2);
         assertThat(filteredDishes).contains(d1).contains(d2);
     }
@@ -401,13 +419,14 @@ public class DishTests {
         dishService.addDish(d2);
         List<String> allergies = new ArrayList<>();
         allergies.add(d1.getListOfAllergies().get(0));
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/dish/allergy-list/{vendorId}", d1.getVendorID())
-                        .param("allergies", allergies.toArray(new String[0]))
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(allergiesPath, d1.getVendorID())
+                        .param(allergiesString, allergies.toArray(new String[0]))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> filteredDishes = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+        List<Dish> filteredDishes = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(filteredDishes.size()).isEqualTo(0);
         assertThat(filteredDishes).doesNotContain(d1).doesNotContain(d2);
     }
@@ -418,12 +437,13 @@ public class DishTests {
         dishService.addDish(d1);
         d2.setVendorID(d1.getVendorID());
         dishService.addDish(d2);
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/dish/allergy-list/{vendorId}", d1.getVendorID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(allergiesPath, d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> filteredDishes = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+        List<Dish> filteredDishes = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(filteredDishes.size()).isEqualTo(2);
         assertThat(filteredDishes).contains(d1).contains(d2);
     }

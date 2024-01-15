@@ -10,7 +10,7 @@ import org.springframework.context.annotation.ComponentScan;
  */
 @SpringBootApplication
 @EntityScan(basePackages = "nl.tudelft.sem.template.model")
-@ComponentScan({"nl.tudelft.sem.template.user","nl.tudelft.sem.template.order"})
+@ComponentScan({"nl.tudelft.sem.template.user", "nl.tudelft.sem.template.order"})
 public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);

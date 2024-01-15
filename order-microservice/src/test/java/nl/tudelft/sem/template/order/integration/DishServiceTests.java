@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.order.domain.user.DishIdAlreadyInUseException;
 import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
@@ -29,10 +28,13 @@ public class DishServiceTests {
     @Autowired
     private transient DishService dishService;
 
-    Dish d1;
+    transient Dish d1;
 
-    Dish d2;
+    transient Dish d2;
 
+    /**
+     * setup for dishServiceTests.
+     */
     @BeforeEach
     public void setup() {
         d1 = new Dish();

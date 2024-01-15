@@ -1,11 +1,14 @@
 package nl.tudelft.sem.template.order;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import org.hibernate.collection.internal.PersistentBag;
 
-import java.util.*;
-
 public class PersistentBagMock extends PersistentBag implements List {
-    protected List bag;
+    protected transient List bag;
+    static final long serialVersionUID = 89801293891832123L;
+
     public PersistentBagMock() {
         bag = new ArrayList<>();
     }
