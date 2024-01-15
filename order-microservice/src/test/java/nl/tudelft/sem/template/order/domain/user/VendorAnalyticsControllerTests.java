@@ -25,6 +25,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import javax.validation.constraints.Null;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
+import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 public class VendorAnalyticsControllerTests {
 
@@ -102,12 +114,68 @@ public class VendorAnalyticsControllerTests {
     }
 
     @Test
-    void testGetOrderEarnings() throws Exception {
+    void testGetOrderEarnings() {
         UUID orderID = UUID.randomUUID();
         ResponseEntity<List<UUID>> respList = new ResponseEntity<>(listOfDishes, HttpStatus.OK);
 
         when(orderController.getListOfDishes(orderID)).thenReturn(respList);
 
+        when(dishController.getDishByID(listOfDishes.get(0))).thenReturn(new ResponseEntity<>(dish1, HttpStatus.OK));
+        when(dishController.getDishByID(listOfDishes.get(1))).thenReturn(new ResponseEntity<>(dish2, HttpStatus.OK));
+
+        ResponseEntity<Float> response = vendorAnalyticsController.getOrderEarnings(orderID);
+
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(15.0f, response.getBody());
+    }
+
+    @Test
+    void testGetOrderEarnings_oneDishNotFound() {
+        UUID orderID = UUID.randomUUID();
+        ResponseEntity<List<UUID>> respList = new ResponseEntity<>(listOfDishes, HttpStatus.OK);
+
+        when(orderController.getListOfDishes(orderID)).thenReturn(respList);
+
+        when(dishController.getDishByID(listOfDishes.get(0))).thenReturn(new ResponseEntity<>(dish1, HttpStatus.NOT_FOUND));
+        when(dishController.getDishByID(listOfDishes.get(1))).thenReturn(new ResponseEntity<>(dish2, HttpStatus.OK));
+
+        ResponseEntity<Float> response = vendorAnalyticsController.getOrderEarnings(orderID);
+
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(10.0f, response.getBody());
+    }
+
+    @Test
+    void testGetOrderEarnings_listDishesNotFound() {
+        UUID orderID = UUID.randomUUID();
+        ResponseEntity<List<UUID>> respList = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        when(orderController.getListOfDishes(orderID)).thenReturn(respList);
+
+        ResponseEntity<Float> response = vendorAnalyticsController.getOrderEarnings(orderID);
+
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void testGetOrderEarnings_throwsException() throws NullPointerException {
+        UUID orderID = UUID.randomUUID();
+
+        when(orderController.getListOfDishes(orderID)).thenThrow(NullPointerException.class);
+
+        ResponseEntity<Float> response = vendorAnalyticsController.getOrderEarnings(orderID);
+
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void testGetOrderEarnings_serverErrorWhenRetrievingOneDish() {
+        UUID orderID = UUID.randomUUID();
+        ResponseEntity<List<UUID>> respList = new ResponseEntity<>(listOfDishes, HttpStatus.OK);
+
+        when(orderController.getListOfDishes(orderID)).thenReturn(respList);
+
+        when(dishController.getDishByID(listOfDishes.get(0))).thenReturn(new ResponseEntity<>(dish1, HttpStatus.INTERNAL_SERVER_ERROR));
         when(dishController.getDishByID(listOfDishes.get(0))).thenReturn(new ResponseEntity<>(dish1, HttpStatus.OK));
         when(dishController.getDishByID(listOfDishes.get(1))).thenReturn(new ResponseEntity<>(dish2, HttpStatus.OK));
 

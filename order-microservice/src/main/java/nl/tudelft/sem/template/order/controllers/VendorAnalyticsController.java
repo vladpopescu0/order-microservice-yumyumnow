@@ -48,7 +48,7 @@ public class VendorAnalyticsController implements VendorApi {
      * @return 200 OK if the calculation is successful, including a float representing the total earnings
      *         400 BAD REQUEST if the calculation was unsuccessful
      */
-    public ResponseEntity<Float> getOrderEarnings(UUID orderId) throws DishNotFoundException {
+    public ResponseEntity<Float> getOrderEarnings(UUID orderId) {
         try {
             Float earnings = 0.0f;
             ResponseEntity<List<UUID>> listResponse = orderController.getListOfDishes(orderId);
