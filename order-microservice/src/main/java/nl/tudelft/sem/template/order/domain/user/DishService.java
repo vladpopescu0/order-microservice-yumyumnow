@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import nl.tudelft.sem.template.order.commons.Dish;
+import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

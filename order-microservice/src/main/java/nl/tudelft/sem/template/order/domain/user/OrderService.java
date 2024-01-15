@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import nl.tudelft.sem.template.order.commons.Dish;
-import nl.tudelft.sem.template.order.commons.Order;
+import nl.tudelft.sem.template.model.Dish;
+import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
 import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
@@ -56,7 +56,6 @@ public class OrderService {
 
         order = orderRepository.save(order);
         order.setListOfDishes(new ArrayList<>(order.getListOfDishes()));
-
         return order;
 
     }
@@ -249,7 +248,7 @@ public class OrderService {
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(t);
             int hours = calendar.get(Calendar.HOUR_OF_DAY);
-            times[hours]++;
+            times[hours] += 1;
         }
         return Arrays.stream(times).boxed().collect(Collectors.toList());
     }
@@ -269,7 +268,12 @@ public class OrderService {
         if (!orderRepository.existsByVendorID(vendorID)) {
             throw new VendorNotFoundException(vendorID);
         }
-        return orderRepository.countDishesOccurrencesFromVendor(vendorID);
+        List<Dish> res = orderRepository.countDishesOccurrencesFromVendor(vendorID);
+        for (Dish d : res) {
+            d.setListOfIngredients(new ArrayList<>(d.getListOfIngredients()));
+            d.setListOfAllergies(new ArrayList<>(d.getListOfAllergies()));
+        }
+        return res;
     }
 
     /**
@@ -279,11 +283,10 @@ public class OrderService {
      * @throws OrderNotFoundException when the method cannot find the order in the database
      */
     public Order orderIsPaidUpdate(UUID orderID) throws OrderNotFoundException {
-        if (!checkUUIDIsUnique(orderID)) {
+        Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
+        if (currentOrder.isEmpty()) {
             throw new OrderNotFoundException(orderID);
         }
-        Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
-
         orderRepository.updateOrderPayment(!currentOrder.get().getOrderPaid(), orderID);
 
         Order o = currentOrder.get();

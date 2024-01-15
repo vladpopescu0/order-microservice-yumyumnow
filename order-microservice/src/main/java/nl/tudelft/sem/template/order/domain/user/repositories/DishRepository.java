@@ -3,7 +3,7 @@ package nl.tudelft.sem.template.order.domain.user.repositories;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import nl.tudelft.sem.template.order.commons.Dish;
+import nl.tudelft.sem.template.model.Dish;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

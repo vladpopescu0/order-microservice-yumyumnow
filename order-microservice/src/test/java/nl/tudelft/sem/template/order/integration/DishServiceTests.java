@@ -1,6 +1,11 @@
 package nl.tudelft.sem.template.order.integration;
 
-import nl.tudelft.sem.template.order.commons.Dish;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.order.domain.user.DishIdAlreadyInUseException;
 import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.DishService;
@@ -15,12 +20,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
@@ -29,11 +28,15 @@ public class DishServiceTests {
     @Autowired
     private transient DishService dishService;
 
-    Dish d1;
+    transient Dish d1;
 
-    Dish d2;
+    transient Dish d2;
+
+    /**
+     * setup for dishServiceTests.
+     */
     @BeforeEach
-    public void setup(){
+    public void setup() {
         d1 = new Dish();
         d1.setDishID(UUID.randomUUID());
         d1.setDescription("very tasty");
@@ -67,6 +70,7 @@ public class DishServiceTests {
         d2.setListOfIngredients(ingredients2);
         d2.setVendorID(UUID.randomUUID());
     }
+
     @Transactional
     @Test
     public void createDish_withValidData_worksCorrectly() throws Exception {
@@ -80,7 +84,7 @@ public class DishServiceTests {
     @Transactional
     @Test
     public void createDish_withNullData() throws Exception {
-        Assertions.assertThrows(NullPointerException.class, () ->{
+        Assertions.assertThrows(NullPointerException.class, () -> {
             dishService.addDish(null);
         });
     }
@@ -89,31 +93,31 @@ public class DishServiceTests {
     @Test
     public void createDuplicateDishes() throws Exception {
         dishService.addDish(d1);
-        Assertions.assertThrows(DishIdAlreadyInUseException.class, () ->{
+        Assertions.assertThrows(DishIdAlreadyInUseException.class, () -> {
             dishService.addDish(d1);
         });
     }
 
     @Transactional
     @Test
-    public void DishDoesNotExist() throws Exception {
-        Assertions.assertThrows(DishNotFoundException.class, () ->{
+    public void dishDoesNotExist() throws Exception {
+        Assertions.assertThrows(DishNotFoundException.class, () -> {
             dishService.getDishById(UUID.randomUUID());
         });
     }
 
     @Transactional
     @Test
-    public void VendorDoesNotExist() throws Exception {
+    public void vendorDoesNotExist() throws Exception {
         dishService.addDish(d1);
-        Assertions.assertThrows(VendorNotFoundException.class, () ->{
+        Assertions.assertThrows(VendorNotFoundException.class, () -> {
             dishService.getDishByVendorId(UUID.randomUUID());
         });
     }
 
     @Transactional
     @Test
-    public void VendorDoesExist() throws Exception {
+    public void vendorDoesExist() throws Exception {
         dishService.addDish(d1);
         dishService.addDish(d2);
         List<Dish> dishes = dishService.getDishByVendorId(d1.getVendorID());
@@ -124,7 +128,7 @@ public class DishServiceTests {
 
     @Transactional
     @Test
-    public void VendorDoesExistMultipleResults() throws Exception {
+    public void vendorDoesExistMultipleResults() throws Exception {
         dishService.addDish(d1);
         d2.setVendorID(d1.getVendorID());
         dishService.addDish(d2);
@@ -136,33 +140,33 @@ public class DishServiceTests {
 
     @Transactional
     @Test
-    public void DeleteNonExistentDish() throws Exception {
-        Assertions.assertThrows(DishNotFoundException.class, () ->{
+    public void deleteNonExistentDish() throws Exception {
+        Assertions.assertThrows(DishNotFoundException.class, () -> {
             dishService.deleteDishByDishId(UUID.randomUUID());
         });
     }
 
     @Transactional
     @Test
-    public void DeleteExistingDish() throws Exception {
+    public void deleteExistingDish() throws Exception {
         dishService.addDish(d1);
         dishService.deleteDishByDishId(d1.getDishID());
-        Assertions.assertThrows(DishNotFoundException.class, () ->{
+        Assertions.assertThrows(DishNotFoundException.class, () -> {
             dishService.deleteDishByDishId(d1.getDishID());
         });
     }
 
     @Transactional
     @Test
-    public void UpdateNonExistingDish() throws Exception {
-        Assertions.assertThrows(DishNotFoundException.class, () ->{
-            dishService.updateDish(d1.getDishID(),d1);
+    public void updateNonExistingDish() throws Exception {
+        Assertions.assertThrows(DishNotFoundException.class, () -> {
+            dishService.updateDish(d1.getDishID(), d1);
         });
     }
 
     @Transactional
     @Test
-    public void UpdateExistingDish() throws Exception {
+    public void updateExistingDish() throws Exception {
         d1.name("name");
         List<String> ingredients = new ArrayList<>();
         ingredients.add("cheese");
@@ -177,7 +181,7 @@ public class DishServiceTests {
         ingredients.add("milk");
         ingredients.add("egg");
         d1.setListOfIngredients(ingredients2);
-        dishService.updateDish(d1.getDishID(),d1);
+        dishService.updateDish(d1.getDishID(), d1);
         Dish databaseDish2 = dishService.getDishById(d1.getDishID());
         assertThat(databaseDish2.getName()).isEqualTo("name 2").isNotEqualTo("name");
         assertThat(databaseDish2.getListOfIngredients()).isEqualTo(ingredients2).isNotEqualTo(ingredients);
@@ -192,16 +196,16 @@ public class DishServiceTests {
 
     @Transactional
     @Test
-    public void isUnique(){
+    public void isUnique() {
         assertThat(dishService.checkDishUuidIsUnique(d1.getDishID())).isTrue();
     }
 
     @Transactional
     @Test
-    public void filterOnNonExistentVendor(){
+    public void filterOnNonExistentVendor() {
         List<String> allergies = new ArrayList<>();
-        Assertions.assertThrows(VendorNotFoundException.class, () ->{
-            dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),allergies);
+        Assertions.assertThrows(VendorNotFoundException.class, () -> {
+            dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), allergies);
         });
     }
 
@@ -213,7 +217,7 @@ public class DishServiceTests {
         dishService.addDish(d2);
         List<String> allergies = new ArrayList<>();
         allergies.add("lactose");
-        List<Dish> filteredDishes = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),allergies);
+        List<Dish> filteredDishes = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), allergies);
         assertThat(filteredDishes.size()).isEqualTo(0);
         assertThat(filteredDishes).doesNotContain(d1).doesNotContain(d2);
     }
@@ -226,7 +230,7 @@ public class DishServiceTests {
         dishService.addDish(d2);
         List<String> allergies = new ArrayList<>();
         allergies.add("gluten");
-        List<Dish> filteredDishes = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),allergies);
+        List<Dish> filteredDishes = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), allergies);
         assertThat(filteredDishes.size()).isEqualTo(1);
         assertThat(filteredDishes).doesNotContain(d2).contains(d1);
     }
@@ -240,7 +244,7 @@ public class DishServiceTests {
         List<String> allergies = new ArrayList<>();
         allergies.add("chicken");
         allergies.add("grain");
-        List<Dish> filteredDishes = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),allergies);
+        List<Dish> filteredDishes = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), allergies);
         assertThat(filteredDishes.size()).isEqualTo(2);
         assertThat(filteredDishes).contains(d1).contains(d2);
     }
@@ -252,7 +256,7 @@ public class DishServiceTests {
         dishService.addDish(d2);
         List<String> allergies = new ArrayList<>();
         allergies.add(d1.getListOfAllergies().get(0));
-        List<Dish> filteredDishes = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),allergies);
+        List<Dish> filteredDishes = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), allergies);
         assertThat(filteredDishes.size()).isEqualTo(0);
         assertThat(filteredDishes).doesNotContain(d1).doesNotContain(d2);
     }
@@ -264,7 +268,7 @@ public class DishServiceTests {
         d2.setVendorID(d1.getVendorID());
         dishService.addDish(d2);
         List<String> allergies = new ArrayList<>();
-        List<Dish> filteredDishes = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),allergies);
+        List<Dish> filteredDishes = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), allergies);
         assertThat(filteredDishes.size()).isEqualTo(2);
         assertThat(filteredDishes).contains(d1).contains(d2);
     }

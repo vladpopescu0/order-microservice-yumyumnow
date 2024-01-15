@@ -5,9 +5,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import nl.tudelft.sem.template.order.api.VendorApi;
-import nl.tudelft.sem.template.order.commons.Dish;
-import nl.tudelft.sem.template.order.commons.Order;
+import nl.tudelft.sem.template.api.VendorApi;
+import nl.tudelft.sem.template.model.Dish;
+import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.user.CustomerNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
@@ -21,8 +21,8 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class VendorAnalyticsController implements VendorApi {
-    private final OrderController orderController;
-    private final DishController dishController;
+    private final transient OrderController orderController;
+    private final transient DishController dishController;
     private final transient OrderService orderService;
 
     /**
@@ -47,14 +47,13 @@ public class VendorAnalyticsController implements VendorApi {
      * @return 200 OK if the calculation is successful, including a float representing the total earnings
      *         400 BAD REQUEST if the calculation was unsuccessful
      */
-    public ResponseEntity<Float> getOrderEarnings(UUID orderId) throws DishNotFoundException {
+    public ResponseEntity<Float> getOrderEarnings(UUID orderId) {
         try {
-            Float earnings = 0.0f;
             ResponseEntity<List<UUID>> listResponse = orderController.getListOfDishes(orderId);
             if (listResponse.getStatusCode().equals(HttpStatus.OK)) {
                 List<UUID> listOfDishes = orderController.getListOfDishes(orderId).getBody();
-
                 if (listOfDishes != null) {
+                    Float earnings = 0.0f;
                     for (UUID id : listOfDishes) {
                         ResponseEntity<Dish> dishResponse;
                         int t = 0;
@@ -62,7 +61,6 @@ public class VendorAnalyticsController implements VendorApi {
                         while (t < 3) {
                             dishResponse = dishController.getDishByID(id);
                             HttpStatus dishResponseStatus = dishResponse.getStatusCode();
-
                             if (dishResponseStatus.equals(HttpStatus.OK)) {
                                 Dish dish = dishController.getDishByID(id).getBody();
                                 earnings += dish.getPrice();
@@ -98,7 +96,9 @@ public class VendorAnalyticsController implements VendorApi {
         try {
             List<Order> orders = orderService.getOrdersFromCustomerAtVendor(vendorID, customerID);
             return ResponseEntity.ok(orders);
-        } catch (VendorNotFoundException | CustomerNotFoundException e) {
+        } catch (VendorNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (CustomerNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (NoOrdersException e) {
             return ResponseEntity.ok(new ArrayList<>());

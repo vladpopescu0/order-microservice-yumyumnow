@@ -66,6 +66,13 @@ dependencies {
 	implementation 'io.springfox:springfox-swagger-ui:2.8.0'
 	implementation 'org.openapitools:jackson-databind-nullable:0.1.0'
 	implementation 'io.swagger.core.v3:swagger-core:2.2.15'
+
+	// WebClientx
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+}
+
+jacoco {
+	toolVersion = "0.8.6"
 }
 
 test {
@@ -73,7 +80,7 @@ test {
 	jacoco {
 		enabled = true
 		includes = ['nl.tudelft.sem.template.*']
-		excludes = []
+		excludes = ['nl.tudelft.sem.template.api.*','nl.tudelft.sem.template.order.commons.*','nl.tudelft.sem.template.commons.*','nl.tudelft.sem.template.order.api.*','nl.tudelft.sem.template.model.*']
 	}
 }
 
@@ -88,45 +95,82 @@ jacocoTestCoverageVerification() {
 			enabled = true
 			element = 'CLASS'
 			includes = ['nl.tudelft.sem.template.*']
-
 			limit {
 				counter = 'BRANCH'
 				value = 'COVEREDRATIO'
-				minimum = 0.1
+				minimum = 0.8
 			}
 		}
 	}
 }
 
-// Define a task to run Checkstyle
-task customCheckstyle(type: Checkstyle) {
-	// Set the Checkstyle configuration file
-	configFile = file("${rootDir}/config/checkstyle/checkstyle.xml") // Modify the path as needed
-
-	// Apply Checkstyle to the main source set while excluding generated code
-	source = sourceSets.main.allJava.filter { file ->
-		// Exclude directories or files associated with generated code
-		!file.path.contains('generated') // Example condition, modify as per your generated code path
-	}
-	// Set Checkstyle classpath
-	classpath = configurations.checkstyle // Use the 'checkstyle' configuration
-
+checkstyle {
+	toolVersion "8.37"
 	// Link Checkstyle task to customCheckstyle
-	checkstyle {
-		toolVersion "10.12.5"
-		// configFile has already been set in customCheckstyle task
-		ignoreFailures = false // Set to true if you want the build to ignore Checkstyle failures
-		showViolations = true // Set to true to display Checkstyle violations in the console
+	configFile = file("${projectDir}/../config/checkstyle/checkstyle.xml")
+	ignoreFailures = false // Set to true if you want the build to ignore Checkstyle failures
+	showViolations = true // Set to true to display Checkstyle violations in the console
+
+	checkstyleMain {
+		source = project.sourceSets.main.allJava.filter { file ->
+			// Exclude directories or files associated with generated code or containing the word 'api'
+			!file.path.contains('generated')
+		}
+		excludes = ['**/generated/.*']
+	}
+
+	checkstyleTest {
+		source = project.sourceSets.test.allJava.filter { file ->
+			// Exclude directories or files associated with generated code
+			!file.path.contains('generated') // Example condition, modify as per your generated code path
+		}
+		excludes = ['**/generated/.*']
 	}
 }
+
+tasks.withType(Checkstyle).each { checkstyleTask ->
+	checkstyleTask.doLast {
+		reports.all { report ->
+			def outputFile = report.destination
+			if (outputFile.exists() && outputFile.text.contains("<error ")) {
+				throw new GradleException("There were checkstyle warnings! For more info check $outputFile")
+			}
+		}
+	}
+}
+
 
 pmd {
 	incrementalAnalysis = true
 	ignoreFailures = true
-	sourceSets = [sourceSets.main]
 	// Exclude specific rules or files/directories
 	pmdMain {
+		source = project.sourceSets.main.allJava.filter { file ->
+			// Exclude directories or files associated with generated code
+			!file.path.contains('generated') && !file.path.contains('commons') && !file.path.contains('api')
+		}
+		excludes = ['**/generated/.*','**/commons/.*','**/api/.*']
+	}
+
+	pmdTest {
+		source = project.sourceSets.test.allJava.filter { file ->
+			// Exclude directories or files associated with generated code
+			!file.path.contains('generated') // Example condition, modify as per your generated code path
+
+		}
 		excludes = ['**/generated/.*']
+	}
+
+}
+
+tasks.withType(Pmd).each { pmdTask ->
+	pmdTask.doLast {
+		reports.all { report ->
+			def outputFile = report.destination
+			if (outputFile.exists() && outputFile.text.contains("<violation ")) {
+				throw new GradleException("There were PMD violations! For more info check $outputFile")
+			}
+		}
 	}
 }
 
@@ -135,11 +179,13 @@ pitest {
 	//adds dependency to org.pitest:pitest-junit5-plugin and sets "testPlugin" to "junit5"
 	junit5PluginVersion = '0.12'
 
-	targetClasses = ['nl.tudelft.sem.template.*']  //by default "${project.group}.*"
+	targetClasses = ['nl.tudelft.sem.template.order.controllers.*','nl.tudelft.sem.template.order.domain.*']  //by default "${project.group}.*"
+	excludedTestClasses =['nl.tudelft.sem.template.order.integration.*']
 	pitestVersion = '1.5.1' //not needed when a default PIT version should be used
 	threads = 4
 	outputFormats = ['XML', 'HTML']
 	timestampedReports = false
+	mutationThreshold = 70
 }
 
 apply plugin: 'org.openapi.generator'
