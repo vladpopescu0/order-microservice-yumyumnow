@@ -234,7 +234,7 @@ public class OrderIntegrationTests {
         // Assert
         resultActions2.andExpect(status().isOk());
 
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(isPaidPath, order1.getCustomerID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/order/{customerID}/history", order1.getCustomerID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())

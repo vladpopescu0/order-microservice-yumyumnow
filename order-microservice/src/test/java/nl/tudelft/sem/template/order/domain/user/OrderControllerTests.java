@@ -156,7 +156,7 @@ class OrderControllerTests {
         ResponseEntity<String> response = orderController.getSpecialRequirements(orderId);
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        Assertions.assertEquals("Knock on the door as well", response.getBody());
+        Assertions.assertEquals("Knock on the door", response.getBody());
     }
 
     @Test
