@@ -1,6 +1,6 @@
 package nl.tudelft.sem.template.order.controllers;
 
-import nl.tudelft.sem.template.order.api.RestaurantsApi;
+import nl.tudelft.sem.template.api.RestaurantsApi;
 import nl.tudelft.sem.template.order.domain.user.RestaurantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

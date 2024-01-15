@@ -1,6 +1,6 @@
 package nl.tudelft.sem.template.user.services;
 
-import nl.tudelft.sem.template.order.commons.Address;
+import nl.tudelft.sem.template.model.Address;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

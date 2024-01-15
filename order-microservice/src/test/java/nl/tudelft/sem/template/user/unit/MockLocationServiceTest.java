@@ -1,6 +1,6 @@
 package nl.tudelft.sem.template.user.unit;
 
-import nl.tudelft.sem.template.order.commons.Address;
+import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.user.services.MockLocationService;
 import org.junit.jupiter.api.Test;
 
