@@ -8,11 +8,7 @@ import java.util.stream.Collectors;
 import nl.tudelft.sem.template.order.api.VendorApi;
 import nl.tudelft.sem.template.order.commons.Dish;
 import nl.tudelft.sem.template.order.commons.Order;
-import nl.tudelft.sem.template.order.domain.user.CustomerNotFoundException;
-import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
-import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
-import nl.tudelft.sem.template.order.domain.user.OrderService;
-import nl.tudelft.sem.template.order.domain.user.VendorNotFoundException;
+import nl.tudelft.sem.template.order.domain.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +17,8 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class VendorAnalyticsController implements VendorApi {
-    private final OrderController orderController;
-    private final DishController dishController;
+    private final transient OrderController orderController;
+    private final transient DishController dishController;
     private final transient OrderService orderService;
 
     /**
@@ -62,7 +58,6 @@ public class VendorAnalyticsController implements VendorApi {
                         while (t < 3) {
                             dishResponse = dishController.getDishByID(id);
                             HttpStatus dishResponseStatus = dishResponse.getStatusCode();
-
                             if (dishResponseStatus.equals(HttpStatus.OK)) {
                                 Dish dish = dishController.getDishByID(id).getBody();
                                 earnings += dish.getPrice();
