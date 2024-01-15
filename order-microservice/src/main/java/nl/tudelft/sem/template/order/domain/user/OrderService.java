@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
@@ -249,7 +248,7 @@ public class OrderService {
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(t);
             int hours = calendar.get(Calendar.HOUR_OF_DAY);
-            times[hours]+=1;
+            times[hours] += 1;
         }
         return Arrays.stream(times).boxed().collect(Collectors.toList());
     }

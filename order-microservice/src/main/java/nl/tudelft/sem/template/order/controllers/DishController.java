@@ -2,7 +2,6 @@ package nl.tudelft.sem.template.order.controllers;
 
 import java.util.List;
 import java.util.UUID;
-
 import nl.tudelft.sem.template.api.DishApi;
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
@@ -13,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class DishController implements DishApi{
+public class DishController implements DishApi {
     private final transient DishService dishService;
 
     /**
