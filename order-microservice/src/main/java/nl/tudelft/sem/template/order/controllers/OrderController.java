@@ -3,9 +3,10 @@ package nl.tudelft.sem.template.order.controllers;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
-import nl.tudelft.sem.template.order.api.OrderApi;
-import nl.tudelft.sem.template.order.commons.Address;
-import nl.tudelft.sem.template.order.commons.Order;
+
+import nl.tudelft.sem.template.api.OrderApi;
+import nl.tudelft.sem.template.model.Address;
+import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
 import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
@@ -45,7 +46,6 @@ public class OrderController implements OrderApi {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-
     }
 
     /**

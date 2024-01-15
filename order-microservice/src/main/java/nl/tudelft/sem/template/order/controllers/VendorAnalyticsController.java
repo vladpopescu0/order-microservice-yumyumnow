@@ -5,9 +5,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import nl.tudelft.sem.template.order.api.VendorApi;
-import nl.tudelft.sem.template.order.commons.Dish;
-import nl.tudelft.sem.template.order.commons.Order;
+
+import nl.tudelft.sem.template.api.VendorApi;
+import nl.tudelft.sem.template.model.Dish;
+import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.user.CustomerNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
@@ -47,7 +48,7 @@ public class VendorAnalyticsController implements VendorApi {
      * @return 200 OK if the calculation is successful, including a float representing the total earnings
      *         400 BAD REQUEST if the calculation was unsuccessful
      */
-    public ResponseEntity<Float> getOrderEarnings(UUID orderId) throws DishNotFoundException {
+    public ResponseEntity<Float> getOrderEarnings(UUID orderId) {
         try {
             Float earnings = 0.0f;
             ResponseEntity<List<UUID>> listResponse = orderController.getListOfDishes(orderId);

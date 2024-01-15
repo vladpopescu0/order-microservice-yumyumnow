@@ -6,9 +6,10 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.*;
-import nl.tudelft.sem.template.order.commons.Address;
-import nl.tudelft.sem.template.order.commons.Dish;
-import nl.tudelft.sem.template.order.commons.Order;
+
+import nl.tudelft.sem.template.model.Address;
+import nl.tudelft.sem.template.model.Dish;
+import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
 import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
@@ -213,6 +214,20 @@ class OrderServiceTests {
 
         Assertions.assertThrows(NullFieldException.class,
                 () -> orderService.createOrder(null));
+
+    }
+
+    @Test
+    void testCreateOrderNullField() {
+
+        Assertions.assertThrows(NullFieldException.class, () -> orderService.createOrder(null));
+
+    }
+
+    @Test
+    void testGetOrderByIdNullId() {
+
+        Assertions.assertThrows(NullFieldException.class, () -> orderService.getOrderById(null));
 
     }
 
