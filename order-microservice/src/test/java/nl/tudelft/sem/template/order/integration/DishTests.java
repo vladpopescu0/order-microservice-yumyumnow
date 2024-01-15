@@ -49,6 +49,9 @@ public class DishTests {
 
     transient String allergiesString = "allergies";
 
+    /**
+     * setup for DishTests.
+     */
     @BeforeEach
     public void setup() {
         d1 = new Dish();
@@ -196,7 +199,8 @@ public class DishTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> returnedDishes = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+        List<Dish> returnedDishes = objectMapper.readValue(res.getResponse()
+                .getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(returnedDishes.size()).isEqualTo(1);
         assertThat(returnedDishes).contains(d1).doesNotContain(d2);
     }
@@ -211,8 +215,10 @@ public class DishTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> returnedDishes = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+                .andExpect(MockMvcResultMatchers.content()
+                        .contentType(MediaType.APPLICATION_JSON)).andReturn();
+        List<Dish> returnedDishes = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(returnedDishes.size()).isEqualTo(2);
         assertThat(returnedDishes).contains(d1).contains(d2);
     }
@@ -315,10 +321,14 @@ public class DishTests {
                         .content(objectMapper.writeValueAsString(d1))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        Dish databaseDish2 = objectMapper.readValue(res.getResponse().getContentAsString(), Dish.class);
-        assertThat(databaseDish2.getName()).isEqualTo("name 2").isNotEqualTo("name");
-        assertThat(databaseDish2.getListOfIngredients()).isEqualTo(ingredients2).isNotEqualTo(ingredients);
+                .andExpect(MockMvcResultMatchers.content()
+                        .contentType(MediaType.APPLICATION_JSON)).andReturn();
+        Dish databaseDish2 = objectMapper.readValue(res.getResponse()
+                .getContentAsString(), Dish.class);
+        assertThat(databaseDish2.getName()).isEqualTo("name 2")
+                .isNotEqualTo("name");
+        assertThat(databaseDish2.getListOfIngredients())
+                .isEqualTo(ingredients2).isNotEqualTo(ingredients);
     }
 
 
@@ -347,7 +357,8 @@ public class DishTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> filteredDishes = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+        List<Dish> filteredDishes = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(filteredDishes.size()).isEqualTo(0);
         assertThat(filteredDishes).doesNotContain(d1).doesNotContain(d2);
     }
@@ -366,7 +377,8 @@ public class DishTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> filteredDishes = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+        List<Dish> filteredDishes = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(filteredDishes.size()).isEqualTo(1);
         assertThat(filteredDishes).doesNotContain(d2).contains(d1);
     }
@@ -386,7 +398,8 @@ public class DishTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> filteredDishes = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+        List<Dish> filteredDishes = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(filteredDishes.size()).isEqualTo(2);
         assertThat(filteredDishes).contains(d1).contains(d2);
     }
@@ -404,7 +417,8 @@ public class DishTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> filteredDishes = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+        List<Dish> filteredDishes = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(filteredDishes.size()).isEqualTo(0);
         assertThat(filteredDishes).doesNotContain(d1).doesNotContain(d2);
     }
@@ -420,7 +434,8 @@ public class DishTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> filteredDishes = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+        List<Dish> filteredDishes = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(filteredDishes.size()).isEqualTo(2);
         assertThat(filteredDishes).contains(d1).contains(d2);
     }

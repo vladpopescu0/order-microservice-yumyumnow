@@ -118,27 +118,33 @@ public class VendorAnalyticsControllerTests {
 
     @Test
     void get_customer_history_vendor_not_found() throws Exception, CustomerNotFoundException {
-        when(orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(), order1.getCustomerID())).thenThrow(VendorNotFoundException.class);
+        when(orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),
+                order1.getCustomerID())).thenThrow(VendorNotFoundException.class);
 
-        ResponseEntity<List<Order>> response = vendorAnalyticsController.vendorVendorIDAnalyticsHistoryCustomerIDGet(order1.getVendorID(), order1.getCustomerID());
+        ResponseEntity<List<Order>> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsHistoryCustomerIDGet(order1.getVendorID(), order1.getCustomerID());
 
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
     void get_customer_history_customer_not_found() throws Exception, CustomerNotFoundException {
-        when(orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(), order1.getCustomerID())).thenThrow(CustomerNotFoundException.class);
+        when(orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),
+                order1.getCustomerID())).thenThrow(CustomerNotFoundException.class);
 
-        ResponseEntity<List<Order>> response = vendorAnalyticsController.vendorVendorIDAnalyticsHistoryCustomerIDGet(order1.getVendorID(), order1.getCustomerID());
+        ResponseEntity<List<Order>> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsHistoryCustomerIDGet(order1.getVendorID(), order1.getCustomerID());
 
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
     void get_customer_history_no_order() throws Exception, CustomerNotFoundException {
-        when(orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(), order1.getCustomerID())).thenThrow(NoOrdersException.class);
+        when(orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),
+                order1.getCustomerID())).thenThrow(NoOrdersException.class);
 
-        ResponseEntity<List<Order>> response = vendorAnalyticsController.vendorVendorIDAnalyticsHistoryCustomerIDGet(order1.getVendorID(), order1.getCustomerID());
+        ResponseEntity<List<Order>> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsHistoryCustomerIDGet(order1.getVendorID(), order1.getCustomerID());
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         assertThat(response.getBody()).isEqualTo(new ArrayList<>());
@@ -146,18 +152,22 @@ public class VendorAnalyticsControllerTests {
 
     @Test
     void get_customer_history_unexpected_exception() throws Exception, CustomerNotFoundException {
-        when(orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(), order1.getCustomerID())).thenThrow(NullPointerException.class);
+        when(orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),
+                order1.getCustomerID())).thenThrow(NullPointerException.class);
 
-        ResponseEntity<List<Order>> response = vendorAnalyticsController.vendorVendorIDAnalyticsHistoryCustomerIDGet(order1.getVendorID(), order1.getCustomerID());
+        ResponseEntity<List<Order>> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsHistoryCustomerIDGet(order1.getVendorID(), order1.getCustomerID());
 
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
     void get_customer_history_proper_request() throws Exception, CustomerNotFoundException {
-        when(orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(), order1.getCustomerID())).thenReturn(List.of(order1));
+        when(orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(),
+                order1.getCustomerID())).thenReturn(List.of(order1));
 
-        ResponseEntity<List<Order>> response = vendorAnalyticsController.vendorVendorIDAnalyticsHistoryCustomerIDGet(order1.getVendorID(), order1.getCustomerID());
+        ResponseEntity<List<Order>> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsHistoryCustomerIDGet(order1.getVendorID(), order1.getCustomerID());
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         assertThat(response.getBody()).isEqualTo(List.of(order1));
@@ -165,18 +175,22 @@ public class VendorAnalyticsControllerTests {
 
     @Test
     void get_vendor_order_volume_vendor_not_found() throws Exception {
-        when(orderService.getOrderVolume(order1.getVendorID())).thenThrow(VendorNotFoundException.class);
+        when(orderService.getOrderVolume(order1.getVendorID()))
+                .thenThrow(VendorNotFoundException.class);
 
-        ResponseEntity<Integer> response = vendorAnalyticsController.vendorVendorIDAnalyticsOrderVolumesGet(order1.getVendorID());
+        ResponseEntity<Integer> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsOrderVolumesGet(order1.getVendorID());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     void get_vendor_order_volume_no_orders() throws Exception {
-        when(orderService.getOrderVolume(order1.getVendorID())).thenThrow(NoOrdersException.class);
+        when(orderService.getOrderVolume(order1.getVendorID()))
+                .thenThrow(NoOrdersException.class);
 
-        ResponseEntity<Integer> response = vendorAnalyticsController.vendorVendorIDAnalyticsOrderVolumesGet(order1.getVendorID());
+        ResponseEntity<Integer> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsOrderVolumesGet(order1.getVendorID());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(0);
@@ -184,9 +198,11 @@ public class VendorAnalyticsControllerTests {
 
     @Test
     void get_vendor_order_volume_unexpected_error() throws Exception {
-        when(orderService.getOrderVolume(order1.getVendorID())).thenThrow(NullPointerException.class);
+        when(orderService.getOrderVolume(order1.getVendorID()))
+                .thenThrow(NullPointerException.class);
 
-        ResponseEntity<Integer> response = vendorAnalyticsController.vendorVendorIDAnalyticsOrderVolumesGet(order1.getVendorID());
+        ResponseEntity<Integer> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsOrderVolumesGet(order1.getVendorID());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
@@ -195,7 +211,8 @@ public class VendorAnalyticsControllerTests {
     void get_vendor_order_volume_proper_request() throws Exception {
         when(orderService.getOrderVolume(order1.getVendorID())).thenReturn(20);
 
-        ResponseEntity<Integer> response = vendorAnalyticsController.vendorVendorIDAnalyticsOrderVolumesGet(order1.getVendorID());
+        ResponseEntity<Integer> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsOrderVolumesGet(order1.getVendorID());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(20);
@@ -203,9 +220,11 @@ public class VendorAnalyticsControllerTests {
 
     @Test
     void get_vendor_popular_items_vendor_not_found() throws Exception {
-        when(orderService.getDishesSortedByVolume(order1.getVendorID())).thenThrow(VendorNotFoundException.class);
+        when(orderService.getDishesSortedByVolume(order1.getVendorID()))
+                .thenThrow(VendorNotFoundException.class);
 
-        ResponseEntity<List<Dish>> response = vendorAnalyticsController.vendorVendorIDAnalyticsPopularItemsGet(order1.getVendorID());
+        ResponseEntity<List<Dish>> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsPopularItemsGet(order1.getVendorID());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
@@ -214,7 +233,8 @@ public class VendorAnalyticsControllerTests {
     void get_vendor_popular_items_unexpected_exception() throws Exception {
         when(orderService.getDishesSortedByVolume(order1.getVendorID())).thenThrow(NullPointerException.class);
 
-        ResponseEntity<List<Dish>> response = vendorAnalyticsController.vendorVendorIDAnalyticsPopularItemsGet(order1.getVendorID());
+        ResponseEntity<List<Dish>> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsPopularItemsGet(order1.getVendorID());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
@@ -223,7 +243,8 @@ public class VendorAnalyticsControllerTests {
     void get_vendor_popular_items_proper_request() throws Exception {
         when(orderService.getDishesSortedByVolume(order1.getVendorID())).thenReturn(List.of(dish2, dish1));
 
-        ResponseEntity<List<Dish>> response = vendorAnalyticsController.vendorVendorIDAnalyticsPopularItemsGet(order1.getVendorID());
+        ResponseEntity<List<Dish>> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsPopularItemsGet(order1.getVendorID());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().size()).isEqualTo(2);
@@ -235,7 +256,8 @@ public class VendorAnalyticsControllerTests {
     void get_vendor_peak_times_vendor_not_found() throws Exception {
         when(orderService.getOrderVolumeByTime(order1.getVendorID())).thenThrow(VendorNotFoundException.class);
 
-        ResponseEntity<List<Integer>> response = vendorAnalyticsController.vendorVendorIDAnalyticsPeakTimesGet(order1.getVendorID());
+        ResponseEntity<List<Integer>> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsPeakTimesGet(order1.getVendorID());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
@@ -244,7 +266,8 @@ public class VendorAnalyticsControllerTests {
     void get_vendor_peak_times_no_orders() throws Exception {
         when(orderService.getOrderVolumeByTime(order1.getVendorID())).thenThrow(NoOrdersException.class);
 
-        ResponseEntity<List<Integer>> response = vendorAnalyticsController.vendorVendorIDAnalyticsPeakTimesGet(order1.getVendorID());
+        ResponseEntity<List<Integer>> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsPeakTimesGet(order1.getVendorID());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         List<Integer> res = new ArrayList<>();
@@ -258,7 +281,8 @@ public class VendorAnalyticsControllerTests {
     void get_vendor_peak_times_unexpected_error() throws Exception {
         when(orderService.getOrderVolumeByTime(order1.getVendorID())).thenThrow(NullPointerException.class);
 
-        ResponseEntity<List<Integer>> response = vendorAnalyticsController.vendorVendorIDAnalyticsPeakTimesGet(order1.getVendorID());
+        ResponseEntity<List<Integer>> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsPeakTimesGet(order1.getVendorID());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
@@ -276,7 +300,8 @@ public class VendorAnalyticsControllerTests {
         res.set(23, 7);
         when(orderService.getOrderVolumeByTime(order1.getVendorID())).thenReturn(res);
 
-        ResponseEntity<List<Integer>> response = vendorAnalyticsController.vendorVendorIDAnalyticsPeakTimesGet(order1.getVendorID());
+        ResponseEntity<List<Integer>> response = vendorAnalyticsController
+                .vendorVendorIDAnalyticsPeakTimesGet(order1.getVendorID());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(res);

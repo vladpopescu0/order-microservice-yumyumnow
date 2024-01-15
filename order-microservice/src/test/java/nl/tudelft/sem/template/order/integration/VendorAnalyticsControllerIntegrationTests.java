@@ -5,7 +5,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import nl.tudelft.sem.template.order.commons.Address;
 import nl.tudelft.sem.template.order.commons.Dish;
@@ -53,6 +59,9 @@ public class VendorAnalyticsControllerIntegrationTests {
     transient String historyPath = "/vendor/{vendorID}/analytics/history/{customerID}";
     transient String popularItemPath = "/vendor/{vendorID}/analytics/popularItems";
 
+    /**
+     * setup for VendorAnalyticsControllerIntegrationTests.
+     */
     @BeforeEach
     public void setup() {
         d1 = new Dish();
@@ -166,7 +175,8 @@ public class VendorAnalyticsControllerIntegrationTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Order> returnedOrders = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Order>>() {});
+        List<Order> returnedOrders = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Order>>() {});
         assertThat(returnedOrders.size()).isEqualTo(0);
         assertThat(returnedOrders).doesNotContain(order1).doesNotContain(order2);
     }
@@ -185,7 +195,8 @@ public class VendorAnalyticsControllerIntegrationTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Order> returnedOrders = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Order>>() {});
+        List<Order> returnedOrders = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Order>>() {});
         assertThat(returnedOrders.size()).isEqualTo(1);
         assertThat(returnedOrders).contains(order1).doesNotContain(order2);
     }
@@ -202,7 +213,8 @@ public class VendorAnalyticsControllerIntegrationTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Order> returnedOrders = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Order>>() {});
+        List<Order> returnedOrders = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Order>>() {});
         assertThat(returnedOrders.size()).isEqualTo(1);
         assertThat(returnedOrders).contains(order1).doesNotContain(order2);
     }
@@ -220,7 +232,8 @@ public class VendorAnalyticsControllerIntegrationTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Order> returnedOrders = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Order>>() {});
+        List<Order> returnedOrders = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Order>>() {});
         assertThat(returnedOrders.size()).isEqualTo(2);
         assertThat(returnedOrders).contains(order1).contains(order2);
     }
@@ -233,12 +246,14 @@ public class VendorAnalyticsControllerIntegrationTests {
         orderService.createOrder(order1);
         orderService.createOrder(order2);
 
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/vendor/{vendorID}/analytics/orderVolumes", order1.getVendorID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders
+                        .get("/vendor/{vendorID}/analytics/orderVolumes", order1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        Integer volume = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<Integer>() {});
+        Integer volume = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<Integer>() {});
         assertThat(volume).isEqualTo(2);
     }
 
@@ -262,7 +277,8 @@ public class VendorAnalyticsControllerIntegrationTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        Integer volume = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<Integer>() {});
+        Integer volume = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<Integer>() {});
         assertThat(volume).isEqualTo(20);
     }
 
@@ -314,19 +330,21 @@ public class VendorAnalyticsControllerIntegrationTests {
             Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(cur);
             int hours = calendar.get(Calendar.HOUR_OF_DAY);
-            time[hours]+=1;
+            time[hours] += 1;
             if (i % 10 == 0) {
                 order2.setOrderID(UUID.randomUUID());
                 order2.setDate(BigDecimal.valueOf(r.nextInt()));
                 orderService.createOrder(order2);
             }
         }
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/vendor/{vendorID}/analytics/peakTimes", order1.getVendorID())
+        MvcResult res = mockMvc.perform(MockMvcRequestBuilders
+                        .get("/vendor/{vendorID}/analytics/peakTimes", order1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Integer> volume = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Integer>>() {});
+        List<Integer> volume = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Integer>>() {});
         assertThat(volume).isEqualTo(Arrays.stream(time).boxed().collect(Collectors.toList()));
     }
 
@@ -358,7 +376,8 @@ public class VendorAnalyticsControllerIntegrationTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> popularItems = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+        List<Dish> popularItems = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(popularItems.size()).isEqualTo(1);
         assertThat(popularItems.get(0)).isEqualTo(d1);
     }
@@ -376,7 +395,8 @@ public class VendorAnalyticsControllerIntegrationTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> popularItems = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+        List<Dish> popularItems = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(popularItems.size()).isEqualTo(2);
         assertThat(popularItems.get(0)).isEqualTo(d1);
         assertThat(popularItems.get(1)).isEqualTo(d2);
@@ -396,7 +416,8 @@ public class VendorAnalyticsControllerIntegrationTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        List<Dish> popularItems = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
+        List<Dish> popularItems = objectMapper
+                .readValue(res.getResponse().getContentAsString(), new TypeReference<List<Dish>>() {});
         assertThat(popularItems.size()).isEqualTo(2);
         assertThat(popularItems.get(0)).isEqualTo(d2);
         assertThat(popularItems.get(1)).isEqualTo(d1);

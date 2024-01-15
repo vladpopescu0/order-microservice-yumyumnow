@@ -30,6 +30,9 @@ public class DishControllerTests {
 
     transient Dish d2;
 
+    /**
+     * setup for the dish controller tests.
+     */
     @BeforeEach
     public void setup() {
         d1 = new Dish();
@@ -203,9 +206,11 @@ public class DishControllerTests {
 
     @Test
     public void get_dishes_with_allergies_correct() throws VendorNotFoundException {
-        when(dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>())).thenReturn(List.of(d1, d2));
+        when(dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(),
+                new ArrayList<>())).thenReturn(List.of(d1, d2));
 
-        ResponseEntity<List<Dish>> res = dishController.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
+        ResponseEntity<List<Dish>> res = dishController
+                .getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(res.getBody()).contains(d1).contains(d2);
@@ -213,18 +218,22 @@ public class DishControllerTests {
 
     @Test
     public void get_dishes_with_allergies_not_found() throws VendorNotFoundException {
-        doThrow(VendorNotFoundException.class).when(dishService).getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
+        doThrow(VendorNotFoundException.class).when(dishService)
+                .getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
-        ResponseEntity<List<Dish>> res = dishController.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
+        ResponseEntity<List<Dish>> res = dishController
+                .getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     public void get_dishes_with_allergies_bad_request() throws VendorNotFoundException {
-        doThrow(NullPointerException.class).when(dishService).getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
+        doThrow(NullPointerException.class).when(dishService)
+                .getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
-        ResponseEntity<List<Dish>> res = dishController.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
+        ResponseEntity<List<Dish>> res = dishController
+                .getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
 
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }

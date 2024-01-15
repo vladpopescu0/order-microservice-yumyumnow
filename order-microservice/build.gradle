@@ -111,9 +111,9 @@ checkstyle {
 	checkstyleMain {
 		source = project.sourceSets.main.allJava.filter { file ->
 			// Exclude directories or files associated with generated code or containing the word 'api'
-			!file.path.contains('generated') && !file.path.contains('commons') && !file.path.contains('api')
+			!file.path.contains('generated')
 		}
-		excludes = ['**/generated/.*','**/commons/.*','**/api/.*']
+		excludes = ['**/generated/.*']
 	}
 
 	checkstyleTest {

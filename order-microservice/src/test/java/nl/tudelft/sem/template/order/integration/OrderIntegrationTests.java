@@ -45,7 +45,12 @@ public class OrderIntegrationTests {
     transient Address a2;
     transient String isPaidPath = "/order/{orderID}/isPaid";
     transient String orderPath = "/order";
-;
+
+    /**
+     * setup for OrderIntegrationTests.
+     *
+     * @throws Exception if setup went wrong
+     */
     @BeforeEach
     public void setup() throws Exception {
         a1 = new Address();
@@ -146,7 +151,8 @@ public class OrderIntegrationTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        Boolean isPaid = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<Order>() {}).getOrderPaid();
+        Boolean isPaid = objectMapper.readValue(res.getResponse().getContentAsString(),
+                new TypeReference<Order>() {}).getOrderPaid();
         assertThat(isPaid).isTrue();
     }
 
@@ -165,7 +171,8 @@ public class OrderIntegrationTests {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andReturn();
-        Boolean isPaid = objectMapper.readValue(res.getResponse().getContentAsString(), new TypeReference<Order>() {}).getOrderPaid();
+        Boolean isPaid = objectMapper.readValue(res.getResponse().getContentAsString(),
+                new TypeReference<Order>() {}).getOrderPaid();
         assertThat(isPaid).isFalse();
     }
 
