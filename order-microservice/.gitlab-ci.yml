@@ -27,7 +27,7 @@ build-order-microservice:
     - gradle_build
   stage: build
   script:
-    gradle order-microservice:assemble order-microservice:testClasses --stacktrace
+    gradle order-microservice:assemble order-microservice:testClasses
 
 checkStyle-order-microservice:
   extends:
