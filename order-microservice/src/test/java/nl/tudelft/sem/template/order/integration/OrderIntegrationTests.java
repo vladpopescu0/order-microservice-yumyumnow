@@ -50,6 +50,9 @@ public class OrderIntegrationTests {
     transient Address a2;
     transient String isPaidPath = "/order/{orderID}/isPaid";
     transient String orderPath = "/order";
+    transient String orderIdPath = "/order/{orderId}";
+    transient String dateString = "1700006405000";
+    transient String specialRequirementsString = "Knock on the door";
 
     /**
      * setup for OrderIntegrationTests.
@@ -75,9 +78,9 @@ public class OrderIntegrationTests {
         order1.setVendorID(UUID.randomUUID());
         order1.setCustomerID(UUID.randomUUID());
         order1.setAddress(a1);
-        order1.setDate(new BigDecimal("1700006405000"));
+        order1.setDate(new BigDecimal(dateString));
         order1.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
-        order1.setSpecialRequirements("Knock on the door");
+        order1.setSpecialRequirements(specialRequirementsString);
         order1.setOrderPaid(true);
         order1.setStatus(Order.StatusEnum.ACCEPTED);
         order1.setRating(4);
@@ -115,14 +118,14 @@ public class OrderIntegrationTests {
     @Test
     public void createOrderDuplicateBadRequest() throws Exception {
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/order", order1)
+        mockMvc.perform(MockMvcRequestBuilders.post(orderPath, order1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(order1))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/order", order1)
+        mockMvc.perform(MockMvcRequestBuilders.post(orderPath, order1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(order1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -135,7 +138,7 @@ public class OrderIntegrationTests {
     public void createOrderNullException() throws Exception {
 
         Order order = null;
-        mockMvc.perform(MockMvcRequestBuilders.post("/order", order)
+        mockMvc.perform(MockMvcRequestBuilders.post(orderPath, order)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(order))
                         .accept(MediaType.APPLICATION_JSON))
@@ -150,7 +153,7 @@ public class OrderIntegrationTests {
         orderService.createOrder(order1);
         orderService.createOrder(order2);
 
-        MvcResult dbReturn = mockMvc.perform(MockMvcRequestBuilders.get("/order")
+        MvcResult dbReturn = mockMvc.perform(MockMvcRequestBuilders.get(orderPath)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -169,7 +172,7 @@ public class OrderIntegrationTests {
     @Test
     public void getAllOrdersNoOrdersFound() throws Exception {
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/order")
+        mockMvc.perform(MockMvcRequestBuilders.get(orderPath)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -182,14 +185,14 @@ public class OrderIntegrationTests {
         orderService.createOrder(order1);
         orderService.createOrder(order2);
 
-        MvcResult order1Return = mockMvc.perform(MockMvcRequestBuilders.get("/order/{orderID}", order1.getOrderID())
+        MvcResult order1Return = mockMvc.perform(MockMvcRequestBuilders.get(orderIdPath, order1.getOrderID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
-        MvcResult order2Return = mockMvc.perform(MockMvcRequestBuilders.get("/order/{orderID}", order2.getOrderID())
+        MvcResult order2Return = mockMvc.perform(MockMvcRequestBuilders.get(orderIdPath, order2.getOrderID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -207,7 +210,7 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void getOrderByIdEmptyDb() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/order/{orderID}", order1.getOrderID())
+        mockMvc.perform(MockMvcRequestBuilders.get(orderIdPath, order1.getOrderID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -223,7 +226,7 @@ public class OrderIntegrationTests {
         orderToCompareTo.setVendorID(order1.getVendorID());
         orderToCompareTo.setCustomerID(order1.getCustomerID());
         orderToCompareTo.setAddress(a1);
-        orderToCompareTo.setDate(new BigDecimal("1700006405000"));
+        orderToCompareTo.setDate(new BigDecimal(dateString));
         orderToCompareTo.setListOfDishes(order1.getListOfDishes());
         orderToCompareTo.setSpecialRequirements("Don't knock!");
         orderToCompareTo.setOrderPaid(true);
@@ -232,11 +235,11 @@ public class OrderIntegrationTests {
 
         orderService.createOrder(order1);
         Order inDb = orderService.getOrderById(order1.getOrderID());
-        Assertions.assertEquals("Knock on the door", inDb.getSpecialRequirements());
+        Assertions.assertEquals(specialRequirementsString, inDb.getSpecialRequirements());
 
         order1.setSpecialRequirements("Don't knock!");
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}", order1.getOrderID(), order1)
+        mockMvc.perform(MockMvcRequestBuilders.put(orderIdPath, order1.getOrderID(), order1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(order1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -258,7 +261,7 @@ public class OrderIntegrationTests {
 
         order1.setOrderPaid(false);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}", UUID.randomUUID(), order1)
+        mockMvc.perform(MockMvcRequestBuilders.put(orderIdPath, UUID.randomUUID(), order1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(order1))
                         .accept(MediaType.APPLICATION_JSON))
@@ -273,7 +276,7 @@ public class OrderIntegrationTests {
         orderService.createOrder(order1);
         order1.setRating(1);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}", order2.getOrderID(), order2)
+        mockMvc.perform(MockMvcRequestBuilders.put(orderIdPath, order2.getOrderID(), order2)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(order2))
                         .accept(MediaType.APPLICATION_JSON))
@@ -288,11 +291,11 @@ public class OrderIntegrationTests {
         orderService.createOrder(order1);
         orderService.createOrder(order2);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/order/{orderID}", order1.getOrderID())
+        mockMvc.perform(MockMvcRequestBuilders.delete(orderIdPath, order1.getOrderID())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        MvcResult dbReturn = mockMvc.perform(MockMvcRequestBuilders.get("/order")
+        MvcResult dbReturn = mockMvc.perform(MockMvcRequestBuilders.get(orderPath)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -314,7 +317,7 @@ public class OrderIntegrationTests {
 
         orderService.createOrder(order2);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/order/{orderID}/", order1.getOrderID())
+        mockMvc.perform(MockMvcRequestBuilders.delete(orderIdPath, order1.getOrderID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -443,9 +446,9 @@ public class OrderIntegrationTests {
         order3.setVendorID(UUID.randomUUID());
         order3.setCustomerID(order1.getCustomerID());
         order3.setAddress(a1);
-        order3.setDate(new BigDecimal("1700006405000"));
+        order3.setDate(new BigDecimal(dateString));
         order3.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
-        order3.setSpecialRequirements("Knock on the door");
+        order3.setSpecialRequirements(specialRequirementsString);
         order3.setOrderPaid(true);
         order3.setStatus(Order.StatusEnum.DELIVERED);
         order3.setRating(4);
@@ -455,9 +458,9 @@ public class OrderIntegrationTests {
         order4.setVendorID(UUID.randomUUID());
         order4.setCustomerID(order1.getCustomerID());
         order4.setAddress(a1);
-        order4.setDate(new BigDecimal("1700006405000"));
+        order4.setDate(new BigDecimal(dateString));
         order4.setListOfDishes(Arrays.asList(UUID.randomUUID(), UUID.randomUUID()));
-        order4.setSpecialRequirements("Knock on the door");
+        order4.setSpecialRequirements(specialRequirementsString);
         order4.setOrderPaid(true);
         order4.setStatus(Order.StatusEnum.DELIVERED);
         order4.setRating(4);

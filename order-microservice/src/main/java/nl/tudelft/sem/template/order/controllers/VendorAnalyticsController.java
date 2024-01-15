@@ -49,12 +49,11 @@ public class VendorAnalyticsController implements VendorApi {
      */
     public ResponseEntity<Float> getOrderEarnings(UUID orderId) {
         try {
-            Float earnings = 0.0f;
             ResponseEntity<List<UUID>> listResponse = orderController.getListOfDishes(orderId);
             if (listResponse.getStatusCode().equals(HttpStatus.OK)) {
                 List<UUID> listOfDishes = orderController.getListOfDishes(orderId).getBody();
-
                 if (listOfDishes != null) {
+                    Float earnings = 0.0f;
                     for (UUID id : listOfDishes) {
                         ResponseEntity<Dish> dishResponse;
                         int t = 0;

@@ -21,7 +21,6 @@ public class JsonParserService {
             return null;
         }
         try {
-            List<Double> result = new ArrayList<>(2);
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(json);
             Double latitude = (jsonNode.get("latitude").isDouble()) ? jsonNode.get("latitude").asDouble() : null;
@@ -29,9 +28,7 @@ public class JsonParserService {
             if (latitude == null || longitude == null) {
                 return null;
             }
-            result.add(latitude);
-            result.add(longitude);
-            return result;
+            return new ArrayList<>(List.of(latitude, longitude));
         } catch (JsonProcessingException e) {
             return null;
         }
@@ -49,22 +46,21 @@ public class JsonParserService {
         }
         try {
             HashMap<UUID, List<Double>> result = new HashMap<>();
-            ObjectMapper objectMapper = new ObjectMapper();
             for (String jsonVendor : jsonVendors) {
+                ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode jsonNode = objectMapper.readTree(jsonVendor);
                 JsonNode locationNode = jsonNode.get("location");
                 String loc = (locationNode == null) ? null : locationNode.toString();
                 List<Double> location = parseLocation(loc);
-                UUID uuid;
-                try {
-                    uuid = UUID.fromString(jsonNode.get("userID").asText());
-                } catch (IllegalArgumentException e) {
-                    break;
-                }
                 if (location == null) {
                     break;
                 }
-                result.put(uuid, location);
+                try {
+                    UUID uuid = UUID.fromString(jsonNode.get("userID").asText());
+                    result.put(uuid, location);
+                } catch (IllegalArgumentException e) {
+                    break;
+                }
             }
             return result;
         } catch (JsonProcessingException e) {
