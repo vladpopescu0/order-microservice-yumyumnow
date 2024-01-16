@@ -310,7 +310,7 @@ public class OrderController implements OrderApi {
             return ResponseEntity.ok(allOrdersByCustomerID);
         } catch (NoOrdersException noOrdersException) {
             return ResponseEntity.notFound().build();
-        } catch (CustomerNotFoundException noOrdersException) {
+        } catch (CustomerNotFoundException customerNotFoundException) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

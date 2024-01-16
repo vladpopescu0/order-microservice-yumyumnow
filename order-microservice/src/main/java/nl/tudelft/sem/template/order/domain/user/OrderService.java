@@ -278,9 +278,6 @@ public class OrderService {
      * @throws NoOrdersException if no orders were found
      */
     public List<Integer> getOrderVolumeByTime(UUID vendorID) throws VendorNotFoundException, NoOrdersException {
-        if (!checkVendorExists(vendorID)) {
-            throw new VendorNotFoundException(vendorID);
-        }
         List<Order> orders = getOrdersFromVendor(vendorID);
         int[] times = new int[24];
         for (Order o : orders) {

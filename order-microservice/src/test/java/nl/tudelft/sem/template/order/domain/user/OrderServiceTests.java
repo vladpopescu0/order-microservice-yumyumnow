@@ -219,6 +219,25 @@ class OrderServiceTests {
     }
 
     @Test
+    void testCreateVendorDoesNotExist() {
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(false);
+
+        Assertions.assertThrows(VendorNotFoundException.class,
+                () -> orderService.createOrder(order1));
+    }
+
+    @Test
+    void testCreateCustomerDoesNotExist() throws OrderIdAlreadyInUseException {
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(false);
+
+        Assertions.assertThrows(CustomerNotFoundException.class,
+                () -> orderService.createOrder(order1));
+    }
+
+    @Test
     void testCreateOrderNullOrder() {
 
         Assertions.assertThrows(NullFieldException.class,
@@ -305,6 +324,25 @@ class OrderServiceTests {
         order1CopyResult.setRating(2);
         Assertions.assertEquals(edited, order1CopyResult);
 
+    }
+
+    @Test
+    void testEditOrderByIDVendorDoesNotExist() {
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(false);
+
+        Assertions.assertThrows(VendorNotFoundException.class,
+                () -> orderService.createOrder(order1));
+    }
+
+    @Test
+    void testEditOrderByIDCustomerDoesNotExist() throws OrderIdAlreadyInUseException {
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(false);
+
+        Assertions.assertThrows(CustomerNotFoundException.class,
+                () -> orderService.createOrder(order1));
     }
 
     @Test
@@ -526,6 +564,14 @@ class OrderServiceTests {
 
         List<Integer> volume = orderService.getOrderVolumeByTime(order1.getVendorID());
         assertThat(volume).isEqualTo(correctTime);
+    }
+
+    @Test
+    void testOrderHistoryCustomerDoesNotExist() {
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(false);
+        FilteringParam<Order> filteringParam = Mockito.mock(FilteringParam.class);
+        Assertions.assertThrows(CustomerNotFoundException.class,
+                () -> orderService.getPastOrdersByCustomerID(order1.getCustomerID(), filteringParam));
     }
 
     @Test

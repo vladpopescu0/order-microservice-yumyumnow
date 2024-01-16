@@ -118,6 +118,15 @@ public class DishServiceTests {
     }
 
     @Test
+    public void add_dish_vendor_does_not_exists() {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(false);
+
+        Assertions.assertThrows(VendorNotFoundException.class, () -> {
+            dishService.addDish(d1);
+        });
+    }
+
+    @Test
     public void get_dish_successful() throws DishNotFoundException {
         when(dishRepository.findDishByDishID(d1.getDishID())).thenReturn(Optional.ofNullable(d1));
 
@@ -144,6 +153,15 @@ public class DishServiceTests {
         Dish res = dishService.updateDish(d1.getDishID(), d1);
 
         assertThat(res).isEqualTo(d1CopyResult);
+    }
+
+    @Test
+    public void update_dish_vendor_does_not_exists() {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(false);
+
+        Assertions.assertThrows(VendorNotFoundException.class, () -> {
+            dishService.updateDish(d1.getDishID(), d1);
+        });
     }
 
     @Test

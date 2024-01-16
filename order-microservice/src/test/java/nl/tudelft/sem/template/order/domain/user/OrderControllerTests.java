@@ -447,6 +447,16 @@ class OrderControllerTests {
     }
 
     @Test
+    void testOrderOrderIDIsPaidGet_BadRequest() throws OrderNotFoundException {
+        UUID orderID = UUID.randomUUID();
+        when(orderService.orderIsPaid(orderID)).thenThrow(NullPointerException.class);
+
+        ResponseEntity<Void> response = orderController.orderOrderIDIsPaidGet(orderID);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
     void testOrderOrderIDIsPaidGet_OrderNotFoundException() throws OrderNotFoundException {
         UUID orderID = UUID.randomUUID();
         Mockito.doThrow(OrderNotFoundException.class).when(orderService).orderIsPaid(orderID);
@@ -481,6 +491,16 @@ class OrderControllerTests {
     }
 
     @Test
+    void testPaymentBadRequest() throws OrderNotFoundException {
+        UUID orderID = UUID.randomUUID();
+        when(orderService.orderIsPaidUpdate(orderID)).thenThrow(NullPointerException.class);
+
+        ResponseEntity<Order> response = orderController.updateOrderPaid(orderID);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
     void testGetCustomerOrderHistory_NoOrdersFound() throws NoOrdersException, CustomerNotFoundException {
         UUID customerId = UUID.randomUUID();
 
@@ -508,6 +528,40 @@ class OrderControllerTests {
 
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(orders, response.getBody());
+    }
+
+    @Test
+    void testGetCustomerOrderHistory_customerNotFound() throws NoOrdersException, CustomerNotFoundException {
+        UUID customerId = UUID.randomUUID();
+        List<Order> orders = new ArrayList<>();
+
+        orders.add(order1);
+        orders.add(order2);
+
+        when(orderService.getPastOrdersByCustomerID(eq(customerId), Mockito.any(FilteringByStatus.class)))
+                .thenThrow(CustomerNotFoundException.class);
+
+        var response = orderController.getCustomerOrderHistory(customerId);
+
+        assertEquals(404, response.getStatusCodeValue());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    void testGetCustomerOrderHistory_badRequest() throws NoOrdersException, CustomerNotFoundException {
+        UUID customerId = UUID.randomUUID();
+        List<Order> orders = new ArrayList<>();
+
+        orders.add(order1);
+        orders.add(order2);
+
+        when(orderService.getPastOrdersByCustomerID(eq(customerId), Mockito.any(FilteringByStatus.class)))
+                .thenThrow(NullPointerException.class);
+
+        var response = orderController.getCustomerOrderHistory(customerId);
+
+        assertEquals(400, response.getStatusCodeValue());
+        assertNull(response.getBody());
     }
 
     @Test
