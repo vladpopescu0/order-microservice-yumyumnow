@@ -35,7 +35,7 @@ public class UserMicroServiceService implements UserMicroServiceAPI {
     @Override
     public Address getUserAddress(UUID userID) throws UserIDNotFoundException {
         return userMicroServiceWebClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/customer/address/{userID").build(userID))
+                .uri(uriBuilder -> uriBuilder.path("/customer/address/{userID}").build(userID))
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, response -> Mono.error(new UserIDNotFoundException(userID)))
                 .onStatus(HttpStatus::is5xxServerError, response -> Mono.error(new UserIDNotFoundException(userID)))
@@ -73,6 +73,17 @@ public class UserMicroServiceService implements UserMicroServiceAPI {
                         response -> Mono.error(new RuntimeException("no vendors in database")))
                 .bodyToFlux(String.class)
                 .collectList()
+                .block(requestTimeout); // wait only 3 seconds, instead of default 30
+    }
+
+    @Override
+    public String getUserInformation(UUID userID) {
+        return userMicroServiceWebClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/user/{userID}").build(userID))
+                .retrieve()
+                .onStatus(HttpStatus::is4xxClientError, response -> Mono.error(new UserIDNotFoundException(userID)))
+                .onStatus(HttpStatus::is5xxServerError, response -> Mono.error(new UserIDNotFoundException(userID)))
+                .bodyToMono(String.class)
                 .block(requestTimeout); // wait only 3 seconds, instead of default 30
     }
 

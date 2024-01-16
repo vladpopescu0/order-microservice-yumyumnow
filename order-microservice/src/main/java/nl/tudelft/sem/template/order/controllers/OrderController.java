@@ -14,8 +14,10 @@ import nl.tudelft.sem.template.order.domain.user.NullFieldException;
 import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
 import nl.tudelft.sem.template.order.domain.user.UserIDNotFoundException;
+import nl.tudelft.sem.template.user.services.JsonParserService;
 import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,11 +29,11 @@ public class OrderController implements OrderApi {
     private final transient DishController dishController;
 
     /**
-     * Instantiates a new OrderController.
+     * Constructor method for OrderController.
      *
-     * @param orderService   the order service
-     * @param userMicroServiceService   the user microservice
-     * @param dishController    the dish controller
+     * @param orderService an orderservice
+     * @param userMicroServiceService a userMicroServiceService
+     * @param dishController a dishController
      */
     @Autowired
     public OrderController(OrderService orderService, UserMicroServiceService userMicroServiceService,
@@ -64,15 +66,27 @@ public class OrderController implements OrderApi {
 
     /**
      * Endpoint for returning all Orders in the database.
+     * First checks if the user is an admin
      *
      * @return 200 OK - The Orders are successfully returned
+     *         401 UNAUTHORIZED - The user is not authorised to ask for all the orders
      *         404 NOT FOUND - No Orders are stored in the database
      */
     @Override
-    public ResponseEntity<List<Order>> getAllOrders() {
+    public ResponseEntity<List<Order>> getAllOrders(UUID userID) {
+
         try {
-            List<Order> list = orderService.getAllOrders();
-            return ResponseEntity.ok(list);
+            String jsonUser = userMicroServiceService.getUserInformation(userID);
+            if (jsonUser == null || jsonUser.isEmpty()) {
+                throw new UserIDNotFoundException(userID);
+            }
+            String userType = JsonParserService.parseUserType(jsonUser);
+            if (userType.equals("Admin")) {
+                List<Order> list = orderService.getAllOrders();
+                return ResponseEntity.ok(list);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
@@ -100,7 +114,6 @@ public class OrderController implements OrderApi {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-
     }
 
     /**
@@ -133,23 +146,29 @@ public class OrderController implements OrderApi {
      *         404 NOT FOUND - No Order exists with the provided ID
      */
     @Override
-    public ResponseEntity<Order> editOrderByID(UUID orderID, Order order) {
+    public ResponseEntity<Order> editOrderByID(UUID orderID, UUID userID, Order order) {
 
         if (!order.getOrderID().equals(orderID)) {
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            Order edited = orderService.editOrderByID(orderID, order);
-            return ResponseEntity.ok(edited);
-        } catch (NullFieldException e) {
-            return ResponseEntity.unprocessableEntity().build();
+            String jsonUser = userMicroServiceService.getUserInformation(userID);
+            if (jsonUser == null || jsonUser.isEmpty()) {
+                throw new UserIDNotFoundException(userID);
+            }
+            String userType = JsonParserService.parseUserType(jsonUser);
+            if (userType.equals("Admin")) {
+                Order edited = orderService.editOrderByID(orderID, order);
+                return ResponseEntity.ok(edited);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
         } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-
     }
 
     /**
@@ -161,10 +180,19 @@ public class OrderController implements OrderApi {
      *         404 NOT FOUND - No Order exists with the provided ID
      */
     @Override
-    public ResponseEntity<Void> deleteOrderByID(UUID orderID) {
+    public ResponseEntity<Void> deleteOrderByID(UUID orderID, UUID userID) {
         try {
-            orderService.deleteOrderByID(orderID);
-            return ResponseEntity.ok().build();
+            String jsonUser = userMicroServiceService.getUserInformation(userID);
+            if (jsonUser == null || jsonUser.isEmpty()) {
+                throw new UserIDNotFoundException(userID);
+            }
+            String userType = JsonParserService.parseUserType(jsonUser);
+            if (userType.equals("Admin")) {
+                orderService.deleteOrderByID(orderID);
+                return ResponseEntity.ok().build();
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
         } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
