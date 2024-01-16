@@ -62,7 +62,7 @@ public class OrderController implements OrderApi {
 
         try {
             String jsonUser = userMicroServiceService.getUserInformation(userID);
-            if (jsonUser == null || jsonUser.isEmpty()) { // in case getUserType timed out.
+            if (jsonUser == null || jsonUser.isEmpty()) {
                 throw new UserIDNotFoundException(userID);
             }
             String userType = JsonParserService.parseUserType(jsonUser);
