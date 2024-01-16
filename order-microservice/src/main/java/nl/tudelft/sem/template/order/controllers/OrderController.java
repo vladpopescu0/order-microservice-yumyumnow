@@ -8,10 +8,13 @@ import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
+import nl.tudelft.sem.template.order.domain.helpers.OrderValidation;
 import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
 import nl.tudelft.sem.template.order.domain.user.NullFieldException;
 import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
+import nl.tudelft.sem.template.order.domain.user.UserIDNotFoundException;
+import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,11 +23,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderController implements OrderApi {
 
     private final transient OrderService orderService;
+    private final transient UserMicroServiceService userMicroServiceService;
     private final transient DishController dishController;
 
+    /**
+     * Instantiates a new OrderController.
+     *
+     * @param orderService   the order service
+     * @param userMicroServiceService   the user microservice
+     * @param dishController    the dish controller
+     */
     @Autowired
-    public OrderController(OrderService orderService, DishController dishController) {
+    public OrderController(OrderService orderService, UserMicroServiceService userMicroServiceService,
+                           DishController dishController) {
         this.orderService = orderService;
+        this.userMicroServiceService = userMicroServiceService;
         this.dishController = dishController;
     }
 
@@ -70,6 +83,7 @@ public class OrderController implements OrderApi {
      *
      * @param orderID The provided ID of the order to return
      * @return 200 OK - The provided Order is returned
+     *         422 UNPROCESSABLE ENTITY if the orderID is null
      *         400 BAD REQUEST - Returning the provided Order is unsuccessful
      *         404 NOT FOUND - No Order exists with the provided ID
      */
@@ -87,6 +101,26 @@ public class OrderController implements OrderApi {
             return ResponseEntity.badRequest().build();
         }
 
+    }
+
+    /**
+     * Endpoint for returning an order to a vendor by specifying its id.
+     * The order is returned only after it is paid and if all of its dishes are available
+     *
+     * @param orderId the id of the order to be retrieved
+     * @return 200 OK if the order has been successfully retrieved, including the order
+     *         404 NOT FOUND if the order could not be found
+     *         400 BAD REQUEST if the retrieval was not successful or the order was invalid
+     */
+    @Override
+    public ResponseEntity<Order> orderOrderIDVendorGet(UUID orderId) {
+        OrderValidation orderValidation = new OrderValidation(this, dishController);
+        ResponseEntity<Boolean> response = orderValidation.isOrderValid(orderId);
+        if (Boolean.TRUE.equals(response.getBody())) {
+            ResponseEntity<Order> order = getOrderById(orderId);
+            return order;
+        }
+        return ResponseEntity.notFound().build();
     }
 
     /**
@@ -186,6 +220,7 @@ public class OrderController implements OrderApi {
      *
      * @param orderID the id of the order to be retrieved the list of dishes from.
      * @return 200 OK if the list of dishes has been retrieved, including the list of UUID dishes
+     *         422 UNPROCESSABLE ENTITY if the orderID is null
      *         404 NOT FOUND if the order could not be found
      *         400 BAD REQUEST if the retrieval was not successful
      */
@@ -209,6 +244,7 @@ public class OrderController implements OrderApi {
      *
      * @param orderID the id of the order to be retrieved the special requirements from.
      * @return 200 OK if the special requirements of the order has been retrieved, including the special requirements
+     *         422 UNPROCESSABLE ENTITY if the orderID is null
      *         404 NOT FOUND if the order could not be found
      *         400 BAD REQUEST if the retrieval was not successful
      */
@@ -231,6 +267,7 @@ public class OrderController implements OrderApi {
      *
      * @param orderID the id of the order to be delivered to the retrieved address.
      * @return 200 OK if the address of the order has been retrieved, including the address
+     *         422 UNPROCESSABLE ENTITY if the orderID is null
      *         404 NOT FOUND if the order could not be found
      *         400 BAD REQUEST if the retrieval was not successful
      */
@@ -253,6 +290,7 @@ public class OrderController implements OrderApi {
      *
      * @param orderID the id of the order of which the date of creation should be retrieved.
      * @return 200 OK if the date of the order has been retrieved, including the date
+     *         422 UNPROCESSABLE ENTITY if the orderID is null
      *         404 NOT FOUND if the order could not be found
      *         400 BAD REQUEST if the retrieval was not successful
      */
@@ -263,6 +301,30 @@ public class OrderController implements OrderApi {
         } catch (NullFieldException e) {
             return ResponseEntity.unprocessableEntity().build();
         } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * OrderID getCustomerName controller method.
+     * It returns the name of the customer that created a specific order
+     *
+     * @param orderID the id of the order from which the customer name should be retrieved
+     * @return 200 OK if the name of the customer has been successfully retrieved, including the name
+     *         422 UNPROCESSABLE ENTITY if the orderID is null
+     *         404 NOT FOUND if the order or the user could not be found
+     *         400 BAD REQUEST if the retrieval was not successful
+     */
+    public ResponseEntity<String> getCustomerName(UUID orderID) {
+        try {
+            Order order = orderService.getOrderById(orderID);
+            UUID userID = order.getCustomerID();
+            return ResponseEntity.ok(userMicroServiceService.getUserName(userID));
+        } catch (NullFieldException e) {
+            return ResponseEntity.unprocessableEntity().build();
+        } catch (UserIDNotFoundException | OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
