@@ -46,6 +46,7 @@ class OrderControllerTests {
     transient Order order2;
     transient Address a1;
     transient String date;
+    transient String adminJson;
 
     @BeforeEach
     void setUp() {
@@ -81,6 +82,17 @@ class OrderControllerTests {
         order2.setOrderPaid(true);
         order2.setStatus(Order.StatusEnum.DELIVERED);
         order2.setRating(4);
+        adminJson = """
+                {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "firstname": "John",
+                  "surname": "James",
+                  "email": "john@email.com",
+                  "avatar": "www.avatar.com/avatar.png",
+                  "password": "12345",
+                  "verified": false,
+                  "userType": "Admin"
+                }""";
     }
 
     @Test
@@ -147,49 +159,89 @@ class OrderControllerTests {
     }
 
     @Test
-    void editOrderByIdSuccessful() throws OrderNotFoundException, NullFieldException {
+    void editOrderByIdAdminSuccessful() throws OrderNotFoundException, NullFieldException {
+
+        UUID adminID = UUID.randomUUID();
+        when(umss.getUserInformation(adminID)).thenReturn(adminJson);
 
         when(orderService.editOrderByID(order1.getOrderID(), order1)).thenReturn(order1);
-        ResponseEntity<Order> order = orderController.editOrderByID(order1.getOrderID(), null, order1);
+        ResponseEntity<Order> order = orderController.editOrderByID(order1.getOrderID(), adminID, order1);
         Assertions.assertEquals(order1, order.getBody());
         Assertions.assertEquals(HttpStatus.OK, order.getStatusCode());
+        verify(umss, times(1)).getUserInformation(adminID);
+    }
 
+    @Test
+    void editOrderByIdCustomerFails() {
+
+        UUID customerID = UUID.randomUUID();
+        when(umss.getUserInformation(customerID)).thenReturn("""
+                {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "firstname": "userType: Admin",
+                  "surname": "surname",
+                  "email": "john@email.com",
+                  "avatar": "www.avatar.com/avatar.png",
+                  "password": "12345",
+                  "verified": false,
+                  "userType": "Customer"
+                }""");
+
+        ResponseEntity<Order> order = orderController.editOrderByID(order1.getOrderID(), customerID, order1);
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, order.getStatusCode());
+        verify(umss, times(1)).getUserInformation(customerID);
     }
 
     @Test
     void editOrderByIdDifferingId() {
 
         UUID randomID = UUID.randomUUID();
-        ResponseEntity<Order> order = orderController.editOrderByID(randomID, null, order1);
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST, order.getStatusCode());
+        UUID adminID = UUID.randomUUID();
 
+        ResponseEntity<Order> order = orderController.editOrderByID(randomID, adminID, order1);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, order.getStatusCode());
     }
 
     @Test
-    void editOrderByIdNullField() throws OrderNotFoundException, NullFieldException {
-
-        when(orderService.editOrderByID(order1.getOrderID(), order1)).thenThrow(NullFieldException.class);
-        ResponseEntity<Order> order = orderController.editOrderByID(order1.getOrderID(), null, order1);
-        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, order.getStatusCode());
-
+    void editOrderByIdNullField() {
+        UUID adminID = UUID.randomUUID();
+        ResponseEntity<Order> order = orderController.editOrderByID(null, adminID, order1);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, order.getStatusCode());
     }
 
     @Test
     void editOrderByIdOrderNotFound() throws OrderNotFoundException, NullFieldException {
+        Order orderTemp = new Order();
+        orderTemp.setOrderID(UUID.randomUUID());
+        orderTemp.setVendorID(UUID.randomUUID());
+        orderTemp.setCustomerID(UUID.randomUUID());
+        orderTemp.setAddress(a1);
+        orderTemp.setDate(new BigDecimal(date));
+        listOfDishes = Arrays.asList(UUID.randomUUID(), UUID.randomUUID());
+        orderTemp.setListOfDishes(listOfDishes);
+        orderTemp.setSpecialRequirements("Knock on the door");
+        orderTemp.setOrderPaid(true);
+        orderTemp.setStatus(Order.StatusEnum.DELIVERED);
+        orderTemp.setRating(4);
 
-        when(orderService.editOrderByID(order1.getOrderID(), order1)).thenThrow(OrderNotFoundException.class);
-        ResponseEntity<Order> order = orderController.editOrderByID(order1.getOrderID(), null, order1);
+        UUID adminID = UUID.randomUUID();
+        UUID orderID = orderTemp.getOrderID();
+
+        when(umss.getUserInformation(adminID)).thenReturn(adminJson);
+
+        when(orderService.editOrderByID(orderID, orderTemp)).thenThrow(OrderNotFoundException.class);
+        ResponseEntity<Order> order = orderController.editOrderByID(orderID, adminID, orderTemp);
         Assertions.assertEquals(HttpStatus.NOT_FOUND, order.getStatusCode());
-
     }
 
     @Test
-    void editOrderByIdOrderException() throws OrderNotFoundException, NullFieldException {
+    void editOrderByIdRuntimeException() throws OrderNotFoundException, NullFieldException {
+        UUID adminID = UUID.randomUUID();
+        when(umss.getUserInformation(adminID)).thenReturn(adminJson);
 
         when(orderService.editOrderByID(order1.getOrderID(), order1)).thenThrow(RuntimeException.class);
-        ResponseEntity<Order> order = orderController.editOrderByID(order1.getOrderID(), null, order1);
+        ResponseEntity<Order> order = orderController.editOrderByID(order1.getOrderID(), adminID, order1);
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, order.getStatusCode());
-
     }
 
 
@@ -238,9 +290,9 @@ class OrderControllerTests {
 
     @Test
     void testGetAllOrdersWhenNotAdmin() {
-        UUID orderIDFake = UUID.randomUUID();
+        UUID customerID = UUID.randomUUID();
 
-        when(umss.getUserInformation(orderIDFake)).thenReturn("""
+        when(umss.getUserInformation(customerID)).thenReturn("""
                 {
                   "id": "550e8400-e29b-41d4-a716-446655440000",
                   "firstname": "John",
@@ -252,35 +304,25 @@ class OrderControllerTests {
                   "userType": "Customer"
                 }""");
 
-        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, orderController.getAllOrders(orderIDFake).getStatusCode());
-        verify(umss, times(1)).getUserInformation(orderIDFake);
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, orderController.getAllOrders(customerID).getStatusCode());
+        verify(umss, times(1)).getUserInformation(customerID);
     }
 
     @Test
     void testGetAllOrdersWhenAdmin() {
-        UUID orderIDFake = UUID.randomUUID();
+        UUID adminID = UUID.randomUUID();
 
-        when(umss.getUserInformation(orderIDFake)).thenReturn("""
-                {
-                  "id": "550e8400-e29b-41d4-a716-446655440000",
-                  "firstname": "John",
-                  "surname": "James",
-                  "email": "john@email.com",
-                  "avatar": "www.avatar.com/avatar.png",
-                  "password": "12345",
-                  "verified": false,
-                  "userType": "Admin"
-                }""");
+        when(umss.getUserInformation(adminID)).thenReturn(adminJson);
 
-        Assertions.assertEquals(HttpStatus.OK, orderController.getAllOrders(orderIDFake).getStatusCode());
-        verify(umss, times(1)).getUserInformation(orderIDFake);
+        Assertions.assertEquals(HttpStatus.OK, orderController.getAllOrders(adminID).getStatusCode());
+        verify(umss, times(1)).getUserInformation(adminID);
     }
 
     @Test
     void testGetAllOrdersCheekyUser() {
-        UUID orderIDFake = UUID.randomUUID();
+        UUID customerID = UUID.randomUUID();
 
-        when(umss.getUserInformation(orderIDFake)).thenReturn("""
+        when(umss.getUserInformation(customerID)).thenReturn("""
                 {
                   "id": "550e8400-e29b-41d4-a716-446655440000",
                   "firstname": "userType: Admin",
@@ -292,8 +334,8 @@ class OrderControllerTests {
                   "userType": "Customer"
                 }""");
 
-        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, orderController.getAllOrders(orderIDFake).getStatusCode());
-        verify(umss, times(1)).getUserInformation(orderIDFake);
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, orderController.getAllOrders(customerID).getStatusCode());
+        verify(umss, times(1)).getUserInformation(customerID);
     }
 
     @Test
@@ -510,27 +552,90 @@ class OrderControllerTests {
     }
 
     @Test
-    void deleteOrderByIdSuccessful() {
+    void deleteOrderByIdByCustomer() {
+        UUID customerID = UUID.randomUUID();
+        when(umss.getUserInformation(customerID)).thenReturn("""
+                {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "firstname": "userType: Admin",
+                  "surname": "surname",
+                  "email": "john@email.com",
+                  "avatar": "www.avatar.com/avatar.png",
+                  "password": "12345",
+                  "verified": false,
+                  "userType": "Customer"
+                }""");
+        ResponseEntity<Void> order = orderController.deleteOrderByID(order1.getOrderID(), customerID);
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, order.getStatusCode());
+        verify(umss, times(1)).getUserInformation(customerID);
+    }
 
-        ResponseEntity<Void> order = orderController.deleteOrderByID(order1.getOrderID(), null);
+    @Test
+    void deleteOrderByIdByAdmin() {
+        UUID adminID = UUID.randomUUID();
+        when(umss.getUserInformation(adminID)).thenReturn(adminJson);
+        ResponseEntity<Void> order = orderController.deleteOrderByID(order1.getOrderID(), adminID);
         Assertions.assertEquals(HttpStatus.OK, order.getStatusCode());
+        verify(umss, times(1)).getUserInformation(adminID);
+    }
 
+    @Test
+    void deleteOrderByIdByCourier() {
+        UUID courierID = UUID.randomUUID();
+        when(umss.getUserInformation(courierID)).thenReturn("""
+                {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "firstname": "userType: Admin",
+                  "surname": "surname",
+                  "email": "john@email.com",
+                  "avatar": "www.avatar.com/avatar.png",
+                  "password": "12345",
+                  "verified": false,
+                  "userType": "Courier"
+                }""");
+        ResponseEntity<Void> order = orderController.deleteOrderByID(order1.getOrderID(), courierID);
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, order.getStatusCode());
+        verify(umss, times(1)).getUserInformation(courierID);
+    }
+
+    @Test
+    void deleteOrderByIdByVendor() {
+        UUID vendorID = UUID.randomUUID();
+        when(umss.getUserInformation(vendorID)).thenReturn("""
+                {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "firstname": "userType: Admin",
+                  "surname": "surname",
+                  "email": "john@email.com",
+                  "avatar": "www.avatar.com/avatar.png",
+                  "password": "12345",
+                  "verified": false,
+                  "userType": "Vendor"
+                }""");
+        ResponseEntity<Void> order = orderController.deleteOrderByID(order1.getOrderID(), vendorID);
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, order.getStatusCode());
+        verify(umss, times(1)).getUserInformation(vendorID);
     }
 
     @Test
     void deleteOrderByIdOrderNotFoundException() throws OrderNotFoundException {
 
+        UUID adminID = UUID.randomUUID();
+        when(umss.getUserInformation(adminID)).thenReturn(adminJson);
         Mockito.doThrow(OrderNotFoundException.class).when(orderService).deleteOrderByID(order1.getOrderID());
-        ResponseEntity<Void> order = orderController.deleteOrderByID(order1.getOrderID(), null);
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, order.getStatusCode());
 
+        ResponseEntity<Void> order = orderController.deleteOrderByID(order1.getOrderID(), adminID);
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, order.getStatusCode());
     }
 
     @Test
     void deleteOrderByIdException() throws OrderNotFoundException {
 
+        UUID adminID = UUID.randomUUID();
+        when(umss.getUserInformation(adminID)).thenReturn(adminJson);
+
         Mockito.doThrow(RuntimeException.class).when(orderService).deleteOrderByID(order1.getOrderID());
-        ResponseEntity<Void> order = orderController.deleteOrderByID(order1.getOrderID(), null);
+        ResponseEntity<Void> order = orderController.deleteOrderByID(order1.getOrderID(), adminID);
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, order.getStatusCode());
 
     }
