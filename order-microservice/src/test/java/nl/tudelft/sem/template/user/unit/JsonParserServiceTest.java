@@ -12,6 +12,7 @@ import java.util.UUID;
 import nl.tudelft.sem.template.user.services.JsonParserService;
 import org.junit.jupiter.api.Test;
 
+
 class JsonParserServiceTest {
 
     transient String jsonValid = """
