@@ -3,9 +3,7 @@ package nl.tudelft.sem.template.order.domain.user;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -18,7 +16,6 @@ import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.controllers.DishController;
 import nl.tudelft.sem.template.order.controllers.OrderController;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
-import nl.tudelft.sem.template.order.domain.helpers.OrderValidation;
 import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -349,7 +346,7 @@ class OrderControllerTests {
     @Test
     void testGetListOfDishes_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
-        Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
+        doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
 
         ResponseEntity<List<UUID>> response = orderController.getListOfDishes(orderId);
 
@@ -359,7 +356,7 @@ class OrderControllerTests {
     @Test
     void testGetListOfDishes_NullFieldException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
-        Mockito.doThrow(NullFieldException.class).when(orderService).getOrderById(orderId);
+        doThrow(NullFieldException.class).when(orderService).getOrderById(orderId);
 
         ResponseEntity<List<UUID>> response = orderController.getListOfDishes(orderId);
 
@@ -369,7 +366,7 @@ class OrderControllerTests {
     @Test
     void testGetListOfDishes_exceptionThrown() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
-        Mockito.doThrow(NullPointerException.class).when(orderService).getOrderById(orderId);
+        doThrow(NullPointerException.class).when(orderService).getOrderById(orderId);
 
         ResponseEntity<List<UUID>> response = orderController.getListOfDishes(orderId);
 
@@ -440,7 +437,7 @@ class OrderControllerTests {
     @Test
     void testGetSpecialRequirements_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
-        Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
+        doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
 
         ResponseEntity<String> response = orderController.getSpecialRequirements(orderId);
 
@@ -450,7 +447,7 @@ class OrderControllerTests {
     @Test
     void testGetSpecialRequirements_NullFieldException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = null;
-        Mockito.doThrow(NullFieldException.class).when(orderService).getOrderById(orderId);
+        doThrow(NullFieldException.class).when(orderService).getOrderById(orderId);
 
         ResponseEntity<String> response = orderController.getSpecialRequirements(orderId);
 
@@ -460,7 +457,7 @@ class OrderControllerTests {
     @Test
     void testGetSpecialRequirements_exceptionThrown() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
-        Mockito.doThrow(NullPointerException.class).when(orderService).getOrderById(orderId);
+        doThrow(NullPointerException.class).when(orderService).getOrderById(orderId);
 
         ResponseEntity<String> response = orderController.getSpecialRequirements(orderId);
 
@@ -481,7 +478,7 @@ class OrderControllerTests {
     @Test
     void testGetOrderAddress_NullFieldException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = null;
-        Mockito.doThrow(NullFieldException.class).when(orderService).getOrderById(orderId);
+        doThrow(NullFieldException.class).when(orderService).getOrderById(orderId);
 
         ResponseEntity<Address> response = orderController.getOrderAddress(orderId);
 
@@ -491,7 +488,7 @@ class OrderControllerTests {
     @Test
     void testGetOrderAddress_exceptionThrown() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
-        Mockito.doThrow(NullPointerException.class).when(orderService).getOrderById(orderId);
+        doThrow(NullPointerException.class).when(orderService).getOrderById(orderId);
 
         ResponseEntity<Address> response = orderController.getOrderAddress(orderId);
 
@@ -501,7 +498,7 @@ class OrderControllerTests {
     @Test
     void testGetOrderAddress_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
-        Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
+        doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
 
         ResponseEntity<Address> response = orderController.getOrderAddress(orderId);
 
@@ -522,7 +519,7 @@ class OrderControllerTests {
     @Test
     void testGetOrderDate_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
-        Mockito.doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
+        doThrow(OrderNotFoundException.class).when(orderService).getOrderById(orderId);
 
         ResponseEntity<BigDecimal> response = orderController.getOrderDate(orderId);
 
@@ -532,7 +529,7 @@ class OrderControllerTests {
     @Test
     void testGetOrderDate_NullFieldException() throws OrderNotFoundException, NullFieldException {
         UUID orderId = null;
-        Mockito.doThrow(NullFieldException.class).when(orderService).getOrderById(orderId);
+        doThrow(NullFieldException.class).when(orderService).getOrderById(orderId);
 
         ResponseEntity<BigDecimal> response = orderController.getOrderDate(orderId);
 
@@ -542,7 +539,7 @@ class OrderControllerTests {
     @Test
     void testGetOrderDate_exceptionThrown() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
-        Mockito.doThrow(NullPointerException.class).when(orderService).getOrderById(orderId);
+        doThrow(NullPointerException.class).when(orderService).getOrderById(orderId);
 
         ResponseEntity<BigDecimal> response = orderController.getOrderDate(orderId);
 
@@ -572,7 +569,7 @@ class OrderControllerTests {
 
     @Test
     void testCustomerName_NullFieldException() throws OrderNotFoundException, NullFieldException {
-        Mockito.doThrow(NullFieldException.class).when(orderService).getOrderById(null);
+        doThrow(NullFieldException.class).when(orderService).getOrderById(null);
         ResponseEntity<String> response = orderController.getCustomerName(null);
 
         Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
@@ -622,7 +619,7 @@ class OrderControllerTests {
     @Test
     void testOrderOrderIDIsPaidGet_OrderNotFoundException() throws OrderNotFoundException {
         UUID orderID = UUID.randomUUID();
-        Mockito.doThrow(OrderNotFoundException.class).when(orderService).orderIsPaid(orderID);
+        doThrow(OrderNotFoundException.class).when(orderService).orderIsPaid(orderID);
 
         ResponseEntity<Void> response = orderController.orderOrderIDIsPaidGet(orderID);
 
@@ -760,7 +757,7 @@ class OrderControllerTests {
 
         UUID adminID = UUID.randomUUID();
         when(userMicroServiceService.getUserInformation(adminID)).thenReturn(adminJson);
-        Mockito.doThrow(OrderNotFoundException.class).when(orderService).deleteOrderByID(order1.getOrderID());
+        doThrow(OrderNotFoundException.class).when(orderService).deleteOrderByID(order1.getOrderID());
 
         ResponseEntity<Void> order = orderController.deleteOrderByID(order1.getOrderID(), adminID);
         Assertions.assertEquals(HttpStatus.NOT_FOUND, order.getStatusCode());
@@ -772,7 +769,7 @@ class OrderControllerTests {
         UUID adminID = UUID.randomUUID();
         when(userMicroServiceService.getUserInformation(adminID)).thenReturn(adminJson);
 
-        Mockito.doThrow(RuntimeException.class).when(orderService).deleteOrderByID(order1.getOrderID());
+        doThrow(RuntimeException.class).when(orderService).deleteOrderByID(order1.getOrderID());
         ResponseEntity<Void> order = orderController.deleteOrderByID(order1.getOrderID(), adminID);
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, order.getStatusCode());
 
@@ -803,6 +800,41 @@ class OrderControllerTests {
         when(orderService.getStatusOfOrderById(order1.getOrderID())).thenThrow(RuntimeException.class);
         ResponseEntity<String> status = orderController.getStatusOfOrderById(order1.getOrderID());
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, status.getStatusCode());
+
+    }
+
+    @Test
+    void updateStatusOfOrderSuccessful() throws OrderNotFoundException, InvalidOrderStatusException {
+
+        ResponseEntity<Void> response = orderController.updateStatusOfOrderById(order1.getOrderID(), "REJECTED");
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    }
+
+    @Test
+    void updateStatusOfOrderNotFound() throws OrderNotFoundException, InvalidOrderStatusException {
+
+        doThrow(OrderNotFoundException.class).when(orderService).updateStatusOfOrderById(order1.getOrderID(), "REJECTED");
+        ResponseEntity<Void> response = orderController.updateStatusOfOrderById(order1.getOrderID(), "REJECTED");
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+
+    }
+
+    @Test
+    void updateStatusOfOrderInvalidStatus() throws OrderNotFoundException, InvalidOrderStatusException {
+
+        doThrow(InvalidOrderStatusException.class).when(orderService).updateStatusOfOrderById(order1.getOrderID(), "REJECTED");
+        ResponseEntity<Void> response = orderController.updateStatusOfOrderById(order1.getOrderID(), "REJECTED");
+        Assertions.assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, response.getStatusCode());
+
+    }
+
+    @Test
+    void updateStatusOfOrderException() throws OrderNotFoundException, InvalidOrderStatusException {
+
+        doThrow(RuntimeException.class).when(orderService).updateStatusOfOrderById(order1.getOrderID(), "REJECTED");
+        ResponseEntity<Void> response = orderController.updateStatusOfOrderById(order1.getOrderID(), "REJECTED");
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 
     }
 
