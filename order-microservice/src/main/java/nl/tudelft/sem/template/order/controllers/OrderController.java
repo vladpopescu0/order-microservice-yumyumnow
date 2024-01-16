@@ -27,8 +27,16 @@ public class OrderController implements OrderApi {
     public final transient UserMicroServiceService userMicroServiceService;
     private final transient DishController dishController;
 
+    /**
+     * Constructor method for OrderController.
+     *
+     * @param orderService an orderservice
+     * @param userMicroServiceService a userMicroServiceService
+     * @param dishController a dishController
+     */
     @Autowired
-    public OrderController(OrderService orderService, UserMicroServiceService userMicroServiceService, DishController dishController) {
+    public OrderController(OrderService orderService, UserMicroServiceService userMicroServiceService,
+                           DishController dishController) {
         this.orderService = orderService;
         this.userMicroServiceService = userMicroServiceService;
         this.dishController = dishController;

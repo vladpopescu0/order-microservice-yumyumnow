@@ -3,7 +3,6 @@ package nl.tudelft.sem.template.order.domain.user;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,6 +33,9 @@ class OrderControllerTests {
 
     @Mock
     private transient OrderService orderService;
+
+    @Mock
+    private transient UserMicroServiceService umss;
 
     @InjectMocks
     private transient OrderController orderController;
@@ -236,7 +238,6 @@ class OrderControllerTests {
 
     @Test
     void testGetAllOrdersWhenNotAdmin() {
-        UserMicroServiceService umss = mock(UserMicroServiceService.class);
         UUID orderIDFake = UUID.randomUUID();
 
         when(umss.getUserInformation(orderIDFake)).thenReturn("""
@@ -257,7 +258,6 @@ class OrderControllerTests {
 
     @Test
     void testGetAllOrdersWhenAdmin() {
-        UserMicroServiceService umss = mock(UserMicroServiceService.class);
         UUID orderIDFake = UUID.randomUUID();
 
         when(umss.getUserInformation(orderIDFake)).thenReturn("""
@@ -278,7 +278,6 @@ class OrderControllerTests {
 
     @Test
     void testGetAllOrdersCheekyUser() {
-        UserMicroServiceService umss = mock(UserMicroServiceService.class);
         UUID orderIDFake = UUID.randomUUID();
 
         when(umss.getUserInformation(orderIDFake)).thenReturn("""
