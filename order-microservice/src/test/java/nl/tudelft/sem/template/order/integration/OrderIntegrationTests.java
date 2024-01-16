@@ -579,4 +579,82 @@ public class OrderIntegrationTests {
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andReturn();
     }
+
+    @Transactional
+    @Test
+    public void updateStatusOfOrderSuccessful() throws Exception {
+
+        orderService.createOrder(order1);
+
+        String s1 = "DELIVERED";
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/status", order1.getOrderID(), s1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(s1)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+
+        String edit1 = orderService.getStatusOfOrderById(order1.getOrderID());
+        Assertions.assertEquals("delivered", edit1);
+
+        String s2 = "rejected";
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/status", order1.getOrderID(), s2)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(s2)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+
+        String edit2 = orderService.getStatusOfOrderById(order1.getOrderID());
+        Assertions.assertEquals("rejected", edit2);
+
+        String s3 = "DELIVERED";
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/status", order1.getOrderID(), s3)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(s3)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+
+        String edit3 = orderService.getStatusOfOrderById(order1.getOrderID());
+        Assertions.assertEquals("delivered", edit3);
+
+    }
+
+    @Transactional
+    @Test
+    public void updateStatusOfOrderNotFound() throws Exception {
+
+        orderService.createOrder(order2);
+
+        String s1 = "DELIVERED";
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/status", order1.getOrderID(), s1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(s1)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+    }
+
+    @Transactional
+    @Test
+    public void updateStatusOfOrderInvalidStatus() throws Exception {
+
+        orderService.createOrder(order1);
+
+        String s1 = "not_a_status";
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/status", order1.getOrderID(), s1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(s1)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isUnsupportedMediaType())
+                .andReturn();
+
+    }
 }
