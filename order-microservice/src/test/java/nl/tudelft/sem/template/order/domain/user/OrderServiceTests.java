@@ -569,9 +569,8 @@ class OrderServiceTests {
     @Test
     void testOrderHistoryCustomerDoesNotExist() {
         when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(false);
-        FilteringParam<Order> filteringParam = Mockito.mock(FilteringParam.class);
         Assertions.assertThrows(CustomerNotFoundException.class,
-                () -> orderService.getPastOrdersByCustomerID(order1.getCustomerID(), filteringParam));
+                () -> orderService.getPastOrdersByCustomerID(order1.getCustomerID(), Mockito.mock(FilteringParam.class)));
     }
 
     @Test
