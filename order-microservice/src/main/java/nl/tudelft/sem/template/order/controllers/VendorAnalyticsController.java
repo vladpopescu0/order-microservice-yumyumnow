@@ -54,23 +54,7 @@ public class VendorAnalyticsController implements VendorApi {
                 if (listOfDishes != null) {
                     Float earnings = 0.0f;
                     for (UUID id : listOfDishes) {
-                        ResponseEntity<Dish> dishResponse;
-                        int t = 0;
-
-                        while (t < 3) {
-                            dishResponse = dishController.getDishByID(id);
-                            HttpStatus dishResponseStatus = dishResponse.getStatusCode();
-                            if (dishResponseStatus.equals(HttpStatus.OK)) {
-                                Dish dish = dishController.getDishByID(id).getBody();
-                                earnings += dish.getPrice();
-                                break;
-                            } else if (dishResponseStatus.equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
-                                //wait(1500);
-                                t++;
-                            } else {
-                                break;
-                            }
-                        }
+                        earnings = earningsCalculator(id, earnings);
                     }
                     return ResponseEntity.ok(earnings);
                 }
@@ -79,6 +63,34 @@ public class VendorAnalyticsController implements VendorApi {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    /** Function to calculate the earnings from the dishes in the database.
+     *
+     * @param id the id of the current dish
+     * @param earnings current order value
+     * @return total earnings including the current dish
+     */
+
+    private Float earningsCalculator(UUID id, Float earnings) {
+        ResponseEntity<Dish> dishResponse;
+        int t = 0;
+
+        while (t < 3) {
+            dishResponse = dishController.getDishByID(id);
+            HttpStatus dishResponseStatus = dishResponse.getStatusCode();
+            if (dishResponseStatus.equals(HttpStatus.OK)) {
+                Dish dish = dishController.getDishByID(id).getBody();
+                earnings += dish.getPrice();
+                break;
+            } else if (dishResponseStatus.equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
+                //wait(1500);
+                t++;
+            } else {
+                break;
+            }
+        }
+        return earnings;
     }
 
     /**
