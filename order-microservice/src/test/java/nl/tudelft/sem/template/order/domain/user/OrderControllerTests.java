@@ -135,7 +135,8 @@ class OrderControllerTests {
     }
 
     @Test
-    void createOrderSuccessful() throws NullFieldException, OrderIdAlreadyInUseException {
+    void createOrderSuccessful() throws NullFieldException, OrderIdAlreadyInUseException,
+            VendorNotFoundException, CustomerNotFoundException {
 
         when(orderService.createOrder(order1)).thenReturn(order1);
         ResponseEntity<Order> order = orderController.createOrder(order1);
@@ -145,7 +146,8 @@ class OrderControllerTests {
     }
 
     @Test
-    void createNullFieldOrder() throws NullFieldException, OrderIdAlreadyInUseException {
+    void createNullFieldOrder() throws NullFieldException, OrderIdAlreadyInUseException,
+            VendorNotFoundException, CustomerNotFoundException {
 
         when(orderService.createOrder(order1)).thenThrow(NullFieldException.class);
         ResponseEntity<Order> order = orderController.createOrder(order1);
@@ -154,7 +156,8 @@ class OrderControllerTests {
     }
 
     @Test
-    void createOrderBadRequest() throws NullFieldException, OrderIdAlreadyInUseException {
+    void createOrderBadRequest() throws NullFieldException, OrderIdAlreadyInUseException,
+            VendorNotFoundException, CustomerNotFoundException {
 
         when(orderService.createOrder(order1)).thenThrow(OrderIdAlreadyInUseException.class);
         ResponseEntity<Order> order = orderController.createOrder(order1);
@@ -261,7 +264,8 @@ class OrderControllerTests {
     }
 
     @Test
-    void editOrderByIdAdminSuccessful() throws OrderNotFoundException, NullFieldException {
+    void editOrderByIdAdminSuccessful() throws OrderNotFoundException, NullFieldException,
+            VendorNotFoundException, CustomerNotFoundException {
 
         UUID adminID = UUID.randomUUID();
         when(userMicroServiceService.getUserInformation(adminID)).thenReturn(adminJson);
@@ -312,7 +316,8 @@ class OrderControllerTests {
     }
 
     @Test
-    void editOrderByIdOrderNotFound() throws OrderNotFoundException, NullFieldException {
+    void editOrderByIdOrderNotFound() throws OrderNotFoundException,
+            NullFieldException, VendorNotFoundException, CustomerNotFoundException {
         Order orderTemp = new Order();
         orderTemp.setOrderID(UUID.randomUUID());
         orderTemp.setVendorID(UUID.randomUUID());
@@ -337,7 +342,8 @@ class OrderControllerTests {
     }
 
     @Test
-    void editOrderByIdRuntimeException() throws OrderNotFoundException, NullFieldException {
+    void editOrderByIdRuntimeException() throws OrderNotFoundException,
+            NullFieldException, VendorNotFoundException, CustomerNotFoundException {
         UUID adminID = UUID.randomUUID();
         when(userMicroServiceService.getUserInformation(adminID)).thenReturn(adminJson);
 
@@ -620,6 +626,16 @@ class OrderControllerTests {
     }
 
     @Test
+    void testOrderOrderIDIsPaidGet_BadRequest() throws OrderNotFoundException {
+        UUID orderID = UUID.randomUUID();
+        when(orderService.orderIsPaid(orderID)).thenThrow(NullPointerException.class);
+
+        ResponseEntity<Void> response = orderController.orderOrderIDIsPaidGet(orderID);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
     void testOrderOrderIDIsPaidGet_OrderNotFoundException() throws OrderNotFoundException {
         UUID orderID = UUID.randomUUID();
         Mockito.doThrow(OrderNotFoundException.class).when(orderService).orderIsPaid(orderID);
@@ -654,7 +670,17 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetCustomerOrderHistory_NoOrdersFound() throws NoOrdersException {
+    void testPaymentBadRequest() throws OrderNotFoundException {
+        UUID orderID = UUID.randomUUID();
+        when(orderService.orderIsPaidUpdate(orderID)).thenThrow(NullPointerException.class);
+
+        ResponseEntity<Order> response = orderController.updateOrderPaid(orderID);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void testGetCustomerOrderHistory_NoOrdersFound() throws NoOrdersException, CustomerNotFoundException {
         UUID customerId = UUID.randomUUID();
 
         when(orderService.getPastOrdersByCustomerID(eq(customerId),  Mockito.any(FilteringByStatus.class)))
@@ -667,7 +693,7 @@ class OrderControllerTests {
     }
 
     @Test
-    void testGetCustomerOrderHistory_Success() throws NoOrdersException {
+    void testGetCustomerOrderHistory_Success() throws NoOrdersException, CustomerNotFoundException {
         UUID customerId = UUID.randomUUID();
         List<Order> orders = new ArrayList<>();
 
@@ -681,6 +707,40 @@ class OrderControllerTests {
 
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(orders, response.getBody());
+    }
+
+    @Test
+    void testGetCustomerOrderHistory_customerNotFound() throws NoOrdersException, CustomerNotFoundException {
+        UUID customerId = UUID.randomUUID();
+        List<Order> orders = new ArrayList<>();
+
+        orders.add(order1);
+        orders.add(order2);
+
+        when(orderService.getPastOrdersByCustomerID(eq(customerId), Mockito.any(FilteringByStatus.class)))
+                .thenThrow(CustomerNotFoundException.class);
+
+        var response = orderController.getCustomerOrderHistory(customerId);
+
+        assertEquals(404, response.getStatusCodeValue());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    void testGetCustomerOrderHistory_badRequest() throws NoOrdersException, CustomerNotFoundException {
+        UUID customerId = UUID.randomUUID();
+        List<Order> orders = new ArrayList<>();
+
+        orders.add(order1);
+        orders.add(order2);
+
+        when(orderService.getPastOrdersByCustomerID(eq(customerId), Mockito.any(FilteringByStatus.class)))
+                .thenThrow(NullPointerException.class);
+
+        var response = orderController.getCustomerOrderHistory(customerId);
+
+        assertEquals(400, response.getStatusCodeValue());
+        assertNull(response.getBody());
     }
 
     @Test
