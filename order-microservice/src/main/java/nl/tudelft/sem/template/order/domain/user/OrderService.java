@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -318,4 +319,66 @@ public class OrderService {
         }
         return fromOptional;
     }
+
+    /**
+     * Method for getting the status of a specific Order in the database.
+     *
+     * @param orderID ID specifying the Order
+     * @return StatusEnum corresponding to the status of the specified Order
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public String getStatusOfOrderById(UUID orderID) throws OrderNotFoundException {
+
+        Optional<Order> order = orderRepository.findOrderByOrderID(orderID);
+        if (order.isEmpty()) {
+            throw new OrderNotFoundException(orderID);
+        }
+
+        return order.get().getStatus().toString();
+
+    }
+
+    /**
+     * Method for editing the status of an Order in the database.
+     *
+     * @param orderID ID specifying the Order
+     * @param status New status as String
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public void updateStatusOfOrderById(UUID orderID, String status)
+            throws OrderNotFoundException, InvalidOrderStatusException {
+        if (!checkUUIDIsUnique(orderID)) {
+            throw new OrderNotFoundException(orderID);
+        }
+
+        if (!isValidStatusEnumType(status)) {
+            throw new InvalidOrderStatusException(orderID);
+        }
+
+        Order order = orderRepository.findOrderByOrderID(orderID).get();
+        order.setStatus(Order.StatusEnum.valueOf(status.toUpperCase(Locale.ENGLISH)));
+        orderRepository.save(order);
+
+    }
+
+    /**
+     * Method for verifying whether a String is a valid status code.
+     *
+     * @param s String to verify
+     * @return return true when s is a valid status, false otherwise
+     */
+    public boolean isValidStatusEnumType(String s) {
+        if (s == null) {
+            return false;
+        }
+        for (Order.StatusEnum e : Order.StatusEnum.values()) {
+            if (e.toString().equalsIgnoreCase(s)) {
+                return true;
+            }
+        }
+
+        return false;
+
+    }
+
 }
