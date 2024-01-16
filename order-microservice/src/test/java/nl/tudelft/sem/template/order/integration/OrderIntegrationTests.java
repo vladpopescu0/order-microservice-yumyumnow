@@ -57,6 +57,8 @@ public class OrderIntegrationTests {
     transient String getAllOrdersPath = "/order/all/{userID}";
     transient String orderIdPath = "/order/{orderId}";
     transient String editOrderPath = "/order/{orderID}/{userID}";
+    
+    transient String orderStatusPath = "/order/{orderID}/status";
     transient String dateString = "1700006405000";
     transient String specialRequirementsString = "Knock on the door";
     @MockBean
@@ -555,7 +557,7 @@ public class OrderIntegrationTests {
 
         orderService.createOrder(order1);
 
-        MvcResult ret = mockMvc.perform(MockMvcRequestBuilders.get("/order/{orderID}/status", order1.getOrderID())
+        MvcResult ret = mockMvc.perform(MockMvcRequestBuilders.get(orderStatusPath, order1.getOrderID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -573,9 +575,9 @@ public class OrderIntegrationTests {
 
         orderService.createOrder(order2);
 
-        MvcResult ret = mockMvc.perform(MockMvcRequestBuilders.get("/order/{orderID}/status", order1.getOrderID())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(MockMvcRequestBuilders.get(orderStatusPath, order1.getOrderID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andReturn();
     }
@@ -588,7 +590,7 @@ public class OrderIntegrationTests {
 
         String s1 = "DELIVERED";
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/status", order1.getOrderID(), s1)
+        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(s1)
                         .accept(MediaType.APPLICATION_JSON))
@@ -600,7 +602,7 @@ public class OrderIntegrationTests {
 
         String s2 = "rejected";
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/status", order1.getOrderID(), s2)
+        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s2)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(s2)
                         .accept(MediaType.APPLICATION_JSON))
@@ -612,7 +614,7 @@ public class OrderIntegrationTests {
 
         String s3 = "DELIVERED";
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/status", order1.getOrderID(), s3)
+        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s3)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(s3)
                         .accept(MediaType.APPLICATION_JSON))
@@ -632,7 +634,7 @@ public class OrderIntegrationTests {
 
         String s1 = "DELIVERED";
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/status", order1.getOrderID(), s1)
+        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(s1)
                         .accept(MediaType.APPLICATION_JSON))
@@ -649,7 +651,7 @@ public class OrderIntegrationTests {
 
         String s1 = "not_a_status";
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/order/{orderID}/status", order1.getOrderID(), s1)
+        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(s1)
                         .accept(MediaType.APPLICATION_JSON))
