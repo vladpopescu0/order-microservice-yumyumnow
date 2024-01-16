@@ -6,21 +6,35 @@ import java.util.Optional;
 import java.util.UUID;
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
+import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class DishService {
     private final transient DishRepository dishRepository;
+    private final transient UserMicroServiceService userMicroServiceService;
 
     /**
      * Instantiates a new DishService.
      *
-     * @param dishRepository  the dish repository
+     * @param dishRepository          the dish repository
+     * @param userMicroServiceService the user microService
      */
     @Autowired
-    public DishService(DishRepository dishRepository) {
+    public DishService(DishRepository dishRepository, UserMicroServiceService userMicroServiceService) {
         this.dishRepository = dishRepository;
+        this.userMicroServiceService = userMicroServiceService;
+    }
+
+    /**
+     * Checks whether a certain vendor exists.
+     *
+     * @param vendorId UUID of the vendor
+     * @return Boolean specifying whether the vendor exists or not
+     */
+    private boolean checkVendorExists(UUID vendorId) {
+        return userMicroServiceService.checkVendorExists(vendorId);
     }
 
     /**
@@ -30,7 +44,10 @@ public class DishService {
      * @return The dish that has been added to the database
      * @throws DishIdAlreadyInUseException if there already is a dish with the same id
      */
-    public Dish addDish(Dish dish) throws DishIdAlreadyInUseException {
+    public Dish addDish(Dish dish) throws DishIdAlreadyInUseException, VendorNotFoundException {
+        if (!checkVendorExists(dish.getVendorID())) {
+            throw new VendorNotFoundException(dish.getVendorID());
+        }
         if (!checkDishUuidIsUnique(dish.getDishID())) {
             throw new DishIdAlreadyInUseException(dish.getDishID());
         }
@@ -77,10 +94,10 @@ public class DishService {
      * @throws VendorNotFoundException if there are no dishes from a certain vendor
      */
     public List<Dish> getDishByVendorId(UUID vendorId) throws VendorNotFoundException {
-        Optional<List<Dish>> databaseDishes = dishRepository.findDishesByVendorID(vendorId);
-        if (databaseDishes.isEmpty()) {
+        if (!checkVendorExists(vendorId)) {
             throw new VendorNotFoundException(vendorId);
         }
+        Optional<List<Dish>> databaseDishes = dishRepository.findDishesByVendorID(vendorId);
         List<Dish> res = databaseDishes.get();
         for (Dish d : res) {
             d.setListOfIngredients(new ArrayList<>(d.getListOfIngredients()));
@@ -97,7 +114,10 @@ public class DishService {
      * @return Dish from the database after it has been updated
      * @throws DishNotFoundException if there is no dish with the given id
      */
-    public Dish updateDish(UUID dishId, Dish dish) throws DishNotFoundException {
+    public Dish updateDish(UUID dishId, Dish dish) throws DishNotFoundException, VendorNotFoundException {
+        if (!checkVendorExists(dish.getVendorID())) {
+            throw new VendorNotFoundException(dish.getVendorID());
+        }
         if (checkDishUuidIsUnique(dishId)) {
             throw new DishNotFoundException(dishId);
         }
@@ -131,7 +151,7 @@ public class DishService {
      */
     public List<Dish> getAllergyFilteredDishesFromVendor(UUID vendorId,
                                                          List<String> allergies) throws VendorNotFoundException {
-        if (!dishRepository.existsByVendorID(vendorId)) {
+        if (!checkVendorExists(vendorId)) {
             throw new VendorNotFoundException(vendorId);
         }
         Optional<List<Dish>> databaseDishes = dishRepository.findDishesByVendorIDAndListOfAllergies(vendorId, allergies);

@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
-import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
+import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,13 +19,33 @@ import org.springframework.stereotype.Service;
 @Service
 public class OrderService {
     private final transient OrderRepository orderRepository;
-    private final transient DishRepository dishRepository;
+    private final transient UserMicroServiceService userMicroServiceService;
 
     @Autowired
-    public OrderService(OrderRepository orderRepository, DishRepository dishRepository) {
+    public OrderService(OrderRepository orderRepository, UserMicroServiceService userMicroServiceService) {
         this.orderRepository = orderRepository;
-        this.dishRepository = dishRepository;
+        this.userMicroServiceService = userMicroServiceService;
     }
+
+    /**
+     * Checks whether a certain vendor exists.
+     *
+     * @param vendorId UUID of the vendor
+     * @return Boolean specifying whether the vendor exists or not
+     */
+    private boolean checkVendorExists(UUID vendorId) {
+        return userMicroServiceService.checkVendorExists(vendorId);
+    }
+
+    //    /**
+    //     * Checks whether a certain user exists.
+    //     *
+    //     * @param userId UUID of the vendor
+    //     * @return Boolean specifying whether the user exists or not
+    //     */
+    //    private boolean checkUserExists(UUID userId) {
+    //        return userMicroServiceService.checkUserExists(userId);
+    //    }
 
     /**
      * Checks if the uuid can be found in the database.
