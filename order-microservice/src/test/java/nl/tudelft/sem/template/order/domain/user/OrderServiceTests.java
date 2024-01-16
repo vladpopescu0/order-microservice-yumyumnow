@@ -20,6 +20,7 @@ import nl.tudelft.sem.template.order.PersistentBagMock;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
 import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
+import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.hibernate.collection.internal.PersistentBag;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +49,8 @@ class OrderServiceTests {
     private transient OrderRepository orderRepository;
     @Mock
     private transient DishRepository dishRepository;
+    @Mock
+    private transient UserMicroServiceService userMicroServiceService;
     @InjectMocks
     private transient OrderService orderService;
 
@@ -192,8 +195,10 @@ class OrderServiceTests {
     }
 
     @Test
-    void testCreateOrderSuccessful() throws OrderIdAlreadyInUseException, NullFieldException {
-
+    void testCreateOrderSuccessful() throws OrderIdAlreadyInUseException,
+            NullFieldException, VendorNotFoundException, CustomerNotFoundException {
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
         when(orderRepository.save(order1)).thenReturn(order1);
 
         Order savedOrder = orderService.createOrder(order1);
@@ -287,8 +292,10 @@ class OrderServiceTests {
     }
 
     @Test
-    void testEditOrderByIDSuccessful() throws OrderNotFoundException, NullFieldException {
-
+    void testEditOrderByIDSuccessful() throws OrderNotFoundException, NullFieldException,
+            VendorNotFoundException, CustomerNotFoundException {
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
         order1.setRating(2);
 
         when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
@@ -390,8 +397,7 @@ class OrderServiceTests {
     @Test
     void getOrdersFromCostumerAtVendor_VendorDoesNotExist() {
         UUID nonExistingVendorID = UUID.randomUUID();
-
-        when(orderRepository.existsByVendorID(nonExistingVendorID)).thenReturn(false);
+        when(userMicroServiceService.checkVendorExists(nonExistingVendorID)).thenReturn(false);
 
         Assertions.assertThrows(VendorNotFoundException.class,
                 () -> orderService.getOrdersFromCustomerAtVendor(nonExistingVendorID, order1.getCustomerID()));
@@ -400,9 +406,8 @@ class OrderServiceTests {
     @Test
     void getOrdersFromCostumerAtVendor_CustomerDoesNotExist() {
         UUID nonExistingCustomerID = UUID.randomUUID();
-
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
-        when(orderRepository.existsByCustomerID(nonExistingCustomerID)).thenReturn(false);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(nonExistingCustomerID)).thenReturn(false);
 
         Assertions.assertThrows(CustomerNotFoundException.class,
                 () -> orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(), nonExistingCustomerID));
@@ -410,8 +415,9 @@ class OrderServiceTests {
 
     @Test
     void getOrdersFromCostumerAtVendor_EmptyOrder() {
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
-        when(orderRepository.existsByCustomerID(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
         when(orderRepository.findOrdersByVendorIDAndCustomerID(order1.getVendorID(),
                 order1.getCustomerID())).thenReturn(Optional.empty());
 
@@ -422,8 +428,8 @@ class OrderServiceTests {
     @Test
     void getOrdersFromCostumerAtVendor_NonEmptyResult()
             throws VendorNotFoundException, CustomerNotFoundException, NoOrdersException {
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
-        when(orderRepository.existsByCustomerID(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
         when(orderRepository.findOrdersByVendorIDAndCustomerID(order1.getVendorID(),
                 order1.getCustomerID())).thenReturn(Optional.of(List.of(order1, order2)));
 
@@ -435,15 +441,14 @@ class OrderServiceTests {
     @Test
     void getOrderVolume_VendorDoesNotExist() {
         UUID nonExistingVendorID = UUID.randomUUID();
-
-        when(orderRepository.existsByVendorID(nonExistingVendorID)).thenReturn(false);
+        when(userMicroServiceService.checkVendorExists(nonExistingVendorID)).thenReturn(false);
 
         Assertions.assertThrows(VendorNotFoundException.class, () -> orderService.getOrderVolume(nonExistingVendorID));
     }
 
     @Test
     void getOrderVolume_NoOrders() {
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
         when(orderRepository.countOrderByVendorID(order1.getVendorID())).thenReturn(Optional.empty());
 
         Assertions.assertThrows(NoOrdersException.class, () -> orderService.getOrderVolume(order1.getVendorID()));
@@ -451,7 +456,7 @@ class OrderServiceTests {
 
     @Test
     void getOrderVolume_WithOrders() throws VendorNotFoundException, NoOrdersException {
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
         when(orderRepository.countOrderByVendorID(order1.getVendorID()))
                 .thenReturn(Optional.of(21));
 
@@ -462,7 +467,7 @@ class OrderServiceTests {
     void getDishesSortedByVolume_VendorDoesNotExist() {
         UUID nonExistingVendorID = UUID.randomUUID();
 
-        when(orderRepository.existsByVendorID(nonExistingVendorID)).thenReturn(false);
+        when(userMicroServiceService.checkVendorExists(nonExistingVendorID)).thenReturn(false);
 
         Assertions.assertThrows(VendorNotFoundException.class,
                 () -> orderService.getDishesSortedByVolume(nonExistingVendorID));
@@ -470,7 +475,7 @@ class OrderServiceTests {
 
     @Test
     void getDishesSortedByVolume_DishesFound() throws VendorNotFoundException, DishNotFoundException {
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
         when(orderRepository.countDishesOccurrencesFromVendor(order1.getVendorID())).thenReturn(List.of(d2, d1));
 
         List<Dish> res = orderService.getDishesSortedByVolume(order1.getVendorID());
@@ -482,15 +487,14 @@ class OrderServiceTests {
     @Test
     void getOrderVolumeByTime_VendorNotFound() {
         UUID nonExistingVendorID = UUID.randomUUID();
-
-        when(orderRepository.existsByVendorID(nonExistingVendorID)).thenReturn(false);
+        when(userMicroServiceService.checkVendorExists(nonExistingVendorID)).thenReturn(false);
 
         Assertions.assertThrows(VendorNotFoundException.class, () -> orderService.getOrderVolumeByTime(nonExistingVendorID));
     }
 
     @Test
     void getOrderVolumeByTime_NoOrders() throws VendorNotFoundException, NoOrdersException {
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
         when(orderRepository.findOrdersByVendorID(order1.getVendorID())).thenReturn(Optional.empty());
 
         Assertions.assertThrows(NoOrdersException.class, () -> orderService.getOrderVolumeByTime(order1.getVendorID()));
@@ -517,7 +521,7 @@ class OrderServiceTests {
             correctTime.add(j);
         }
 
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
         when(orderRepository.findOrdersByVendorID(order1.getVendorID())).thenReturn(Optional.of(orders));
 
         List<Integer> volume = orderService.getOrderVolumeByTime(order1.getVendorID());
@@ -525,7 +529,10 @@ class OrderServiceTests {
     }
 
     @Test
-    void testOrderHistoryContainsValues() throws NoOrdersException {
+    void testOrderHistoryContainsValues() throws NoOrdersException, CustomerNotFoundException {
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order3.getCustomerID())).thenReturn(true);
+
         orders.add(order1);
         orders.add(order3);
 
@@ -543,6 +550,9 @@ class OrderServiceTests {
 
     @Test
     void testOrderHistoryHasNoAvailablePastOrders() {
+        when(userMicroServiceService.checkUserExists(order3.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order3.getCustomerID())).thenReturn(true);
+
         order3.setStatus(Order.StatusEnum.PENDING);
         orders.add(order1);
         orders.add(order3);
@@ -561,6 +571,7 @@ class OrderServiceTests {
     @Test
     void testOrderHistoryNotInDatabase() {
         UUID randomUUID = UUID.randomUUID();
+        when(userMicroServiceService.checkUserExists(randomUUID)).thenReturn(true);
         when(orderRepository.findOrdersByCustomerID(randomUUID)).thenReturn(Optional.empty());
 
         FilteringParam<Order> filteringParam = Mockito.mock(FilteringParam.class);

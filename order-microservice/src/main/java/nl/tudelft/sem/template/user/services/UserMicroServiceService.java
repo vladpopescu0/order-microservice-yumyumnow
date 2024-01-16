@@ -106,6 +106,25 @@ public class UserMicroServiceService implements UserMicroServiceAPI {
         } catch (Exception e) {
             return false;
         }
+    }
 
+    /**
+     * Check with user microservice whether a certain user exists.
+     *
+     * @param userId id of the user
+     * @return Boolean for whether a user exists or not
+     */
+    public boolean checkUserExists(UUID userId) {
+        try {
+            userMicroServiceWebClient.get()
+                    .uri(uriBuilder -> uriBuilder.path("/user/{userID}").build(userId))
+                    .retrieve()
+                    .onStatus(HttpStatus::is4xxClientError, response -> Mono.error(new UserIDNotFoundException(userId)))
+                    .bodyToMono(String.class)
+                    .block(requestTimeout);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

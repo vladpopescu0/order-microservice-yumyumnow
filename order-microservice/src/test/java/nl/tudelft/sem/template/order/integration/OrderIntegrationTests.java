@@ -48,6 +48,9 @@ public class OrderIntegrationTests {
     @Autowired
     private transient OrderService orderService;
 
+    @MockBean
+    private transient UserMicroServiceService userMicroServiceService;
+
     transient Order order1;
     transient Order order2;
     transient Address a1;
@@ -58,8 +61,6 @@ public class OrderIntegrationTests {
     transient String orderIdPath = "/order/{orderId}";
     transient String dateString = "1700006405000";
     transient String specialRequirementsString = "Knock on the door";
-    @MockBean
-    transient UserMicroServiceService umss;
 
     /**
      * setup for OrderIntegrationTests.
@@ -108,6 +109,8 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void createOrderSuccessful() throws Exception {
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
 
         mockMvc.perform(MockMvcRequestBuilders.post(orderPath, order1)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -124,6 +127,8 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void createOrderDuplicateBadRequest() throws Exception {
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
 
         mockMvc.perform(MockMvcRequestBuilders.post(orderPath, order1)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -156,11 +161,16 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void getAllOrdersSuccessful() throws Exception {
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         orderService.createOrder(order1);
         orderService.createOrder(order2);
 
         UUID adminID = UUID.randomUUID();
-        when(umss.getUserInformation(any())).thenReturn("""
+        when(userMicroServiceService.getUserInformation(any())).thenReturn("""
             {
               "id": "550e8400-e29b-41d4-a716-446655440000",
               "firstname": "John",
@@ -190,7 +200,7 @@ public class OrderIntegrationTests {
     @Test
     public void getAllOrdersNoOrdersFound() throws Exception {
         UUID adminID = UUID.randomUUID();
-        when(umss.getUserInformation(any())).thenReturn("""
+        when(userMicroServiceService.getUserInformation(any())).thenReturn("""
             {
               "id": "550e8400-e29b-41d4-a716-446655440000",
               "firstname": "John",
@@ -210,6 +220,10 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void getOrderByIdSuccessful() throws Exception {
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
 
         orderService.createOrder(order1);
         orderService.createOrder(order2);
@@ -357,6 +371,8 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void checkOrderIsPaidIsCorrect() throws Exception {
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
         orderService.createOrder(order1);
 
         mockMvc.perform(MockMvcRequestBuilders.get(isPaidPath, order1.getOrderID())
@@ -368,7 +384,8 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void checkOrderIsPaidWrongParameter() throws Exception {
-
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
         orderService.createOrder(order1);
 
         UUID uuid = UUID.randomUUID();
@@ -384,7 +401,10 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void checkOrderIsPaidNotPaid() throws Exception {
-
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
         orderService.createOrder(order1);
 
         order2.setOrderPaid(false);
@@ -402,7 +422,10 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void checkOrderPaidUpdate() throws Exception {
-
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
         orderService.createOrder(order1);
 
         order2.setOrderPaid(false);
@@ -424,7 +447,10 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void checkOrderPaidUpdateOrderWasPaid() throws Exception {
-
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
         orderService.createOrder(order1);
 
         order2.setOrderPaid(true);
@@ -447,7 +473,10 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void checkOrderPaidUpdateNotFound() throws Exception {
-
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
         orderService.createOrder(order1);
 
         order2.setOrderPaid(false);
@@ -467,7 +496,8 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void testGetHistoryOrdersOfUser() throws Exception {
-
+        when(userMicroServiceService.checkVendorExists(any())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(any())).thenReturn(true);
         orderService.createOrder(order1);
 
         Order order3 = new Order();
@@ -521,7 +551,8 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void testGetHistoryOrdersOfUserNoMatchingInDatabase() throws Exception {
-
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
         orderService.createOrder(order1);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/order/{customerID}/history", order1.getCustomerID())
@@ -533,10 +564,14 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void testGetHistoryOrdersOfUserNoUserFound() throws Exception {
+        UUID randomCustomerId = UUID.randomUUID();
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(randomCustomerId)).thenReturn(false);
 
         orderService.createOrder(order1);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/order/{customerID}/history", UUID.randomUUID())
+        mockMvc.perform(MockMvcRequestBuilders.get("/order/{customerID}/history", randomCustomerId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());

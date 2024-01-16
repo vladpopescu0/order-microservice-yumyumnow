@@ -8,6 +8,7 @@ import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
+import nl.tudelft.sem.template.order.domain.user.CustomerNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
 import nl.tudelft.sem.template.order.domain.user.NullFieldException;
 import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
@@ -309,6 +310,10 @@ public class OrderController implements OrderApi {
             return ResponseEntity.ok(allOrdersByCustomerID);
         } catch (NoOrdersException noOrdersException) {
             return ResponseEntity.notFound().build();
+        } catch (CustomerNotFoundException noOrdersException) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 
