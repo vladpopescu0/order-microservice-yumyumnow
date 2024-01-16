@@ -25,11 +25,13 @@ public class OrderController implements OrderApi {
 
     private final transient OrderService orderService;
     public final transient UserMicroServiceService userMicroServiceService;
+    private final transient DishController dishController;
 
     @Autowired
-    public OrderController(OrderService orderService, UserMicroServiceService userMicroServiceService) {
+    public OrderController(OrderService orderService, UserMicroServiceService userMicroServiceService, DishController dishController) {
         this.orderService = orderService;
         this.userMicroServiceService = userMicroServiceService;
+        this.dishController = dishController;
     }
 
     /**
@@ -102,7 +104,6 @@ public class OrderController implements OrderApi {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-
     }
 
     /**
@@ -131,7 +132,6 @@ public class OrderController implements OrderApi {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-
     }
 
     /**
@@ -302,5 +302,19 @@ public class OrderController implements OrderApi {
         } catch (NoOrdersException noOrdersException) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    /**Controller for the /order/{orderID}/totalCost endpoint.
+     * It takes the implementation provided in VendorAnalyticsController.
+     *
+     * @param orderID ID of order that needs to be fetched (required)
+     * @return a response where for 200 returns the total sum of the
+     *          dishes that can be found in the database
+     */
+    @Override
+    public ResponseEntity<Float> orderOrderIDTotalCostGet(UUID orderID) {
+        VendorAnalyticsController vendorAnalyticsController =
+                new VendorAnalyticsController(this, dishController, orderService);
+        return vendorAnalyticsController.getOrderEarnings(orderID);
     }
 }

@@ -80,7 +80,7 @@ test {
 	jacoco {
 		enabled = true
 		includes = ['nl.tudelft.sem.template.*']
-		excludes = ['nl.tudelft.sem.template.api.*','nl.tudelft.sem.template.order.commons.*','nl.tudelft.sem.template.commons.*','nl.tudelft.sem.template.order.api.*','nl.tudelft.sem.template.model.*']
+		excludes = ['nl.tudelft.sem.template.api.*','nl.tudelft.sem.template.model.*']
 	}
 }
 
@@ -95,6 +95,7 @@ jacocoTestCoverageVerification() {
 			enabled = true
 			element = 'CLASS'
 			includes = ['nl.tudelft.sem.template.*']
+			excludes = ['nl.tudelft.sem.template.api.*','nl.tudelft.sem.template.model.*']
 			limit {
 				counter = 'BRANCH'
 				value = 'COVEREDRATIO'

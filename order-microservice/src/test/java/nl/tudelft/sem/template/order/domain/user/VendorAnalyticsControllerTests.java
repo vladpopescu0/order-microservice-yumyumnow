@@ -365,4 +365,27 @@ public class VendorAnalyticsControllerTests {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(res);
     }
+
+    @Test
+    public void testGetOrderEarningsInternalServerError() {
+        UUID orderId = UUID.randomUUID();
+        List<UUID> dishes = new ArrayList<>();
+        dishes.add(dish1.getDishID());
+        dishes.add(dish2.getDishID());
+        when(orderController.getListOfDishes(orderId))
+                .thenReturn(ResponseEntity.ok(dishes));
+
+        when(dishController.getDishByID(dish1.getDishID()))
+                .thenReturn(new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR))
+                .thenReturn(new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR))
+                .thenReturn(new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR));
+        when(dishController.getDishByID(dish2.getDishID()))
+                .thenReturn(new ResponseEntity<>(dish2, HttpStatus.OK));
+
+        ResponseEntity<Float> result = vendorAnalyticsController.getOrderEarnings(orderId);
+
+        Assertions.assertEquals(HttpStatus.OK, result.getStatusCode());
+        Assertions.assertEquals(10.0f, result.getBody());
+
+    }
 }

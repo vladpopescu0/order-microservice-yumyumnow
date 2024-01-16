@@ -239,7 +239,6 @@ class OrderControllerTests {
         UserMicroServiceService umss = mock(UserMicroServiceService.class);
         UUID orderIDFake = UUID.randomUUID();
 
-        OrderController oc = new OrderController(orderService, umss);
         when(umss.getUserInformation(orderIDFake)).thenReturn("""
                 {
                   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -252,7 +251,7 @@ class OrderControllerTests {
                   "userType": "Customer"
                 }""");
 
-        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, oc.getAllOrders(orderIDFake).getStatusCode());
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, orderController.getAllOrders(orderIDFake).getStatusCode());
         verify(umss, times(1)).getUserInformation(orderIDFake);
     }
 
@@ -261,7 +260,6 @@ class OrderControllerTests {
         UserMicroServiceService umss = mock(UserMicroServiceService.class);
         UUID orderIDFake = UUID.randomUUID();
 
-        OrderController oc = new OrderController(orderService, umss);
         when(umss.getUserInformation(orderIDFake)).thenReturn("""
                 {
                   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -274,7 +272,7 @@ class OrderControllerTests {
                   "userType": "Admin"
                 }""");
 
-        Assertions.assertEquals(HttpStatus.OK, oc.getAllOrders(orderIDFake).getStatusCode());
+        Assertions.assertEquals(HttpStatus.OK, orderController.getAllOrders(orderIDFake).getStatusCode());
         verify(umss, times(1)).getUserInformation(orderIDFake);
     }
 
@@ -283,7 +281,6 @@ class OrderControllerTests {
         UserMicroServiceService umss = mock(UserMicroServiceService.class);
         UUID orderIDFake = UUID.randomUUID();
 
-        OrderController oc = new OrderController(orderService, umss);
         when(umss.getUserInformation(orderIDFake)).thenReturn("""
                 {
                   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -296,7 +293,7 @@ class OrderControllerTests {
                   "userType": "Customer"
                 }""");
 
-        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, oc.getAllOrders(orderIDFake).getStatusCode());
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, orderController.getAllOrders(orderIDFake).getStatusCode());
         verify(umss, times(1)).getUserInformation(orderIDFake);
     }
 
@@ -505,6 +502,12 @@ class OrderControllerTests {
 
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(orders, response.getBody());
+    }
+
+    @Test
+    void testTotalCostNotNull() {
+        UUID randomID = UUID.randomUUID();
+        Assertions.assertNotNull(orderController.orderOrderIDTotalCostGet(randomID));
     }
 
     @Test
