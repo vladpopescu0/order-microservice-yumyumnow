@@ -8,7 +8,11 @@ import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
-import nl.tudelft.sem.template.order.domain.user.*;
+import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
+import nl.tudelft.sem.template.order.domain.user.NullFieldException;
+import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
+import nl.tudelft.sem.template.order.domain.user.OrderService;
+import nl.tudelft.sem.template.order.domain.user.UserIDNotFoundException;
 import nl.tudelft.sem.template.user.services.JsonParserService;
 import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,7 +115,7 @@ public class OrderController implements OrderApi {
      *         404 NOT FOUND - No Order exists with the provided ID
      */
     @Override
-    public ResponseEntity<Order> editOrderByID(UUID orderID, Order order) {
+    public ResponseEntity<Order> editOrderByID(UUID orderID, UUID userID, Order order) {
 
         if (!order.getOrderID().equals(orderID)) {
             return ResponseEntity.badRequest().build();
@@ -139,7 +143,7 @@ public class OrderController implements OrderApi {
      *         404 NOT FOUND - No Order exists with the provided ID
      */
     @Override
-    public ResponseEntity<Void> deleteOrderByID(UUID orderID) {
+    public ResponseEntity<Void> deleteOrderByID(UUID orderID, UUID userID) {
         try {
             orderService.deleteOrderByID(orderID);
             return ResponseEntity.ok().build();

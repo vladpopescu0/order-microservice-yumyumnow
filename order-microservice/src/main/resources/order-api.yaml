@@ -277,7 +277,7 @@ paths:
                 $ref: '#/components/schemas/Order'
         '400':
           description: Bad Request. The provided order is malformed
-  /order/{userID}:
+  /order/all/{userID}:
     get:
       tags:
         - Order
