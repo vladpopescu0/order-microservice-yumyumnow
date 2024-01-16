@@ -1,12 +1,12 @@
 package nl.tudelft.sem.template.user.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JsonParserService {
 
@@ -62,6 +62,27 @@ public class JsonParserService {
                     break;
                 }
             }
+            return result;
+        } catch (JsonProcessingException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Parses the userType for a given user.
+     *
+     * @param json json file in String format
+     * @return a String that describes the userType
+     */
+    public static String parseUserType(String json) {
+        if (json == null || json.isEmpty()) {
+            return null;
+        }
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(json);
+            String result = (jsonNode.get("userType") == null) ? null : jsonNode.get("userType").toString();
+            result = result.replaceAll("\"", "");
             return result;
         } catch (JsonProcessingException e) {
             return null;

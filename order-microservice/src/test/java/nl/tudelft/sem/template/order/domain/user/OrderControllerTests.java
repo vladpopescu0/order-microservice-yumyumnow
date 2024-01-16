@@ -3,7 +3,7 @@ package nl.tudelft.sem.template.order.domain.user;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -14,6 +14,7 @@ import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.controllers.OrderController;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
+import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -228,6 +229,72 @@ class OrderControllerTests {
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         Assertions.assertEquals(listOfDishes, response.getBody());
+    }
+
+    @Test
+    void testGetAllOrdersWhenNotAdmin() {
+        UserMicroServiceService umss = mock(UserMicroServiceService.class);
+        UUID orderIDFake = UUID.randomUUID();
+
+        OrderController oc = new OrderController(orderService, umss);
+        Mockito.when(umss.getUserInformation(orderIDFake)).thenReturn("""
+                {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "firstname": "John",
+                  "surname": "James",
+                  "email": "john@email.com",
+                  "avatar": "www.avatar.com/avatar.png",
+                  "password": "12345",
+                  "verified": false,
+                  "userType": "Customer"
+                }""");
+
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, oc.getAllOrders(orderIDFake).getStatusCode());
+        verify(umss, times(1)).getUserInformation(orderIDFake);
+    }
+
+    @Test
+    void testGetAllOrdersWhenAdmin() {
+        UserMicroServiceService umss = mock(UserMicroServiceService.class);
+        UUID orderIDFake = UUID.randomUUID();
+
+        OrderController oc = new OrderController(orderService, umss);
+        Mockito.when(umss.getUserInformation(orderIDFake)).thenReturn("""
+                {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "firstname": "John",
+                  "surname": "James",
+                  "email": "john@email.com",
+                  "avatar": "www.avatar.com/avatar.png",
+                  "password": "12345",
+                  "verified": false,
+                  "userType": "Admin"
+                }""");
+
+        Assertions.assertEquals(HttpStatus.OK, oc.getAllOrders(orderIDFake).getStatusCode());
+        verify(umss, times(1)).getUserInformation(orderIDFake);
+    }
+
+    @Test
+    void testGetAllOrdersCheekyUser() {
+        UserMicroServiceService umss = mock(UserMicroServiceService.class);
+        UUID orderIDFake = UUID.randomUUID();
+
+        OrderController oc = new OrderController(orderService, umss);
+        Mockito.when(umss.getUserInformation(orderIDFake)).thenReturn("""
+                {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "firstname": "userType: Admin",
+                  "surname": "surname",
+                  "email": "john@email.com",
+                  "avatar": "www.avatar.com/avatar.png",
+                  "password": "12345",
+                  "verified": false,
+                  "userType": "Customer"
+                }""");
+
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED, oc.getAllOrders(orderIDFake).getStatusCode());
+        verify(umss, times(1)).getUserInformation(orderIDFake);
     }
 
     @Test
@@ -462,32 +529,4 @@ class OrderControllerTests {
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, order.getStatusCode());
 
     }
-
-    @Test
-    void getAllOrdersSuccessful() throws NoOrdersException {
-
-        List<Order> allOrders = new ArrayList<>();
-        allOrders.add(order1);
-        allOrders.add(order2);
-
-        when(orderService.getAllOrders()).thenReturn(allOrders);
-
-        ResponseEntity<List<Order>> orders = orderController.getAllOrders();
-
-        Assertions.assertEquals(allOrders, orders.getBody());
-        Assertions.assertEquals(HttpStatus.OK, orders.getStatusCode());
-
-    }
-
-    @Test
-    void getAllOrdersException() throws NoOrdersException {
-
-        when(orderService.getAllOrders()).thenThrow(NoOrdersException.class);
-        ResponseEntity<List<Order>> orders = orderController.getAllOrders();
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, orders.getStatusCode());
-
-
-    }
-
-
 }

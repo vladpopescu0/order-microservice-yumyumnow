@@ -8,11 +8,11 @@ import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
-import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
-import nl.tudelft.sem.template.order.domain.user.NullFieldException;
-import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
-import nl.tudelft.sem.template.order.domain.user.OrderService;
+import nl.tudelft.sem.template.order.domain.user.*;
+import nl.tudelft.sem.template.user.services.JsonParserService;
+import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,10 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderController implements OrderApi {
 
     private final transient OrderService orderService;
+    public final transient UserMicroServiceService userMicroServiceService;
 
     @Autowired
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, UserMicroServiceService userMicroServiceService) {
         this.orderService = orderService;
+        this.userMicroServiceService = userMicroServiceService;
     }
 
     /**
@@ -49,15 +51,27 @@ public class OrderController implements OrderApi {
 
     /**
      * Endpoint for returning all Orders in the database.
+     * First checks if the user is an admin
      *
      * @return 200 OK - The Orders are successfully returned
+     *         401 UNAUTHORIZED - The user is not authorised to ask for all the orders
      *         404 NOT FOUND - No Orders are stored in the database
      */
     @Override
-    public ResponseEntity<List<Order>> getAllOrders() {
+    public ResponseEntity<List<Order>> getAllOrders(UUID userID) {
+
         try {
-            List<Order> list = orderService.getAllOrders();
-            return ResponseEntity.ok(list);
+            String jsonUser = userMicroServiceService.getUserInformation(userID);
+            if (jsonUser == null || jsonUser.isEmpty()) { // in case getUserType timed out.
+                throw new UserIDNotFoundException(userID);
+            }
+            String userType = JsonParserService.parseUserType(jsonUser);
+            if (userType.equals("Admin")) {
+                List<Order> list = orderService.getAllOrders();
+                return ResponseEntity.ok(list);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }

@@ -2,7 +2,6 @@ package nl.tudelft.sem.template.user.unit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 import nl.tudelft.sem.template.user.services.JsonParserService;
 import org.junit.jupiter.api.Test;
+
 
 class JsonParserServiceTest {
 
@@ -231,6 +231,54 @@ class JsonParserServiceTest {
               }
             """);
 
+    transient String customerJson = """
+            {
+              "id": "550e8400-e29b-41d4-a716-446655440000",
+              "firstname": "John",
+              "surname": "James",
+              "email": "john@email.com",
+              "avatar": "www.avatar.com/avatar.png",
+              "password": "12345",
+              "verified": false,
+              "userType": "Customer"
+            }""";
+
+    transient String vendorJson = """
+            {
+              "id": "550e8400-e29b-41d4-a716-446655440000",
+              "firstname": "John",
+              "surname": "James",
+              "email": "john@email.com",
+              "avatar": "www.avatar.com/avatar.png",
+              "password": "12345",
+              "verified": false,
+              "userType": "Vendor"
+            }""";
+
+    transient String courierJson = """
+            {
+              "id": "550e8400-e29b-41d4-a716-446655440000",
+              "firstname": "John",
+              "surname": "James",
+              "email": "john@email.com",
+              "avatar": "www.avatar.com/avatar.png",
+              "password": "12345",
+              "verified": false,
+              "userType": "Courier"
+            }""";
+
+    transient String adminJson = """
+            {
+              "id": "550e8400-e29b-41d4-a716-446655440000",
+              "firstname": "John",
+              "surname": "James",
+              "email": "john@email.com",
+              "avatar": "www.avatar.com/avatar.png",
+              "password": "12345",
+              "verified": false,
+              "userType": "Admin"
+            }""";
+
     @Test
     void parseLocationValid() {
         List<Double> list = Arrays.asList(51.998513, 4.37127);
@@ -308,6 +356,33 @@ class JsonParserServiceTest {
         assertNull(result);
     }
 
+    @Test
+    void parseUserTypeJsonIsNull() {
+        String result = JsonParserService.parseUserType(null);
+        assertNull(result);
+    }
 
+    @Test
+    void parseUserTypeIsCustomer() {
+        String result = JsonParserService.parseUserType(customerJson);
+        assertEquals(result, "Customer");
+    }
 
+    @Test
+    void parseUserTypeIsVendor() {
+        String result = JsonParserService.parseUserType(vendorJson);
+        assertEquals(result, "Vendor");
+    }
+
+    @Test
+    void parseUserTypeIsCourier() {
+        String result = JsonParserService.parseUserType(courierJson);
+        assertEquals(result, "Courier");
+    }
+
+    @Test
+    void parseUserTypeIsAdmin() {
+        String result = JsonParserService.parseUserType(adminJson);
+        assertEquals(result, "Admin");
+    }
 }
