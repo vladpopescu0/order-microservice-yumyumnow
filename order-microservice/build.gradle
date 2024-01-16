@@ -101,7 +101,21 @@ jacocoTestCoverageVerification() {
 				value = 'COVEREDRATIO'
 				minimum = 0.8
 			}
+			afterEvaluate {
+				classDirectories.setFrom(files(classDirectories.files.collect{
+					fileTree(dir: it, exclude:['**/generated/**',
+											   '**/api/**','**/model/**'])
+				}))
+			}
 		}
+	}
+}
+jacocoTestReport{
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect{
+			fileTree(dir: it, exclude:['**/generated/**',
+									   '**/api/**','**/model/**'])
+		}))
 	}
 }
 

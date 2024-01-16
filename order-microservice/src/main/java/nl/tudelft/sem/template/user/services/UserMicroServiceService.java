@@ -127,4 +127,15 @@ public class UserMicroServiceService implements UserMicroServiceAPI {
             return false;
         }
     }
+
+    @Override
+    public String getUserName(UUID userID) throws UserIDNotFoundException {
+        return userMicroServiceWebClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/customer/name/{userID}").build(userID))
+                .retrieve()
+                .onStatus(HttpStatus::is4xxClientError, response -> Mono.error(new UserIDNotFoundException(userID)))
+                .onStatus(HttpStatus::is5xxServerError, response -> Mono.error(new UserIDNotFoundException(userID)))
+                .bodyToMono(String.class)
+                .block(requestTimeout);
+    }
 }
