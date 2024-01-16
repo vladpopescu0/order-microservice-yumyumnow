@@ -1,6 +1,8 @@
 package nl.tudelft.sem.template.order.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -13,6 +15,7 @@ import java.util.UUID;
 import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
+import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +23,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -50,9 +54,12 @@ public class OrderIntegrationTests {
     transient Address a2;
     transient String isPaidPath = "/order/{orderID}/isPaid";
     transient String orderPath = "/order";
+    transient String getAllOrdersPath = "/order/all/{userID}";
     transient String orderIdPath = "/order/{orderId}";
     transient String dateString = "1700006405000";
     transient String specialRequirementsString = "Knock on the door";
+    @MockBean
+    transient UserMicroServiceService umss;
 
     /**
      * setup for OrderIntegrationTests.
@@ -146,37 +153,59 @@ public class OrderIntegrationTests {
 
     }
 
-    //    @Transactional
-    //    @Test
-    //    public void getAllOrdersSuccessful() throws Exception {
-    //
-    //        orderService.createOrder(order1);
-    //        orderService.createOrder(order2);
-    //
-    //        MvcResult dbReturn = mockMvc.perform(MockMvcRequestBuilders.get(orderPath)
-    //                .contentType(MediaType.APPLICATION_JSON)
-    //                .accept(MediaType.APPLICATION_JSON))
-    //                .andExpect(MockMvcResultMatchers.status().isOk())
-    //                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-    //                .andReturn();
-    //
-    //        List<Order> allOrders = objectMapper.readValue(dbReturn.getResponse().getContentAsString(),
-    //                new TypeReference<List<Order>>() {});
-    //        Assertions.assertTrue(allOrders.contains(order1));
-    //        Assertions.assertTrue(allOrders.contains(order2));
-    //        Assertions.assertEquals(2, allOrders.size());
-    //
-    //    }
-    //
-    //    @Transactional
-    //    @Test
-    //    public void getAllOrdersNoOrdersFound() throws Exception {
-    //
-    //        mockMvc.perform(MockMvcRequestBuilders.get(orderPath)
-    //                        .contentType(MediaType.APPLICATION_JSON)
-    //                        .accept(MediaType.APPLICATION_JSON))
-    //                .andExpect(MockMvcResultMatchers.status().isNotFound());
-    //    }
+    @Transactional
+    @Test
+    public void getAllOrdersSuccessful() throws Exception {
+        orderService.createOrder(order1);
+        orderService.createOrder(order2);
+
+        UUID adminID = UUID.randomUUID();
+        when(umss.getUserInformation(any())).thenReturn("""
+            {
+              "id": "550e8400-e29b-41d4-a716-446655440000",
+              "firstname": "John",
+              "surname": "James",
+              "email": "john@email.com",
+              "avatar": "www.avatar.com/avatar.png",
+              "password": "12345",
+              "verified": false,
+              "userType": "Admin"
+            }""");
+
+        MvcResult dbReturn = mockMvc.perform(MockMvcRequestBuilders.get(getAllOrdersPath, adminID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        List<Order> allOrders = objectMapper.readValue(dbReturn.getResponse().getContentAsString(),
+                new TypeReference<List<Order>>() {});
+        Assertions.assertTrue(allOrders.contains(order1));
+        Assertions.assertTrue(allOrders.contains(order2));
+        Assertions.assertEquals(2, allOrders.size());
+    }
+
+    @Transactional
+    @Test
+    public void getAllOrdersNoOrdersFound() throws Exception {
+        UUID adminID = UUID.randomUUID();
+        when(umss.getUserInformation(any())).thenReturn("""
+            {
+              "id": "550e8400-e29b-41d4-a716-446655440000",
+              "firstname": "John",
+              "surname": "James",
+              "email": "john@email.com",
+              "avatar": "www.avatar.com/avatar.png",
+              "password": "12345",
+              "verified": false,
+              "userType": "Admin"
+            }""");
+        mockMvc.perform(MockMvcRequestBuilders.get(getAllOrdersPath, adminID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
+    }
 
     @Transactional
     @Test
