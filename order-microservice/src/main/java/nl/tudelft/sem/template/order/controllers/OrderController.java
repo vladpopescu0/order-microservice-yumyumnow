@@ -132,10 +132,17 @@ public class OrderController implements OrderApi {
         }
 
         try {
-            Order edited = orderService.editOrderByID(orderID, order);
-            return ResponseEntity.ok(edited);
-        } catch (NullFieldException e) {
-            return ResponseEntity.unprocessableEntity().build();
+            String jsonUser = userMicroServiceService.getUserInformation(userID);
+            if (jsonUser == null || jsonUser.isEmpty()) {
+                throw new UserIDNotFoundException(userID);
+            }
+            String userType = JsonParserService.parseUserType(jsonUser);
+            if (userType.equals("Admin")) {
+                Order edited = orderService.editOrderByID(orderID, order);
+                return ResponseEntity.ok(edited);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
         } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
@@ -154,8 +161,17 @@ public class OrderController implements OrderApi {
     @Override
     public ResponseEntity<Void> deleteOrderByID(UUID orderID, UUID userID) {
         try {
-            orderService.deleteOrderByID(orderID);
-            return ResponseEntity.ok().build();
+            String jsonUser = userMicroServiceService.getUserInformation(userID);
+            if (jsonUser == null || jsonUser.isEmpty()) {
+                throw new UserIDNotFoundException(userID);
+            }
+            String userType = JsonParserService.parseUserType(jsonUser);
+            if (userType.equals("Admin")) {
+                orderService.deleteOrderByID(orderID);
+                return ResponseEntity.ok().build();
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
         } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
