@@ -39,8 +39,6 @@ class OrderControllerTests {
     @Mock
     private transient UserMicroServiceService userMicroServiceService;
     @Mock
-    private transient OrderValidation orderValidation;
-    @Mock
     private transient DishController dishController;
 
     @InjectMocks
@@ -234,21 +232,6 @@ class OrderControllerTests {
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
-    /*@Test
-    void testOrderOrderIDVendorGet_orderNotValidNotOk() throws OrderNotFoundException, NullFieldException {
-        UUID orderId = UUID.randomUUID();
-
-        ResponseEntity<Boolean> responseValidation= new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-        //when(orderValidation.isOrderValid(orderId)).thenReturn(responseValidation);
-        //when(orderController.orderOrderIDIsPaidGet(orderId)).thenReturn(null);
-        when(orderService.orderIsPaid(orderId)).thenThrow(NullPointerException.class);
-
-        ResponseEntity<Order> response = orderController.orderOrderIDVendorGet(orderId);
-
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }*/
-
     @Test
     void testOrderOrderIDVendorGet_orderValidationBodyIsNull() throws OrderNotFoundException, NullFieldException {
         UUID orderId = UUID.randomUUID();
@@ -362,9 +345,6 @@ class OrderControllerTests {
         ResponseEntity<Order> order = orderController.editOrderByID(order1.getOrderID(), adminID, order1);
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, order.getStatusCode());
     }
-
-
-
 
     @Test
     void testGetListOfDishes_OrderNotFoundException() throws OrderNotFoundException, NullFieldException {
