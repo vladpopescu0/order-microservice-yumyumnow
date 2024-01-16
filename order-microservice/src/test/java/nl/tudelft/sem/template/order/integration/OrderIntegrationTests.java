@@ -514,7 +514,8 @@ public class OrderIntegrationTests {
         // Assert
         resultActions2.andExpect(status().isOk());
 
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/order/{customerID}/history", order1.getCustomerID())
+        MvcResult res = mockMvc
+                .perform(MockMvcRequestBuilders.get("/order/{customerID}/history", order1.getCustomerID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -546,5 +547,36 @@ public class OrderIntegrationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
+    }
+
+    @Transactional
+    @Test
+    public void getStatusOfOrderSuccessful() throws Exception {
+
+        orderService.createOrder(order1);
+
+        MvcResult ret = mockMvc.perform(MockMvcRequestBuilders.get("/order/{orderID}/status", order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String content = ret.getResponse().getContentAsString();
+        Assertions.assertEquals("accepted", content);
+
+    }
+
+    @Transactional
+    @Test
+    public void getStatusOfOrderNotFound() throws Exception {
+
+        orderService.createOrder(order2);
+
+        MvcResult ret = mockMvc.perform(MockMvcRequestBuilders.get("/order/{orderID}/status", order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
     }
 }
