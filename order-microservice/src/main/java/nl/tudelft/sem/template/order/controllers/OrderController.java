@@ -8,7 +8,11 @@ import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
-import nl.tudelft.sem.template.order.domain.user.*;
+import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
+import nl.tudelft.sem.template.order.domain.user.NullFieldException;
+import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
+import nl.tudelft.sem.template.order.domain.user.OrderService;
+import nl.tudelft.sem.template.order.domain.user.UserIDNotFoundException;
 import nl.tudelft.sem.template.user.services.JsonParserService;
 import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +25,21 @@ public class OrderController implements OrderApi {
 
     private final transient OrderService orderService;
     public final transient UserMicroServiceService userMicroServiceService;
+    private final transient DishController dishController;
 
+    /**
+     * Constructor method for OrderController.
+     *
+     * @param orderService an orderservice
+     * @param userMicroServiceService a userMicroServiceService
+     * @param dishController a dishController
+     */
     @Autowired
-    public OrderController(OrderService orderService, UserMicroServiceService userMicroServiceService) {
+    public OrderController(OrderService orderService, UserMicroServiceService userMicroServiceService,
+                           DishController dishController) {
         this.orderService = orderService;
         this.userMicroServiceService = userMicroServiceService;
+        this.dishController = dishController;
     }
 
     /**
@@ -62,7 +76,7 @@ public class OrderController implements OrderApi {
 
         try {
             String jsonUser = userMicroServiceService.getUserInformation(userID);
-            if (jsonUser == null || jsonUser.isEmpty()) { // in case getUserType timed out.
+            if (jsonUser == null || jsonUser.isEmpty()) {
                 throw new UserIDNotFoundException(userID);
             }
             String userType = JsonParserService.parseUserType(jsonUser);
@@ -98,7 +112,6 @@ public class OrderController implements OrderApi {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-
     }
 
     /**
@@ -111,7 +124,7 @@ public class OrderController implements OrderApi {
      *         404 NOT FOUND - No Order exists with the provided ID
      */
     @Override
-    public ResponseEntity<Order> editOrderByID(UUID orderID, Order order) {
+    public ResponseEntity<Order> editOrderByID(UUID orderID, UUID userID, Order order) {
 
         if (!order.getOrderID().equals(orderID)) {
             return ResponseEntity.badRequest().build();
@@ -127,7 +140,6 @@ public class OrderController implements OrderApi {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-
     }
 
     /**
@@ -139,7 +151,7 @@ public class OrderController implements OrderApi {
      *         404 NOT FOUND - No Order exists with the provided ID
      */
     @Override
-    public ResponseEntity<Void> deleteOrderByID(UUID orderID) {
+    public ResponseEntity<Void> deleteOrderByID(UUID orderID, UUID userID) {
         try {
             orderService.deleteOrderByID(orderID);
             return ResponseEntity.ok().build();
@@ -298,5 +310,19 @@ public class OrderController implements OrderApi {
         } catch (NoOrdersException noOrdersException) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    /**Controller for the /order/{orderID}/totalCost endpoint.
+     * It takes the implementation provided in VendorAnalyticsController.
+     *
+     * @param orderID ID of order that needs to be fetched (required)
+     * @return a response where for 200 returns the total sum of the
+     *          dishes that can be found in the database
+     */
+    @Override
+    public ResponseEntity<Float> orderOrderIDTotalCostGet(UUID orderID) {
+        VendorAnalyticsController vendorAnalyticsController =
+                new VendorAnalyticsController(this, dishController, orderService);
+        return vendorAnalyticsController.getOrderEarnings(orderID);
     }
 }

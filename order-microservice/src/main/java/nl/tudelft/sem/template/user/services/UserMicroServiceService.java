@@ -35,7 +35,7 @@ public class UserMicroServiceService implements UserMicroServiceAPI {
     @Override
     public Address getUserAddress(UUID userID) throws UserIDNotFoundException {
         return userMicroServiceWebClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/customer/address/{userID").build(userID))
+                .uri(uriBuilder -> uriBuilder.path("/customer/address/{userID}").build(userID))
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, response -> Mono.error(new UserIDNotFoundException(userID)))
                 .onStatus(HttpStatus::is5xxServerError, response -> Mono.error(new UserIDNotFoundException(userID)))

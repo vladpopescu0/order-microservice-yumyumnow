@@ -9,7 +9,6 @@ import nl.tudelft.sem.template.api.VendorApi;
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.user.CustomerNotFoundException;
-import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
 import nl.tudelft.sem.template.order.domain.user.VendorNotFoundException;
@@ -66,7 +65,7 @@ public class VendorAnalyticsController implements VendorApi {
                                 earnings += dish.getPrice();
                                 break;
                             } else if (dishResponseStatus.equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
-                                wait(1500);
+                                //wait(1500);
                                 t++;
                             } else {
                                 break;
