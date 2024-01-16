@@ -29,6 +29,7 @@ class RestaurantControllerUnitTest {
 
     transient UUID user;
     transient List<UUID> list;
+    transient String asian;
 
     @BeforeEach
     void setup() {
@@ -36,6 +37,7 @@ class RestaurantControllerUnitTest {
         list = new ArrayList<>();
         list.add(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"));
         list.add(UUID.fromString("110e8400-e29b-41d4-a716-446655440000"));
+        asian = "asian";
     }
 
     @Test
@@ -45,7 +47,7 @@ class RestaurantControllerUnitTest {
     }
 
     @Test
-    void getAllRestaurantsValid() throws UserIDNotFoundException {
+    void getAllRestaurantsValid() {
         when(mockRestaurantService.getAllRestaurants(user)).thenReturn(list);
         ResponseEntity<List<UUID>> result = restaurantController.getAllRestaurants(user);
 
@@ -56,8 +58,8 @@ class RestaurantControllerUnitTest {
     }
 
     @Test
-    void getAllRestaurantsError() throws UserIDNotFoundException {
-        when(mockRestaurantService.getAllRestaurants(user)).thenThrow(UserIDNotFoundException.class);
+    void getAllRestaurantsError() {
+        when(mockRestaurantService.getAllRestaurants(user)).thenThrow(RuntimeException.class);
         ResponseEntity<List<UUID>> result = restaurantController.getAllRestaurants(user);
 
         verify(mockRestaurantService, times(1)).getAllRestaurants(user);
@@ -66,12 +68,53 @@ class RestaurantControllerUnitTest {
     }
 
     @Test
-    void getAllRestaurantsNotFound() throws UserIDNotFoundException {
+    void getAllRestaurantsNotFound() {
         when(mockRestaurantService.getAllRestaurants(user)).thenThrow(RuntimeException.class);
         ResponseEntity<List<UUID>> result = restaurantController.getAllRestaurants(user);
 
         verify(mockRestaurantService, times(1)).getAllRestaurants(user);
         assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 
+    }
+
+
+    @Test
+    void getAllRestaurantsWithQueryNullUser() {
+        ResponseEntity<List<UUID>> result = restaurantController.getAllRestaurantsWithQuery(null, "query");
+
+        verify(mockRestaurantService, times(0))
+                .getAllRestaurantsWithQuery(null, "query");
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void getAllRestaurantsWithQueryNullQuery() {
+        ResponseEntity<List<UUID>> result = restaurantController.getAllRestaurantsWithQuery(user, null);
+
+        verify(mockRestaurantService, times(0))
+                .getAllRestaurantsWithQuery(user, null);
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void getAllRestaurantsWithQueryValid() {
+        when(mockRestaurantService.getAllRestaurantsWithQuery(user, asian)).thenReturn(list);
+        ResponseEntity<List<UUID>> result = restaurantController.getAllRestaurantsWithQuery(user, asian);
+
+        verify(mockRestaurantService, times(1))
+                .getAllRestaurantsWithQuery(user, asian);
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(result.getBody()).isEqualTo(list);
+    }
+
+    @Test
+    void getAllRestaurantsWithQueryError() throws UserIDNotFoundException {
+        when(mockRestaurantService.getAllRestaurantsWithQuery(user, asian)).thenThrow(RuntimeException.class);
+
+        ResponseEntity<List<UUID>> result = restaurantController.getAllRestaurantsWithQuery(user, asian);
+
+        verify(mockRestaurantService, times(1))
+                .getAllRestaurantsWithQuery(user, asian);
+        assertThat(result.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 }

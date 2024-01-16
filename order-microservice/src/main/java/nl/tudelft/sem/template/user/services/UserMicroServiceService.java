@@ -1,6 +1,7 @@
 package nl.tudelft.sem.template.user.services;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import nl.tudelft.sem.template.model.Address;
@@ -76,5 +77,36 @@ public class UserMicroServiceService implements UserMicroServiceAPI {
                 .block(requestTimeout); // wait only 3 seconds, instead of default 30
     }
 
+    @Override
+    public String getUserInformation(UUID userID) {
+        return userMicroServiceWebClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/user/{userID}").build(userID))
+                .retrieve()
+                .onStatus(HttpStatus::is4xxClientError, response -> Mono.error(new UserIDNotFoundException(userID)))
+                .onStatus(HttpStatus::is5xxServerError, response -> Mono.error(new UserIDNotFoundException(userID)))
+                .bodyToMono(String.class)
+                .block(requestTimeout); // wait only 3 seconds, instead of default 30
+    }
 
+    @Override
+    public List<String> getVendorsFromID(List<UUID> restaurantsID) {
+        List<String> result = new ArrayList<>(restaurantsID.size());
+        for (UUID id : restaurantsID) {
+            try {
+                String restaurant = userMicroServiceWebClient.get()
+                        .uri(uriBuilder -> uriBuilder.path("/vendor/{userID}").build(id))
+                        .retrieve()
+                        .onStatus(HttpStatus::is4xxClientError, response -> null)
+                        .bodyToMono(String.class)
+                        .block(requestTimeout);
+                if (restaurant != null) {
+                    result.add(restaurant);
+                }
+            } catch (RuntimeException e) { // in case of TIMEOUT, catch error and do nothing
+                break;
+            }
+
+        }
+        return result;
+    }
 }

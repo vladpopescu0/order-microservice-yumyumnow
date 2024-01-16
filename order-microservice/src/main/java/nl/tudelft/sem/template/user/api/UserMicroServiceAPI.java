@@ -12,4 +12,8 @@ public interface UserMicroServiceAPI {
     String getUserLocation(UUID userID) throws UserIDNotFoundException;
 
     List<String> getAllVendors();
+
+    String getUserInformation(UUID userID) throws UserIDNotFoundException;
+
+    List<String> getVendorsFromID(List<UUID> restaurantsID);
 }
