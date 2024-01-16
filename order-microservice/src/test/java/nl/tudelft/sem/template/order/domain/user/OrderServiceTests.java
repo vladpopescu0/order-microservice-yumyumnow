@@ -593,4 +593,21 @@ class OrderServiceTests {
         Assertions.assertTrue(o1.getOrderPaid());
         Mockito.verify(orderRepository, Mockito.times(1)).updateOrderPayment(true, order1.getOrderID());
     }
+
+    @Test
+    public void getStatusOfOrderSuccessful() throws OrderNotFoundException {
+
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.of(order1));
+        String status = orderService.getStatusOfOrderById(order1.getOrderID());
+        Assertions.assertEquals("delivered", status);
+
+    }
+
+    @Test
+    public void getStatusOfOrderNotFound() {
+
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.empty());
+        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.getOrderById(order1.getOrderID()));
+
+    }
 }
