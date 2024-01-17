@@ -763,4 +763,87 @@ public class OrderIntegrationTests {
 
     }
 
+    @Transactional
+    @Test
+    public void editOrderRatingSuccessful() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        orderService.createOrder(order1);
+
+        MvcResult ret = mockMvc.perform(MockMvcRequestBuilders.put(orderRatingPath, order1.getOrderID(), 1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.valueOf(1))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Order edited = orderService.getOrderById(order1.getOrderID());
+        Assertions.assertEquals(1, edited.getRating());
+
+    }
+
+    @Transactional
+    @Test
+    public void editOrderRatingTooLow() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        orderService.createOrder(order1);
+
+        MvcResult ret = mockMvc.perform(MockMvcRequestBuilders.put(orderRatingPath, order1.getOrderID(), 0)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.valueOf(0))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn();
+
+        Order edited = orderService.getOrderById(order1.getOrderID());
+        Assertions.assertEquals(4, edited.getRating());
+
+    }
+
+    @Transactional
+    @Test
+    public void editOrderRatingTooHigh() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        orderService.createOrder(order1);
+
+        mockMvc.perform(MockMvcRequestBuilders.put(orderRatingPath, order1.getOrderID(), 10)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(String.valueOf(10))
+                    .accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andReturn();
+
+        Order edited = orderService.getOrderById(order1.getOrderID());
+        Assertions.assertEquals(4, edited.getRating());
+
+    }
+
+    @Transactional
+    @Test
+    public void editOrderRatingNotFound() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        orderService.createOrder(order1);
+
+        mockMvc.perform(MockMvcRequestBuilders.put(orderRatingPath, order2.getOrderID(), 3)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(String.valueOf(3))
+                    .accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isNotFound())
+            .andReturn();
+
+    }
+
+
 }
