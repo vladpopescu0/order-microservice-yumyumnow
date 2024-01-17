@@ -317,13 +317,15 @@ class RestaurantServiceTest {
 
     @Test
     void calculateDistanceWithin100m() {
-        double result = restaurantService.calculateDistance(new Coordinates(52.001665, 4.373281), new Coordinates(52.001480, 4.372610) );
+        double result = restaurantService.calculateDistance(new Coordinates(52.001665, 4.373281),
+                new Coordinates(52.001480, 4.372610));
         assertThat(result).isCloseTo(0.05, within(0.01));
     }
 
     @Test
     void calculateDistanceAround20km() {
-        double result = restaurantService.calculateDistance(new Coordinates(52.0067, 4.3556), new Coordinates( 52.1583, 4.4931));
+        double result = restaurantService.calculateDistance(new Coordinates(52.0067, 4.3556),
+                new Coordinates(52.1583, 4.4931));
         assertThat(result).isCloseTo(19, within(1d));
     }
 }
