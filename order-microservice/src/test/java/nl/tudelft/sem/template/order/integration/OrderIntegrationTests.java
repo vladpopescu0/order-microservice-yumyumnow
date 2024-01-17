@@ -16,6 +16,7 @@ import java.util.UUID;
 import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.model.Order;
+import nl.tudelft.sem.template.order.controllers.OrderController;
 import nl.tudelft.sem.template.order.domain.user.DishService;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
 import nl.tudelft.sem.template.user.services.UserMicroServiceService;
@@ -52,6 +53,8 @@ public class OrderIntegrationTests {
     private transient OrderService orderService;
     @Autowired
     private transient DishService dishService;
+    @Autowired
+    private transient OrderController orderController;
 
     @MockBean
     private transient UserMicroServiceService userMicroServiceService;
@@ -69,6 +72,7 @@ public class OrderIntegrationTests {
     transient String editOrderPath = "/order/{orderID}/{userID}";
     transient String addDishToOrderPath = "/order/{orderID}/addDishToOrder/{dishID}";
     transient String removeDishFromOrderPath = "/order/{orderID}/removeDishFromOrder/{dishID}";
+    transient String getOrderToVendor = "/order/{orderID}/vendor";
     transient String orderStatusPath = "/order/{orderID}/status";
     transient String dateString = "1700006405000";
     transient String specialRequirementsString = "Knock on the door";
@@ -857,7 +861,7 @@ public class OrderIntegrationTests {
         String orderID = "orderID";
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders
-                        .put(addDishToOrderPath, orderID,d1.getDishID())
+                        .put(addDishToOrderPath, orderID, d1.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
@@ -1021,4 +1025,47 @@ public class OrderIntegrationTests {
         Assertions.assertEquals(400, result.getResponse().getStatus());
 
     }
+
+    @Test
+    @Transactional
+    public void getOrderToVendor_successfully() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        dishService.addDish(d1);
+        dishService.addDish(d2);
+
+        order1.setListOfDishes(List.of(d1.getDishID(), d2.getDishID()));
+        order1.setOrderPaid(false);
+        orderService.createOrder(order1);
+
+        MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders
+                        .get(getOrderToVendor, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+        Assertions.assertEquals(404, result1.getResponse().getStatus());
+
+        orderService.orderIsPaidUpdate(order1.getOrderID());
+
+        MvcResult result2 = mockMvc.perform(MockMvcRequestBuilders
+                        .get(getOrderToVendor, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        order1.setOrderPaid(true);
+        Order order = objectMapper.readValue(result2.getResponse().getContentAsString(), Order.class);
+        Assertions.assertEquals(200, result2.getResponse().getStatus());
+        Assertions.assertEquals(order1, order);
+
+    }
+
 }
