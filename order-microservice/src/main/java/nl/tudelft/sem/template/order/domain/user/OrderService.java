@@ -343,6 +343,9 @@ public class OrderService {
         }
 
         Optional<Order> order = orderRepository.findOrderByOrderID(orderID);
+        if (order.isEmpty()) {
+            throw new NullFieldException();
+        }
         order.get().addListOfDishesItem(dishID);
 
         return order.get();
@@ -360,9 +363,9 @@ public class OrderService {
      */
     public Order removeDishFromOrder(UUID orderID, UUID dishID)
             throws NullFieldException, OrderNotFoundException, DishNotFoundException {
-        /*if (orderID == null || dishID == null) {
+        if (orderID == null || dishID == null) {
             throw new NullFieldException();
-        }*/
+        }
 
         if (!orderRepository.existsByOrderID(orderID)) {
             throw new OrderNotFoundException(orderID);
@@ -372,7 +375,15 @@ public class OrderService {
         }
 
         Optional<Order> order = orderRepository.findOrderByOrderID(orderID);
-        order.get().removeListOfDishesItem(dishID);
+        if (order.isEmpty()) {
+            throw new NullFieldException();
+        }
+
+        if (order.get().getListOfDishes() == null) {
+            order.get().setListOfDishes(new ArrayList<>());
+        } else if (order.get().getListOfDishes().contains(dishID)) {
+            order.get().getListOfDishes().remove(dishID);
+        }
 
         return order.get();
     }

@@ -607,80 +607,121 @@ class OrderServiceTests {
         when(dishRepository.existsByDishID(dishID)).thenReturn(true);
         when(orderRepository.findOrderByOrderID(orderID)).thenReturn(Optional.of(order1));
 
-        orderService.addDishToOrder(orderID, dishID);
-        Assertions.assertEquals(order1.getListOfDishes(), result);
+        Order order = orderService.addDishToOrder(orderID, dishID);
+        Assertions.assertEquals(order.getListOfDishes(), result);
     }
 
     @Test
-    void testAddDishToOrder_nullOrderID() throws OrderNotFoundException, NullFieldException, DishNotFoundException {
-        UUID dishID = d1.getDishID();
-
-        Assertions.assertThrows(NullFieldException.class, () -> orderService.addDishToOrder(null, dishID));
+    void testAddDishToOrder_nullOrderID() {
+        Assertions.assertThrows(NullFieldException.class,
+                () -> orderService.addDishToOrder(null, d1.getDishID()));
     }
 
     @Test
-    void testAddDishToOrder_orderNotFound() throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+    void testAddDishToOrder_orderNotFound() {
         UUID orderID = order1.getOrderID();
-        UUID dishID = d1.getDishID();
 
         when(orderRepository.existsByOrderID(orderID)).thenReturn(false);
 
-        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.addDishToOrder(orderID, dishID));
+        Assertions.assertThrows(OrderNotFoundException.class,
+                () -> orderService.addDishToOrder(orderID, d1.getDishID()));
     }
 
     @Test
-    void testAddDishToOrder_dishNotFound() throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+    void testAddDishToOrder_dishNotFound() {
         UUID orderID = order1.getOrderID();
         UUID dishID = d1.getDishID();
 
         when(orderRepository.existsByOrderID(orderID)).thenReturn(true);
         when(dishRepository.existsByDishID(dishID)).thenReturn(false);
 
-        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.addDishToOrder(orderID, dishID));
+        Assertions.assertThrows(DishNotFoundException.class, () -> orderService.addDishToOrder(orderID, dishID));
     }
 
-    /*@Test
-    void testRemoveDishFromOrder_removeSuccessfully() throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+    @Test
+    void testAddDishToOrder_orderOptionEmpty() {
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        when(orderRepository.existsByOrderID(orderID)).thenReturn(true);
+        when(dishRepository.existsByDishID(dishID)).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(orderID)).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(NullFieldException.class, () -> orderService.addDishToOrder(orderID, dishID));
+    }
+
+    @Test
+    void testRemoveDishFromOrder_removeSuccessfully()
+            throws OrderNotFoundException, NullFieldException, DishNotFoundException {
         UUID orderID = order1.getOrderID();
         UUID dishID = d1.getDishID();
 
         order1.setListOfDishes(new ArrayList<>(Collections.singletonList(dishID)));
+
+        when(orderRepository.existsByOrderID(orderID)).thenReturn(true);
+        when(dishRepository.existsByDishID(dishID)).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(orderID)).thenReturn(Optional.of(order1));
+
+        Order order = orderService.removeDishFromOrder(orderID, dishID);
         List<UUID> result = new ArrayList<>();
+        Assertions.assertEquals(order.getListOfDishes(), result);
+    }
+
+    @Test
+    void testRemoveDishFromOrder_nullOrderID() {
+        Assertions.assertThrows(NullFieldException.class,
+                () -> orderService.removeDishFromOrder(null, d1.getDishID()));
+    }
+
+    @Test
+    void testRemoveDishFromOrder_orderNotFound() {
+        UUID orderID = order1.getOrderID();
+
+        when(orderRepository.existsByOrderID(orderID)).thenReturn(false);
+
+        Assertions.assertThrows(OrderNotFoundException.class,
+                () -> orderService.removeDishFromOrder(orderID, d1.getDishID()));
+    }
+
+    @Test
+    void testRemoveDishFromOrder_dishNotFound() {
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        when(orderRepository.existsByOrderID(orderID)).thenReturn(true);
+        when(dishRepository.existsByDishID(dishID)).thenReturn(false);
+
+        Assertions.assertThrows(DishNotFoundException.class, () -> orderService.removeDishFromOrder(orderID, dishID));
+    }
+
+    @Test
+    void testRemoveDishFromOrder_dishListNull()
+            throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        order1.setListOfDishes(null);
 
         when(orderRepository.existsByOrderID(orderID)).thenReturn(true);
         when(dishRepository.existsByDishID(dishID)).thenReturn(true);
         when(orderRepository.findOrderByOrderID(orderID)).thenReturn(Optional.of(order1));
 
         orderService.removeDishFromOrder(orderID, dishID);
+        List<UUID> result = new ArrayList<>();
         Assertions.assertEquals(order1.getListOfDishes(), result);
     }
 
     @Test
-    void testRemoveDishFromOrder_nullOrderID() throws OrderNotFoundException, NullFieldException, DishNotFoundException {
-        UUID dishID = d1.getDishID();
-
-        Assertions.assertThrows(NullFieldException.class, () -> orderService.addDishToOrder(null, dishID));
-    }
-
-    @Test
-    void testRemoveDishFromOrder_orderNotFound() throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+    void testRemoveDishFromOrder_orderOptionNull() {
         UUID orderID = order1.getOrderID();
         UUID dishID = d1.getDishID();
 
-        when(orderRepository.existsByOrderID(orderID)).thenReturn(false);
-
-        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.addDishToOrder(orderID, dishID));
-    }
-
-    @Test
-    void testRemoveDishFromOrder_dishNotFound() throws OrderNotFoundException, NullFieldException, DishNotFoundException {
-        UUID orderID = order1.getOrderID();
-        UUID dishID = d1.getDishID();
+        order1.setListOfDishes(null);
 
         when(orderRepository.existsByOrderID(orderID)).thenReturn(true);
-        when(dishRepository.existsByDishID(dishID)).thenReturn(false);
+        when(dishRepository.existsByDishID(dishID)).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(orderID)).thenReturn(Optional.empty());
 
-        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.addDishToOrder(orderID, dishID));
-    }*/
-
+        Assertions.assertThrows(NullFieldException.class, () -> orderService.removeDishFromOrder(orderID, dishID));
+    }
 }

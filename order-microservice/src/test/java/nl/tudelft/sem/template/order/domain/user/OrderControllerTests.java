@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import nl.tudelft.sem.template.model.Address;
@@ -234,23 +235,8 @@ class OrderControllerTests {
         Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
-    /*@Test
-    void testOrderOrderIDVendorGet_orderNotValidNotOk() throws OrderNotFoundException, NullFieldException {
-        UUID orderId = UUID.randomUUID();
-
-        ResponseEntity<Boolean> responseValidation= new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-        //when(orderValidation.isOrderValid(orderId)).thenReturn(responseValidation);
-        //when(orderController.orderOrderIDIsPaidGet(orderId)).thenReturn(null);
-        when(orderService.orderIsPaid(orderId)).thenThrow(NullPointerException.class);
-
-        ResponseEntity<Order> response = orderController.orderOrderIDVendorGet(orderId);
-
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }*/
-
     @Test
-    void testOrderOrderIDVendorGet_orderValidationBodyIsNull() throws OrderNotFoundException, NullFieldException {
+    void testOrderOrderIDVendorGet_orderValidationBodyIsNull() throws OrderNotFoundException {
         UUID orderId = UUID.randomUUID();
 
         when(orderService.orderIsPaid(orderId)).thenReturn(true);
@@ -798,4 +784,127 @@ class OrderControllerTests {
 
     }
 
+    @Test
+    void testAddDishToOrder_successfully() throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        order1.setListOfDishes(new ArrayList<>(Collections.singletonList(dishID)));
+        ResponseEntity<Order> result = new ResponseEntity<>(order1, HttpStatus.OK);
+
+        when(orderService.addDishToOrder(orderID, dishID)).thenReturn(order1);
+
+        ResponseEntity<Order> response = orderController.addDishToOrder(orderID, dishID);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(result.getBody(), response.getBody());
+    }
+
+    @Test
+    void testAddDishToOrder_NullFieldExceptionThrown()
+            throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+        UUID dishID = d1.getDishID();
+
+        when(orderService.addDishToOrder(null, dishID)).thenThrow(NullFieldException.class);
+
+        ResponseEntity<Order> response = orderController.addDishToOrder(null, dishID);
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
+    }
+
+    @Test
+    void testAddDishToOrder_OrderNotFoundExceptionThrown()
+            throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        when(orderService.addDishToOrder(orderID, dishID)).thenThrow(OrderNotFoundException.class);
+
+        ResponseEntity<Order> response = orderController.addDishToOrder(orderID, dishID);
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void testAddDishToOrder_DishNotFoundExceptionThrown()
+            throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        when(orderService.addDishToOrder(orderID, dishID)).thenThrow(DishNotFoundException.class);
+
+        ResponseEntity<Order> response = orderController.addDishToOrder(orderID, dishID);
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void testAddDishToOrder_ExceptionThrown()
+            throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        when(orderService.addDishToOrder(orderID, dishID)).thenThrow(NullPointerException.class);
+
+        ResponseEntity<Order> response = orderController.addDishToOrder(orderID, dishID);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    void removeDishFromOrder_successfully() throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+        UUID orderID = order2.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        order2.setListOfDishes(new ArrayList<>());
+        ResponseEntity<Order> result = new ResponseEntity<>(order2, HttpStatus.OK);
+
+        when(orderService.removeDishFromOrder(orderID, dishID)).thenReturn(order2);
+
+        ResponseEntity<Order> response = orderController.removeDishFromOrder(orderID, dishID);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(result.getBody(), response.getBody());
+    }
+
+    @Test
+    void removeDishFromOrder_NullFieldExceptionThrown()
+            throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+        UUID dishID = d1.getDishID();
+
+        when(orderService.removeDishFromOrder(null, dishID)).thenThrow(NullFieldException.class);
+
+        ResponseEntity<Order> response = orderController.removeDishFromOrder(null, dishID);
+        Assertions.assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
+    }
+
+    @Test
+    void removeDishFromOrder_OrderNotFoundExceptionThrown()
+            throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        when(orderService.removeDishFromOrder(orderID, dishID)).thenThrow(OrderNotFoundException.class);
+
+        ResponseEntity<Order> response = orderController.removeDishFromOrder(orderID, dishID);
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void removeDishFromOrder_DishNotFoundExceptionThrown()
+            throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        when(orderService.removeDishFromOrder(orderID, dishID)).thenThrow(DishNotFoundException.class);
+
+        ResponseEntity<Order> response = orderController.removeDishFromOrder(orderID, dishID);
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void removeDishFromOrder_ExceptionThrown() throws
+            OrderNotFoundException, NullFieldException, DishNotFoundException {
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        when(orderService.removeDishFromOrder(orderID, dishID)).thenThrow(NullPointerException.class);
+
+        ResponseEntity<Order> response = orderController.removeDishFromOrder(orderID, dishID);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
 }

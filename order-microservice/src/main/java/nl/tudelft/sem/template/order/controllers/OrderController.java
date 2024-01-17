@@ -9,6 +9,7 @@ import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
 import nl.tudelft.sem.template.order.domain.helpers.OrderValidation;
+import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
 import nl.tudelft.sem.template.order.domain.user.NullFieldException;
 import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
@@ -390,5 +391,54 @@ public class OrderController implements OrderApi {
         VendorAnalyticsController vendorAnalyticsController =
                 new VendorAnalyticsController(this, dishController, orderService);
         return vendorAnalyticsController.getOrderEarnings(orderID);
+    }
+
+    /**
+     * Controller for the /order/{orderID}/addDishToOrder/{dishID}.
+     *
+     * @param orderID the id of the order to add the dish to
+     * @param dishID  the id of the dish to be added to the order
+     * @return 200 OK if the dish has been added successfully to the order, including the order
+     *         422 UNPROCESSABLE ENTITY if the orderID or dishID are null
+     *         404 NOT FOUND if the order or the dish could not be found
+     *         400 BAD REQUEST if the operation was not successful
+     */
+    @Override
+    public ResponseEntity<Order> addDishToOrder(UUID orderID, UUID dishID) {
+        try {
+            Order order = orderService.addDishToOrder(orderID, dishID);
+            return ResponseEntity.ok(order);
+        } catch (NullFieldException e) {
+            return ResponseEntity.unprocessableEntity().build();
+        } catch (OrderNotFoundException | DishNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * Controller for the /order/{orderID}/removeDishFromOrder/{dishID}.
+     *
+     * @param orderID the id of the order to remove the dish from
+     * @param dishID  the id of the dish to be removed from the order
+     * @return 200 OK if the dish has been removed successfully from the order, including the order
+     *         422 UNPROCESSABLE ENTITY if the orderID or dishID are null
+     *         404 NOT FOUND if the order or the dish could not be found
+     *         400 BAD REQUEST if the operation was not successful
+     */
+    @Override
+    public ResponseEntity<Order> removeDishFromOrder(UUID orderID, UUID dishID) {
+        try {
+            Order order = orderService.removeDishFromOrder(orderID, dishID);
+            return ResponseEntity.ok(order);
+        } catch (NullFieldException e) {
+            return ResponseEntity.unprocessableEntity().build();
+        } catch (OrderNotFoundException | DishNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+
     }
 }
