@@ -746,4 +746,22 @@ class OrderServiceTests {
         Assertions.assertFalse(orderService.isValidStatusEnumType("random string"));
 
     }
+
+    @Test
+    void getRatingOfOrderSuccessful() throws OrderNotFoundException {
+
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.of(order1));
+        Integer rating = orderService.getOrderRatingByID(order1.getOrderID());
+        Assertions.assertEquals(4, rating);
+
+    }
+
+    @Test
+    void getRatingOfOrderNotFound() {
+
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.empty());
+        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.getOrderRatingByID(order1.getOrderID()));
+
+    }
+
 }
