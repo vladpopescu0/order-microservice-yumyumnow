@@ -911,5 +911,33 @@ class OrderControllerTests {
 
     }
 
+    @Test
+    void getOrderRatingSuccessful() throws OrderNotFoundException {
+
+        when(orderService.getOrderRatingByID(order1.getOrderID())).thenReturn(order1.getRating());
+        ResponseEntity<Integer> rating = orderController.getOrderRatingByID(order1.getOrderID());
+        Assertions.assertEquals(HttpStatus.OK, rating.getStatusCode());
+        Assertions.assertEquals(order1.getRating(), rating.getBody());
+
+    }
+
+    @Test
+    void getOrderRatingOrderNotFound() throws OrderNotFoundException {
+
+        when(orderService.getOrderRatingByID(order1.getOrderID())).thenThrow(OrderNotFoundException.class);
+        ResponseEntity<Integer> rating = orderController.getOrderRatingByID(order1.getOrderID());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, rating.getStatusCode());
+
+    }
+
+    @Test
+    void getOrderRatingException() throws OrderNotFoundException {
+
+        when(orderService.getOrderRatingByID(order1.getOrderID())).thenThrow(RuntimeException.class);
+        ResponseEntity<Integer> rating = orderController.getOrderRatingByID(order1.getOrderID());
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, rating.getStatusCode());
+
+    }
+
 
 }
