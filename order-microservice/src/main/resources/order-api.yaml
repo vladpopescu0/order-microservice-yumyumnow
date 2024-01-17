@@ -401,6 +401,68 @@ paths:
           description: Not authorised. The user is not authorised for this action
         '404':
           description: Not Found. Order not found
+  /order/{orderID}/addDishToOrder/{dishID}:
+    put:
+      tags:
+        - Order
+      summary: Add a dish to an order
+      description: Add a dish to an order by orderID and dishID
+      operationId: addDishToOrder
+      parameters:
+        - name: orderID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: UUID
+        - name: dishID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Operation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Not found. Order or Dish not found
+        '400':
+          description: Bad request. The provided ID is malformed
+  /order/{orderID}/removeDishFromOrder/{dishID}:
+    put:
+      tags:
+        - Order
+      summary: Remove a dish from an order
+      description: Remove a dish from an order by orderID and dishID
+      operationId: removeDishFromOrder
+      parameters:
+        - name: orderID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: UUID
+        - name: dishID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Operation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Not found. Order or Dish not found
+        '400':
+          description: Bad request. The provided ID is malformed
   /order/{orderID}/orderRating:
     get:
       tags:
