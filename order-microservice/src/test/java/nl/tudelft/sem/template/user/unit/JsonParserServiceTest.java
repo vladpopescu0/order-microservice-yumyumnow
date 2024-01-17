@@ -1,5 +1,6 @@
 package nl.tudelft.sem.template.user.unit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -279,6 +280,7 @@ class JsonParserServiceTest {
               "verified": false,
               "userType": "Admin"
             }""";
+    transient UUID uuid = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
     @Test
     void parseLocationValid() {
@@ -322,7 +324,7 @@ class JsonParserServiceTest {
     @Test
     void parseVendorsLocationValid() {
         HashMap<UUID, List<Double>> hashMap = new HashMap<>();
-        hashMap.put(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"), Arrays.asList(51.998513, 4.37127));
+        hashMap.put(uuid, Arrays.asList(51.998513, 4.37127));
         hashMap.put(UUID.fromString("110e8400-e29b-41d4-a716-446655440000"), Arrays.asList(5.998513, 41.37127));
         HashMap<UUID, List<Double>> result = JsonParserService.parseVendorsLocation(vendor2);
         assertEquals(hashMap, result);
@@ -331,7 +333,7 @@ class JsonParserServiceTest {
     @Test
     void parseVendorsLocationNoLocation() {
         HashMap<UUID, List<Double>> hashMap = new HashMap<>();
-        hashMap.put(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"), Arrays.asList(51.998513, 4.37127));
+        hashMap.put(uuid, Arrays.asList(51.998513, 4.37127));
         HashMap<UUID, List<Double>> result = JsonParserService.parseVendorsLocation(vendor2NotValid);
         assertEquals(hashMap, result);
     }
@@ -339,7 +341,7 @@ class JsonParserServiceTest {
     @Test
     void parseVendorsLocationMissingLocation() {
         HashMap<UUID, List<Double>> hashMap = new HashMap<>();
-        hashMap.put(UUID.fromString("550e8400-e29b-41d4-a716-446655440000"), Arrays.asList(51.998513, 4.37127));
+        hashMap.put(uuid, Arrays.asList(51.998513, 4.37127));
         HashMap<UUID, List<Double>> result = JsonParserService.parseVendorsLocation(vendor2NoLoc);
         assertEquals(hashMap, result);
     }
@@ -385,5 +387,66 @@ class JsonParserServiceTest {
     void parseUserTypeIsAdmin() {
         String result = JsonParserService.parseUserType(adminJson);
         assertEquals(result, "Admin");
+    }
+
+    @Test
+    void parseVendorCuisineEmptyList() {
+        HashMap<UUID, String> result = JsonParserService.parseVendorCuisine(new ArrayList<>());
+        assertNull(result);
+    }
+
+    @Test
+    void parseVendorCuisinePartial() {
+        String v1 = """
+              {
+                "userID": "550e8400-e29b-41d4-a716-446655440000",
+                "user": {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "firstname": "John",
+                  "surname": "James",
+                  "email": "john@email.com",
+                  "avatar": "www.avatar.com/avatar.png",
+                  "password": "12345",
+                  "verified": false,
+                  "userType": "Customer"
+                },
+                "cuisineType": "italian"
+            }""";
+        String v2 = """
+              {
+                "userID": "110e8400-e29b-41d4-a716-446655440000",
+                "user": {
+                  "id": "110e8400-e29b-41d4-a716-446655440000",
+                  "firstname": "John",
+                  "surname": "James",
+                  "email": "john@email.com",
+                  "avatar": "www.avatar.com/avatar.png",
+                  "password": "12345",
+                  "verified": false,
+                  "userType": "Customer"
+                },
+                "cuisineType":
+            }""";
+        String v3 = """
+              {
+                "userID": "220e8400-e29b-41d4-a716-446655440000",
+                "user": {
+                  "id": "220e8400-e29b-41d4-a716-446655440000",
+                  "firstname": "John",
+                  "surname": "James",
+                  "email": "john@email.com",
+                  "avatar": "www.avatar.com/avatar.png",
+                  "password": "12345",
+                  "verified": false,
+                  "userType": "Customer"
+                },
+                "cuisineType": "Asian"
+            }""";
+
+        HashMap<UUID, String> result = JsonParserService.parseVendorCuisine(List.of(v1, v2, v3));
+        HashMap<UUID, String> expected = new HashMap<>();
+        expected.put(uuid, "italian");
+        expected.put(UUID.fromString("220e8400-e29b-41d4-a716-446655440000"), "Asian");
+        assertThat(result).isEqualTo(expected);
     }
 }
