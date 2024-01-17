@@ -78,20 +78,30 @@ public class RestaurantService {
         } catch (UserIDNotFoundException e) {
 
             // if we catch an error, then get the user's current location
-            try {
-                String jsonUser = userMicroServiceService.getUserLocation(userID);
-                if (jsonUser == null || jsonUser.isEmpty()) { // in case getUserLocation timed out.
-                    throw new UserIDNotFoundException(userID);
-                }
-                List<Double> userLocation = JsonParserService.parseLocation(jsonUser);
-                // option: error thrown in the JsonParserService could be caught in this try catch
-                if (userLocation == null) {
-                    throw new RuntimeException("Something went wrong parsing location");
-                }
-                return userLocation;
-            } catch (Exception ex) {
+            return userLocationHandler(userID);
+        }
+    }
+
+    /** Handles the checking for user existence.
+     *
+     * @param userID the id of the checked user
+     * @return the checked userLocation
+     * @throws UserIDNotFoundException if the user does not exist
+     */
+    private List<Double> userLocationHandler(UUID userID) throws UserIDNotFoundException {
+        try {
+            String jsonUser = userMicroServiceService.getUserLocation(userID);
+            if (jsonUser == null || jsonUser.isEmpty()) { // in case getUserLocation timed out.
                 throw new UserIDNotFoundException(userID);
             }
+            List<Double> userLocation = JsonParserService.parseLocation(jsonUser);
+            // option: error thrown in the JsonParserService could be caught in this try catch
+            if (userLocation == null) {
+                throw new RuntimeException("Something went wrong parsing location");
+            }
+            return userLocation;
+        } catch (Exception ex) {
+            throw new UserIDNotFoundException(userID);
         }
     }
 
