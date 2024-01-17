@@ -71,7 +71,6 @@ public class VendorAnalyticsController implements VendorApi {
      * @param earnings current order value
      * @return total earnings including the current dish
      */
-
     private Float earningsCalculator(UUID id, Float earnings) {
         ResponseEntity<Dish> dishResponse;
         int t = 0;
