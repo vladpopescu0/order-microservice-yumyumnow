@@ -395,9 +395,9 @@ public class OrderService {
             throw new InvalidOrderStatusException(orderID);
         }
 
-        Order order = orderRepository.findOrderByOrderID(orderID).get();
-        order.setStatus(Order.StatusEnum.valueOf(status.toUpperCase(Locale.ENGLISH)));
-        orderRepository.save(order);
+        Order.StatusEnum modified = Order.StatusEnum.valueOf(status.toUpperCase(Locale.ENGLISH));
+
+        orderRepository.updateOrderStatus(modified, orderID);
 
     }
 
@@ -460,6 +460,7 @@ public class OrderService {
         Order order = orderRepository.findOrderByOrderID(orderID).get();
         order.setRating(rating);
         order = orderRepository.save(order);
+
         return order;
 
     }

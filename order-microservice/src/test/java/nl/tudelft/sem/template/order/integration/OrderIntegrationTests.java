@@ -62,6 +62,9 @@ public class OrderIntegrationTests {
     transient String editOrderPath = "/order/{orderID}/{userID}";
     
     transient String orderStatusPath = "/order/{orderID}/status";
+
+    transient String orderRatingPath = "/order/{orderID}/orderRating";
+
     transient String dateString = "1700006405000";
     transient String specialRequirementsString = "Knock on the door";
 
@@ -721,4 +724,43 @@ public class OrderIntegrationTests {
                 .andReturn();
 
     }
+
+    @Transactional
+    @Test
+    public void getOrderRatingSuccessful() throws Exception{
+
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        orderService.createOrder(order1);
+
+        MvcResult ret = mockMvc.perform(MockMvcRequestBuilders.get(orderRatingPath, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Integer rating = Integer.valueOf(ret.getResponse().getContentAsString());
+        Assertions.assertEquals(4, rating);
+
+    }
+
+    @Transactional
+    @Test
+    public void getOrderRatingNotFound() throws Exception{
+
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        orderService.createOrder(order1);
+
+       mockMvc.perform(MockMvcRequestBuilders.get(orderRatingPath, order2.getOrderID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(MockMvcResultMatchers.status().isNotFound())
+            .andReturn();
+
+    }
+
 }
