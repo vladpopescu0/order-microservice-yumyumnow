@@ -11,6 +11,7 @@ import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
 import nl.tudelft.sem.template.order.domain.helpers.OrderValidation;
 import nl.tudelft.sem.template.order.domain.user.CustomerNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
+import nl.tudelft.sem.template.order.domain.user.InvalidOrderStatusException;
 import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
 import nl.tudelft.sem.template.order.domain.user.NullFieldException;
 import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
@@ -443,6 +444,48 @@ public class OrderController implements OrderApi {
             return ResponseEntity.unprocessableEntity().build();
         } catch (OrderNotFoundException | DishNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+    }
+
+
+    /**
+     * Endpoint for getting the status of an Order.
+     *
+     * @param orderID ID of order to return (required)
+     * @return status of Order in String value
+     */
+    @Override
+    public ResponseEntity<String> getStatusOfOrderById(UUID orderID) {
+
+        try {
+            String status = orderService.getStatusOfOrderById(orderID).toString();
+            return ResponseEntity.ok(status);
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * Endpoint for updating the status of an Order.
+     *
+     * @param orderID ID specifying the Order
+     * @param status New Status as String
+     * @return Edited Order in the database
+     */
+    @Override
+    public ResponseEntity<Void> updateStatusOfOrderById(UUID orderID, String status) {
+        try {
+            orderService.updateStatusOfOrderById(orderID, status);
+            return ResponseEntity.ok().build();
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (InvalidOrderStatusException e) {
+            return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

@@ -60,6 +60,8 @@ public class OrderIntegrationTests {
     transient String getAllOrdersPath = "/order/all/{userID}";
     transient String orderIdPath = "/order/{orderId}";
     transient String editOrderPath = "/order/{orderID}/{userID}";
+    
+    transient String orderStatusPath = "/order/{orderID}/status";
     transient String dateString = "1700006405000";
     transient String specialRequirementsString = "Knock on the door";
 
@@ -556,7 +558,8 @@ public class OrderIntegrationTests {
         // Assert
         resultActions2.andExpect(status().isOk());
 
-        MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get("/order/{customerID}/history", order1.getCustomerID())
+        MvcResult res = mockMvc
+                .perform(MockMvcRequestBuilders.get("/order/{customerID}/history", order1.getCustomerID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -593,5 +596,129 @@ public class OrderIntegrationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
+    }
+
+    @Transactional
+    @Test
+    public void getStatusOfOrderSuccessful() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        orderService.createOrder(order1);
+
+        MvcResult ret = mockMvc.perform(MockMvcRequestBuilders.get(orderStatusPath, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String content = ret.getResponse().getContentAsString();
+        Assertions.assertEquals("accepted", content);
+
+    }
+
+    @Transactional
+    @Test
+    public void getStatusOfOrderNotFound() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(order2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
+        orderService.createOrder(order2);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(orderStatusPath, order1.getOrderID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+    }
+
+    @Transactional
+    @Test
+    public void updateStatusOfOrderSuccessful() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        orderService.createOrder(order1);
+
+        String s1 = "DELIVERED";
+
+        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(s1)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+
+        String edit1 = orderService.getStatusOfOrderById(order1.getOrderID());
+        Assertions.assertEquals("delivered", edit1);
+
+        String s2 = "rejected";
+
+        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s2)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(s2)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+
+        String edit2 = orderService.getStatusOfOrderById(order1.getOrderID());
+        Assertions.assertEquals("rejected", edit2);
+
+        String s3 = "DELIVERED";
+
+        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s3)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(s3)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+
+        String edit3 = orderService.getStatusOfOrderById(order1.getOrderID());
+        Assertions.assertEquals("delivered", edit3);
+
+    }
+
+    @Transactional
+    @Test
+    public void updateStatusOfOrderNotFound() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(order2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
+        orderService.createOrder(order2);
+
+        String s1 = "DELIVERED";
+
+        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(s1)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+    }
+
+    @Transactional
+    @Test
+    public void updateStatusOfOrderInvalidStatus() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        orderService.createOrder(order1);
+
+        String s1 = "not_a_status";
+
+        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(s1)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isUnsupportedMediaType())
+                .andReturn();
+
     }
 }

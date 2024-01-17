@@ -652,6 +652,7 @@ class OrderServiceTests {
 
     @Test
     void testAddDishToOrder_addSuccessfully() throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+
         UUID orderID = order1.getOrderID();
         UUID dishID = d1.getDishID();
 
@@ -665,26 +666,32 @@ class OrderServiceTests {
 
         Order order = orderService.addDishToOrder(orderID, dishID);
         Assertions.assertEquals(order.getListOfDishes(), result);
+
     }
 
     @Test
     void testAddDishToOrder_nullOrderID() {
+
         Assertions.assertThrows(NullFieldException.class,
                 () -> orderService.addDishToOrder(null, d1.getDishID()));
+
     }
 
     @Test
     void testAddDishToOrder_orderNotFound() {
+
         UUID orderID = order1.getOrderID();
 
         when(orderRepository.existsByOrderID(orderID)).thenReturn(false);
 
         Assertions.assertThrows(OrderNotFoundException.class,
                 () -> orderService.addDishToOrder(orderID, d1.getDishID()));
+
     }
 
     @Test
     void testAddDishToOrder_dishNotFound() {
+
         UUID orderID = order1.getOrderID();
         UUID dishID = d1.getDishID();
 
@@ -692,10 +699,12 @@ class OrderServiceTests {
         when(dishRepository.existsByDishID(dishID)).thenReturn(false);
 
         Assertions.assertThrows(DishNotFoundException.class, () -> orderService.addDishToOrder(orderID, dishID));
+
     }
 
     @Test
     void testAddDishToOrder_orderOptionEmpty() {
+
         UUID orderID = order1.getOrderID();
         UUID dishID = d1.getDishID();
 
@@ -704,11 +713,13 @@ class OrderServiceTests {
         when(orderRepository.findOrderByOrderID(orderID)).thenReturn(Optional.empty());
 
         Assertions.assertThrows(NullFieldException.class, () -> orderService.addDishToOrder(orderID, dishID));
+
     }
 
     @Test
     void testRemoveDishFromOrder_removeSuccessfully()
             throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+
         UUID orderID = order1.getOrderID();
         UUID dishID = d1.getDishID();
 
@@ -721,26 +732,40 @@ class OrderServiceTests {
         Order order = orderService.removeDishFromOrder(orderID, dishID);
         List<UUID> result = new ArrayList<>();
         Assertions.assertEquals(order.getListOfDishes(), result);
+
     }
 
     @Test
     void testRemoveDishFromOrder_nullOrderID() {
+
         Assertions.assertThrows(NullFieldException.class,
                 () -> orderService.removeDishFromOrder(null, d1.getDishID()));
+
+    }
+
+    @Test
+    void testRemoveDishFromOrder_nullDishId() {
+
+        Assertions.assertThrows(NullFieldException.class,
+                () -> orderService.removeDishFromOrder(order1.getOrderID(), null));
+
     }
 
     @Test
     void testRemoveDishFromOrder_orderNotFound() {
+
         UUID orderID = order1.getOrderID();
 
         when(orderRepository.existsByOrderID(orderID)).thenReturn(false);
 
         Assertions.assertThrows(OrderNotFoundException.class,
                 () -> orderService.removeDishFromOrder(orderID, d1.getDishID()));
+
     }
 
     @Test
     void testRemoveDishFromOrder_dishNotFound() {
+
         UUID orderID = order1.getOrderID();
         UUID dishID = d1.getDishID();
 
@@ -748,27 +773,12 @@ class OrderServiceTests {
         when(dishRepository.existsByDishID(dishID)).thenReturn(false);
 
         Assertions.assertThrows(DishNotFoundException.class, () -> orderService.removeDishFromOrder(orderID, dishID));
-    }
 
-    @Test
-    void testRemoveDishFromOrder_dishListNull()
-            throws OrderNotFoundException, NullFieldException, DishNotFoundException {
-        UUID orderID = order1.getOrderID();
-        UUID dishID = d1.getDishID();
-
-        order1.setListOfDishes(null);
-
-        when(orderRepository.existsByOrderID(orderID)).thenReturn(true);
-        when(dishRepository.existsByDishID(dishID)).thenReturn(true);
-        when(orderRepository.findOrderByOrderID(orderID)).thenReturn(Optional.of(order1));
-
-        orderService.removeDishFromOrder(orderID, dishID);
-        List<UUID> result = new ArrayList<>();
-        Assertions.assertEquals(order1.getListOfDishes(), result);
     }
 
     @Test
     void testRemoveDishFromOrder_orderOptionNull() {
+
         UUID orderID = order1.getOrderID();
         UUID dishID = d1.getDishID();
 
@@ -779,5 +789,103 @@ class OrderServiceTests {
         when(orderRepository.findOrderByOrderID(orderID)).thenReturn(Optional.empty());
 
         Assertions.assertThrows(NullFieldException.class, () -> orderService.removeDishFromOrder(orderID, dishID));
+
+    }
+
+    @Test
+    public void getStatusOfOrderSuccessful() throws OrderNotFoundException {
+
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.of(order1));
+        String status = orderService.getStatusOfOrderById(order1.getOrderID());
+        Assertions.assertEquals("delivered", status);
+
+    }
+
+    @Test
+    public void getStatusOfOrderNotFound() {
+
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.empty());
+        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.getStatusOfOrderById(order1.getOrderID()));
+
+    }
+
+    @Test
+    public void updateStatusOfOrderSuccessful() throws OrderNotFoundException, InvalidOrderStatusException {
+
+        Order mockOrder = Mockito.mock(Order.class);
+
+        when(orderService.checkUUIDIsUnique(mockOrder.getOrderID())).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(mockOrder.getOrderID())).thenReturn(Optional.of(mockOrder));
+        orderService.updateStatusOfOrderById(mockOrder.getOrderID(), "ACCEPTED");
+
+        Mockito.verify(mockOrder, Mockito.times(1)).setStatus(Order.StatusEnum.ACCEPTED);
+        Mockito.verify(orderRepository, Mockito.times(1)).save(mockOrder);
+    }
+
+    @Test
+    public void updateStatusOfOrderSuccessfulLowerCase() throws OrderNotFoundException, InvalidOrderStatusException {
+
+        Order mockOrder = Mockito.mock(Order.class);
+
+        when(orderService.checkUUIDIsUnique(mockOrder.getOrderID())).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(mockOrder.getOrderID())).thenReturn(Optional.of(mockOrder));
+        orderService.updateStatusOfOrderById(mockOrder.getOrderID(), "rejected");
+
+        Mockito.verify(mockOrder, Mockito.times(1)).setStatus(Order.StatusEnum.REJECTED);
+        Mockito.verify(orderRepository, Mockito.times(1)).save(mockOrder);
+    }
+
+    @Test
+    public void updateStatusOfOrderSuccessfulMixedCase() throws OrderNotFoundException, InvalidOrderStatusException {
+
+        Order mockOrder = Mockito.mock(Order.class);
+
+        when(orderService.checkUUIDIsUnique(mockOrder.getOrderID())).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(mockOrder.getOrderID())).thenReturn(Optional.of(mockOrder));
+        orderService.updateStatusOfOrderById(mockOrder.getOrderID(), "PendinG");
+
+        Mockito.verify(mockOrder, Mockito.times(1)).setStatus(Order.StatusEnum.PENDING);
+        Mockito.verify(orderRepository, Mockito.times(1)).save(mockOrder);
+
+    }
+
+
+    @Test
+    public void updateStatusOfOrderNotFound() {
+
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
+        Assertions.assertThrows(OrderNotFoundException.class,
+                () -> orderService.updateStatusOfOrderById(order1.getOrderID(), "REJECTED"));
+
+    }
+
+    @Test
+    public void updateStatusOfOrderInvalidStatus() {
+
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
+        Assertions.assertThrows(InvalidOrderStatusException.class,
+                () -> orderService.updateStatusOfOrderById(order1.getOrderID(), "GREEN"));
+
+    }
+
+    @Test
+    public void allStatusesAreValid() {
+
+        Assertions.assertTrue(orderService.isValidStatusEnumType("pending"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("accepted"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("REJECTED"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("PREPARING"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("Given to courier"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("On-transit"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("Delivered"));
+
+    }
+
+    @Test
+    public void isValidStatusEnumFalse() {
+
+        Assertions.assertFalse(orderService.isValidStatusEnumType(null));
+        Assertions.assertFalse(orderService.isValidStatusEnumType("random string"));
+
     }
 }
