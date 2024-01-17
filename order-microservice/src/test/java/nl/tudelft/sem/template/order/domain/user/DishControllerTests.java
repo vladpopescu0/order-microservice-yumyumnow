@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.order.controllers.DishController;
+import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,7 +71,7 @@ public class DishControllerTests {
     }
 
     @Test
-    public void add_dish_successful() throws DishIdAlreadyInUseException {
+    public void add_dish_successful() throws DishIdAlreadyInUseException, VendorNotFoundException {
         when(dishService.addDish(d1)).thenReturn(d1);
 
         ResponseEntity<Dish> res = dishController.addDish(d1.getVendorID(), d1);
@@ -87,7 +88,7 @@ public class DishControllerTests {
     }
 
     @Test
-    public void add_dish_unsuccessful_id_already_exists() throws DishIdAlreadyInUseException {
+    public void add_dish_unsuccessful_id_already_exists() throws DishIdAlreadyInUseException, VendorNotFoundException {
         when(dishService.addDish(d1)).thenThrow(DishIdAlreadyInUseException.class);
 
         ResponseEntity<Dish> res = dishController.addDish(d1.getVendorID(), d1);
@@ -131,7 +132,7 @@ public class DishControllerTests {
     }
 
     @Test
-    public void update_dish_correct_id() throws DishNotFoundException {
+    public void update_dish_correct_id() throws DishNotFoundException, VendorNotFoundException {
         when(dishService.updateDish(d1.getDishID(), d1)).thenReturn(d1);
 
         ResponseEntity<Dish> res = dishController.updateDishByID(d1.getDishID(), d1);
@@ -141,7 +142,7 @@ public class DishControllerTests {
     }
 
     @Test
-    public void update_dish_not_found() throws DishNotFoundException {
+    public void update_dish_not_found() throws DishNotFoundException, VendorNotFoundException {
         when(dishService.updateDish(d1.getDishID(), d1)).thenThrow(DishNotFoundException.class);
 
         ResponseEntity<Dish> res = dishController.updateDishByID(d1.getDishID(), d1);
@@ -150,7 +151,7 @@ public class DishControllerTests {
     }
 
     @Test
-    public void update_dish_bad_request() throws DishNotFoundException {
+    public void update_dish_bad_request() throws DishNotFoundException, VendorNotFoundException {
         when(dishService.updateDish(d1.getDishID(), d1)).thenThrow(NullPointerException.class);
 
         ResponseEntity<Dish> res = dishController.updateDishByID(d1.getDishID(), d1);

@@ -1,6 +1,7 @@
 package nl.tudelft.sem.template.order.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,12 +11,15 @@ import nl.tudelft.sem.template.order.domain.user.DishIdAlreadyInUseException;
 import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.DishService;
 import nl.tudelft.sem.template.order.domain.user.VendorNotFoundException;
+import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +31,9 @@ public class DishServiceTests {
 
     @Autowired
     private transient DishService dishService;
+
+    @MockBean
+    private transient UserMicroServiceService userMicroServiceService;
 
     transient Dish d1;
 
@@ -74,6 +81,8 @@ public class DishServiceTests {
     @Transactional
     @Test
     public void createDish_withValidData_worksCorrectly() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+
         // Arrange
         dishService.addDish(d1);
         Dish persistedDish = dishService.getDishById(d1.getDishID());
@@ -92,6 +101,7 @@ public class DishServiceTests {
     @Transactional
     @Test
     public void createDuplicateDishes() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         Assertions.assertThrows(DishIdAlreadyInUseException.class, () -> {
             dishService.addDish(d1);
@@ -109,7 +119,7 @@ public class DishServiceTests {
     @Transactional
     @Test
     public void vendorDoesNotExist() throws Exception {
-        dishService.addDish(d1);
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(false);
         Assertions.assertThrows(VendorNotFoundException.class, () -> {
             dishService.getDishByVendorId(UUID.randomUUID());
         });
@@ -118,7 +128,9 @@ public class DishServiceTests {
     @Transactional
     @Test
     public void vendorDoesExist() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
         dishService.addDish(d2);
         List<Dish> dishes = dishService.getDishByVendorId(d1.getVendorID());
         assertThat(dishes.size()).isEqualTo(1);
@@ -129,9 +141,11 @@ public class DishServiceTests {
     @Transactional
     @Test
     public void vendorDoesExistMultipleResults() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         d2.setVendorID(d1.getVendorID());
         dishService.addDish(d2);
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         List<Dish> dishes = dishService.getDishByVendorId(d1.getVendorID());
         assertThat(dishes.size()).isEqualTo(2);
         assertThat(dishes).contains(d1);
@@ -149,6 +163,7 @@ public class DishServiceTests {
     @Transactional
     @Test
     public void deleteExistingDish() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         dishService.deleteDishByDishId(d1.getDishID());
         Assertions.assertThrows(DishNotFoundException.class, () -> {
@@ -159,6 +174,7 @@ public class DishServiceTests {
     @Transactional
     @Test
     public void updateNonExistingDish() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         Assertions.assertThrows(DishNotFoundException.class, () -> {
             dishService.updateDish(d1.getDishID(), d1);
         });
@@ -167,6 +183,7 @@ public class DishServiceTests {
     @Transactional
     @Test
     public void updateExistingDish() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         d1.name("name");
         List<String> ingredients = new ArrayList<>();
         ingredients.add("cheese");
@@ -189,7 +206,9 @@ public class DishServiceTests {
 
     @Transactional
     @Test
-    public void isNotUnique() throws DishIdAlreadyInUseException {
+    public void isNotUnique() throws DishIdAlreadyInUseException, VendorNotFoundException {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+
         dishService.addDish(d1);
         assertThat(dishService.checkDishUuidIsUnique(d1.getDishID())).isFalse();
     }
@@ -197,12 +216,14 @@ public class DishServiceTests {
     @Transactional
     @Test
     public void isUnique() {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         assertThat(dishService.checkDishUuidIsUnique(d1.getDishID())).isTrue();
     }
 
     @Transactional
     @Test
     public void filterOnNonExistentVendor() {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(false);
         List<String> allergies = new ArrayList<>();
         Assertions.assertThrows(VendorNotFoundException.class, () -> {
             dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), allergies);
@@ -212,6 +233,7 @@ public class DishServiceTests {
     @Transactional
     @Test
     public void filterOnExistentVendorWithNoResults() throws DishIdAlreadyInUseException, VendorNotFoundException {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         d2.setVendorID(d1.getVendorID());
         dishService.addDish(d2);
@@ -225,6 +247,7 @@ public class DishServiceTests {
     @Transactional
     @Test
     public void filterOnExistentVendorWithOneResult() throws VendorNotFoundException, DishIdAlreadyInUseException {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         d2.setVendorID(d1.getVendorID());
         dishService.addDish(d2);
@@ -238,6 +261,7 @@ public class DishServiceTests {
     @Transactional
     @Test
     public void filterOnExistentVendorWithMultipleResults() throws VendorNotFoundException, DishIdAlreadyInUseException {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         d2.setVendorID(d1.getVendorID());
         dishService.addDish(d2);
@@ -252,11 +276,15 @@ public class DishServiceTests {
     @Transactional
     @Test
     public void filterOnExistentVendorWithNonFilteredDishes() throws VendorNotFoundException, DishIdAlreadyInUseException {
+        UUID otherVendor = UUID.randomUUID();
+        when(userMicroServiceService.checkVendorExists(otherVendor)).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         dishService.addDish(d2);
         List<String> allergies = new ArrayList<>();
         allergies.add(d1.getListOfAllergies().get(0));
-        List<Dish> filteredDishes = dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), allergies);
+        List<Dish> filteredDishes = dishService.getAllergyFilteredDishesFromVendor(otherVendor, allergies);
         assertThat(filteredDishes.size()).isEqualTo(0);
         assertThat(filteredDishes).doesNotContain(d1).doesNotContain(d2);
     }
@@ -264,6 +292,7 @@ public class DishServiceTests {
     @Transactional
     @Test
     public void filterOnExistentVendorWithNoFilter() throws VendorNotFoundException, DishIdAlreadyInUseException {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         d2.setVendorID(d1.getVendorID());
         dishService.addDish(d2);

@@ -13,6 +13,7 @@ import java.util.UUID;
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.order.PersistentBagMock;
 import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
+import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.hibernate.collection.internal.PersistentBag;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +27,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class DishServiceTests {
     @Mock
     private transient DishRepository dishRepository;
+
+    @Mock
+    private transient UserMicroServiceService userMicroServiceService;
 
     @InjectMocks
     private transient DishService dishService;
@@ -95,7 +99,8 @@ public class DishServiceTests {
     }
 
     @Test
-    public void add_dish_successful() throws DishIdAlreadyInUseException {
+    public void add_dish_successful() throws DishIdAlreadyInUseException, VendorNotFoundException {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         when(dishRepository.save(d1)).thenReturn(d1);
 
         Dish res = dishService.addDish(d1);
@@ -104,9 +109,19 @@ public class DishServiceTests {
 
     @Test
     public void add_dish_unsuccessful() {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         when(dishRepository.existsByDishID(d1.getDishID())).thenReturn(true);
 
         Assertions.assertThrows(DishIdAlreadyInUseException.class, () -> {
+            dishService.addDish(d1);
+        });
+    }
+
+    @Test
+    public void add_dish_vendor_does_not_exists() {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(false);
+
+        Assertions.assertThrows(VendorNotFoundException.class, () -> {
             dishService.addDish(d1);
         });
     }
@@ -130,7 +145,8 @@ public class DishServiceTests {
     }
 
     @Test
-    public void update_dish_correct_id() throws DishNotFoundException {
+    public void update_dish_correct_id() throws DishNotFoundException, VendorNotFoundException {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         when(dishRepository.existsByDishID(d1.getDishID())).thenReturn(true);
         when(dishRepository.save(d1)).thenReturn(d1);
 
@@ -140,7 +156,17 @@ public class DishServiceTests {
     }
 
     @Test
+    public void update_dish_vendor_does_not_exists() {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(false);
+
+        Assertions.assertThrows(VendorNotFoundException.class, () -> {
+            dishService.updateDish(d1.getDishID(), d1);
+        });
+    }
+
+    @Test
     public void update_dish_not_found() throws DishNotFoundException {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         Assertions.assertThrows(DishNotFoundException.class, () -> {
             dishService.updateDish(d1.getDishID(), d1);
         });
@@ -168,6 +194,7 @@ public class DishServiceTests {
 
     @Test
     public void get_dishes_by_vendor_correct_id() throws VendorNotFoundException {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         when(dishRepository.findDishesByVendorID(d1.getVendorID())).thenReturn(Optional.of(List.of(d1, d2)));
 
         List<Dish> res = dishService.getDishByVendorId(d1.getVendorID());
@@ -177,7 +204,7 @@ public class DishServiceTests {
 
     @Test
     public void get_dishes_by_vendor_not_found() throws VendorNotFoundException {
-        when(dishRepository.findDishesByVendorID(d1.getVendorID())).thenReturn(Optional.empty());
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(false);
 
         Assertions.assertThrows(VendorNotFoundException.class, () -> {
             dishService.getDishByVendorId(d1.getVendorID());
@@ -186,7 +213,7 @@ public class DishServiceTests {
 
     @Test
     public void get_dishes_with_allergies_correct() throws VendorNotFoundException {
-        when(dishRepository.existsByVendorID(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         when(dishRepository
                 .findDishesByVendorIDAndListOfAllergies(d1.getVendorID(), new ArrayList<>()))
                 .thenReturn(Optional.of(List.of(d1, d2)));
@@ -198,7 +225,7 @@ public class DishServiceTests {
 
     @Test
     public void get_dishes_with_no_dish_found() throws VendorNotFoundException {
-        when(dishRepository.existsByVendorID(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         when(dishRepository
                 .findDishesByVendorIDAndListOfAllergies(d1.getVendorID(), new ArrayList<>()))
                 .thenReturn(Optional.empty());
@@ -210,7 +237,7 @@ public class DishServiceTests {
 
     @Test
     public void get_dishes_with_allergies_not_found() throws VendorNotFoundException {
-        when(dishRepository.existsByVendorID(d1.getVendorID())).thenReturn(false);
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(false);
         Assertions.assertThrows(VendorNotFoundException.class, () -> {
             dishService.getAllergyFilteredDishesFromVendor(d1.getVendorID(), new ArrayList<>());
         });
