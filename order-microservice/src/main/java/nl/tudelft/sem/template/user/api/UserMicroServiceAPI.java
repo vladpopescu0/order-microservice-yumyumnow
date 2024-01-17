@@ -15,5 +15,9 @@ public interface UserMicroServiceAPI {
 
     String getUserInformation(UUID userID) throws UserIDNotFoundException;
 
+    boolean checkVendorExists(UUID vendorId);
+
+    String getUserName(UUID userID) throws UserIDNotFoundException;
+
     List<String> getVendorsFromID(List<UUID> restaurantsID);
 }

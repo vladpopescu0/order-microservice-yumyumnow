@@ -1,6 +1,8 @@
 package nl.tudelft.sem.template.order.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,12 +20,14 @@ import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.user.DishService;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
+import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -49,6 +53,9 @@ public class VendorAnalyticsControllerIntegrationTests {
 
     @Autowired
     private transient ObjectMapper objectMapper; // Used for converting Java objects to JSON
+
+    @MockBean
+    private transient UserMicroServiceService userMicroServiceService;
 
     transient Dish d1;
 
@@ -137,6 +144,11 @@ public class VendorAnalyticsControllerIntegrationTests {
     @Transactional
     @Test
     public void get_orders_of_customer_from_vendor_non_existent_vendor() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         dishService.addDish(d1);
         dishService.addDish(d2);
         orderService.createOrder(order1);
@@ -151,6 +163,11 @@ public class VendorAnalyticsControllerIntegrationTests {
     @Transactional
     @Test
     public void get_orders_of_customer_from_vendor_non_existent_customer() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         dishService.addDish(d1);
         dishService.addDish(d2);
         orderService.createOrder(order1);
@@ -165,11 +182,18 @@ public class VendorAnalyticsControllerIntegrationTests {
     @Transactional
     @Test
     public void get_orders_of_customer_from_vendor_no_results() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         dishService.addDish(d1);
         dishService.addDish(d2);
         orderService.createOrder(order1);
         order2.setVendorID(UUID.randomUUID());
+        when(userMicroServiceService.checkVendorExists(order2.getVendorID())).thenReturn(true);
         orderService.createOrder(order2);
+
         MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(historyPath, order1.getVendorID(), order2.getCustomerID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -184,12 +208,19 @@ public class VendorAnalyticsControllerIntegrationTests {
     @Transactional
     @Test
     public void get_orders_of_customer_from_vendor_one_result_different_vendor() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         dishService.addDish(d1);
         dishService.addDish(d2);
         orderService.createOrder(order1);
         order2.setCustomerID(order1.getCustomerID());
         order2.setVendorID(UUID.randomUUID());
+        when(userMicroServiceService.checkVendorExists(order2.getVendorID())).thenReturn(true);
         orderService.createOrder(order2);
+
         MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(historyPath, order1.getVendorID(), order1.getCustomerID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -204,6 +235,11 @@ public class VendorAnalyticsControllerIntegrationTests {
     @Transactional
     @Test
     public void get_orders_of_customer_from_vendor_one_result_different_customer() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         dishService.addDish(d1);
         dishService.addDish(d2);
         orderService.createOrder(order1);
@@ -222,6 +258,11 @@ public class VendorAnalyticsControllerIntegrationTests {
     @Transactional
     @Test
     public void get_orders_of_customer_from_vendor_two_results() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         dishService.addDish(d1);
         dishService.addDish(d2);
         orderService.createOrder(order1);
@@ -241,6 +282,11 @@ public class VendorAnalyticsControllerIntegrationTests {
     @Test
     @Transactional
     public void get_order_volume_from_vendor_two_orders() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         dishService.addDish(d1);
         dishService.addDish(d2);
         orderService.createOrder(order1);
@@ -260,6 +306,9 @@ public class VendorAnalyticsControllerIntegrationTests {
     @Test
     @Transactional
     public void get_order_volume_from_vendor_large_amount_of_orders() throws Exception {
+        when(userMicroServiceService.checkVendorExists(any())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(any())).thenReturn(true);
+
         dishService.addDish(d1);
         dishService.addDish(d2);
         UUID originalId = order1.getVendorID();
@@ -285,6 +334,11 @@ public class VendorAnalyticsControllerIntegrationTests {
     @Test
     @Transactional
     public void get_order_volume_from_vendor_where_vendor_does_not_exist() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         dishService.addDish(d1);
         dishService.addDish(d2);
         orderService.createOrder(order1);
@@ -299,6 +353,11 @@ public class VendorAnalyticsControllerIntegrationTests {
     @Test
     @Transactional
     public void get_peak_times_vendor_does_not_exist() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         dishService.addDish(d1);
         dishService.addDish(d2);
         orderService.createOrder(order1);
@@ -317,6 +376,9 @@ public class VendorAnalyticsControllerIntegrationTests {
     @Test
     @Transactional
     public void get_peak_times_large_test() throws Exception {
+        when(userMicroServiceService.checkVendorExists(any())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(any())).thenReturn(true);
+
         dishService.addDish(d1);
         dishService.addDish(d2);
         order2.setVendorID(UUID.randomUUID());
@@ -351,6 +413,11 @@ public class VendorAnalyticsControllerIntegrationTests {
     @Test
     @Transactional
     public void get_popular_items_vendor_does_not_exist() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         dishService.addDish(d1);
         dishService.addDish(d2);
         orderService.createOrder(order1);
@@ -365,10 +432,16 @@ public class VendorAnalyticsControllerIntegrationTests {
     @Test
     @Transactional
     public void get_popular_items_one_dish() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         dishService.addDish(d1);
         dishService.addDish(d2);
         orderService.createOrder(order2);
         order1.setVendorID(UUID.randomUUID());
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
         orderService.createOrder(order1);
 
         MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(popularItemPath, order2.getVendorID())
@@ -385,6 +458,11 @@ public class VendorAnalyticsControllerIntegrationTests {
     @Test
     @Transactional
     public void get_popular_items_two_dishes() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         dishService.addDish(d1);
         dishService.addDish(d2);
         orderService.createOrder(order2);
@@ -405,6 +483,11 @@ public class VendorAnalyticsControllerIntegrationTests {
     @Test
     @Transactional
     public void get_popular_items_two_dishes_multiple_of_same_dish() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         dishService.addDish(d1);
         dishService.addDish(d2);
         orderService.createOrder(order2);

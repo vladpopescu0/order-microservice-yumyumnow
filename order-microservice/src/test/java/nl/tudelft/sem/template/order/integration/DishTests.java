@@ -1,6 +1,7 @@
 package nl.tudelft.sem.template.order.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,12 +10,14 @@ import java.util.List;
 import java.util.UUID;
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.order.domain.user.DishService;
+import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -37,6 +40,9 @@ public class DishTests {
 
     @Autowired
     private transient ObjectMapper objectMapper; // Used for converting Java objects to JSON
+
+    @MockBean
+    private transient UserMicroServiceService userMicroServiceService;
 
     transient Dish d1;
 
@@ -90,6 +96,7 @@ public class DishTests {
     @Transactional
     @Test
     public void createDish_withValidData_worksCorrectly() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         mockMvc.perform(MockMvcRequestBuilders.post(postGetPath, d1.getVendorID())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(d1))
@@ -103,6 +110,7 @@ public class DishTests {
 
     @Test
     public void createDish_withValidData_differentVendor() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(false);
         mockMvc.perform(MockMvcRequestBuilders.post("/dish/{vendorID}", UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
@@ -124,6 +132,7 @@ public class DishTests {
     @Transactional
     @Test
     public void createDish_duplicate() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         mockMvc.perform(MockMvcRequestBuilders.post(postGetPath, d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
@@ -162,6 +171,7 @@ public class DishTests {
     @Transactional
     @Test
     public void getDishThatExists() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         mockMvc.perform(MockMvcRequestBuilders.post(postGetPath, d1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
@@ -181,8 +191,11 @@ public class DishTests {
     @Transactional
     @Test
     public void vendorDoesNotExist() throws Exception {
+        UUID vendor = UUID.randomUUID();
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(vendor)).thenReturn(false);
         dishService.addDish(d1);
-        mockMvc.perform(MockMvcRequestBuilders.get(getListPath, UUID.randomUUID())
+        mockMvc.perform(MockMvcRequestBuilders.get(getListPath, vendor)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
@@ -200,6 +213,8 @@ public class DishTests {
     @Transactional
     @Test
     public void vendorDoesExist() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         dishService.addDish(d2);
         MvcResult res = mockMvc.perform(MockMvcRequestBuilders.get(getListPath, d1.getVendorID())
@@ -216,6 +231,7 @@ public class DishTests {
     @Transactional
     @Test
     public void vendorDoesExistMultipleResults() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         d2.setVendorID(d1.getVendorID());
         dishService.addDish(d2);
@@ -243,6 +259,7 @@ public class DishTests {
     @Transactional
     @Test
     public void deleteExistingDish() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         assertThat(dishService.checkDishUuidIsUnique(d1.getDishID())).isFalse();
         mockMvc.perform(MockMvcRequestBuilders.delete(postGetPath, d1.getDishID())
@@ -264,6 +281,7 @@ public class DishTests {
     @Transactional
     @Test
     public void updateNonExistingDish() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         mockMvc.perform(MockMvcRequestBuilders.put(postGetPath, d1.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(d1))
@@ -274,6 +292,8 @@ public class DishTests {
     @Transactional
     @Test
     public void updateWithDifferentId() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         dishService.addDish(d2);
         mockMvc.perform(MockMvcRequestBuilders.put(postGetPath, d2.getDishID())
@@ -286,6 +306,7 @@ public class DishTests {
     @Transactional
     @Test
     public void updateWithBadParameters() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         mockMvc.perform(MockMvcRequestBuilders.put(postGetPath, new Object())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -297,6 +318,7 @@ public class DishTests {
     @Transactional
     @Test
     public void updateWithBadDish() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         d1.setListOfIngredients(null);
         mockMvc.perform(MockMvcRequestBuilders.put(postGetPath, d1.getDishID())
@@ -309,6 +331,7 @@ public class DishTests {
     @Transactional
     @Test
     public void updateExistingDish() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         d1.name("name");
         List<String> ingredients = new ArrayList<>();
         ingredients.add("cheese");
@@ -354,6 +377,7 @@ public class DishTests {
     @Transactional
     @Test
     public void filterOnExistentVendorWithNoResults() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         d2.setVendorID(d1.getVendorID());
         dishService.addDish(d2);
@@ -374,6 +398,7 @@ public class DishTests {
     @Transactional
     @Test
     public void filterOnExistentVendorWithOneResult() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         d2.setVendorID(d1.getVendorID());
         dishService.addDish(d2);
@@ -394,6 +419,7 @@ public class DishTests {
     @Transactional
     @Test
     public void filterOnExistentVendorWithMultipleResults() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         d2.setVendorID(d1.getVendorID());
         dishService.addDish(d2);
@@ -415,6 +441,8 @@ public class DishTests {
     @Transactional
     @Test
     public void filterOnExistentVendorWithNonFilteredDishes() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         dishService.addDish(d2);
         List<String> allergies = new ArrayList<>();
@@ -434,6 +462,7 @@ public class DishTests {
     @Transactional
     @Test
     public void filterOnExistentVendorWithNoFilter() throws Exception {
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
         dishService.addDish(d1);
         d2.setVendorID(d1.getVendorID());
         dishService.addDish(d2);
