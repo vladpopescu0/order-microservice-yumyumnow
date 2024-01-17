@@ -318,4 +318,62 @@ public class OrderService {
         }
         return fromOptional;
     }
+
+    /**
+     * Adds a dish to an order based on their IDs.
+     *
+     * @param orderID   the ID of the order to add the dish to
+     * @param dishID    the ID of the dish to be added to the order
+     * @return the order, now updated with the new dish
+     * @throws NullFieldException when orderID or dishID are null
+     * @throws OrderNotFoundException when the orderID does not exist
+     * @throws DishNotFoundException when the dishID does not exist
+     */
+    public Order addDishToOrder(UUID orderID, UUID dishID)
+            throws NullFieldException, OrderNotFoundException, DishNotFoundException {
+        if (orderID == null || dishID == null) {
+            throw new NullFieldException();
+        }
+
+        if (!orderRepository.existsByOrderID(orderID)) {
+            throw new OrderNotFoundException(orderID);
+        }
+        if (!dishRepository.existsByDishID(dishID)) {
+            throw new DishNotFoundException(dishID);
+        }
+
+        Optional<Order> order = orderRepository.findOrderByOrderID(orderID);
+        order.get().addListOfDishesItem(dishID);
+
+        return order.get();
+    }
+
+    /**
+     * Removes a dish from an order based on their IDs.
+     *
+     * @param orderID   the ID of the order to remove the dish from
+     * @param dishID    the ID of the dish to be removed from the order
+     * @return the order, now updated
+     * @throws NullFieldException when orderID or dishID are null
+     * @throws OrderNotFoundException when the orderID does not exist
+     * @throws DishNotFoundException when the dishID does not exist
+     */
+    public Order removeDishFromOrder(UUID orderID, UUID dishID)
+            throws NullFieldException, OrderNotFoundException, DishNotFoundException {
+        /*if (orderID == null || dishID == null) {
+            throw new NullFieldException();
+        }*/
+
+        if (!orderRepository.existsByOrderID(orderID)) {
+            throw new OrderNotFoundException(orderID);
+        }
+        if (!dishRepository.existsByDishID(dishID)) {
+            throw new DishNotFoundException(dishID);
+        }
+
+        Optional<Order> order = orderRepository.findOrderByOrderID(orderID);
+        order.get().removeListOfDishesItem(dishID);
+
+        return order.get();
+    }
 }
