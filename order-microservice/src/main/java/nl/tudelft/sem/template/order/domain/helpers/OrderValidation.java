@@ -29,7 +29,7 @@ public class OrderValidation {
         try {
             ResponseEntity<List<UUID>> dishesResponse = orderController.getListOfDishes(orderId);
 
-            if (dishesResponse.getStatusCode().equals(HttpStatus.OK) && dishesResponse.getBody() != null) {
+            if (notFoundHandler(dishesResponse)) {
                 for (UUID dishId : dishesResponse.getBody()) {
                     ResponseEntity<Dish> dishResponseEntity = dishController.getDishByID(dishId);
                     if (!dishResponseEntity.getStatusCode().equals(HttpStatus.OK)) {
@@ -43,6 +43,15 @@ public class OrderValidation {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    /** Checks whether it needs to throw a 404.
+     *
+     * @param dishesResponse the response on which to take the status code from
+     * @return true if the conditions are fine, false otherwise
+     */
+    private static boolean notFoundHandler(ResponseEntity<List<UUID>> dishesResponse) {
+        return dishesResponse.getStatusCode().equals(HttpStatus.OK) && dishesResponse.getBody() != null;
     }
 
     /**

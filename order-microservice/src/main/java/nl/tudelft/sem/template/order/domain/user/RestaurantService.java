@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import nl.tudelft.sem.template.model.Address;
+import nl.tudelft.sem.template.order.domain.helpers.Coordinates;
 import nl.tudelft.sem.template.user.services.JsonParserService;
 import nl.tudelft.sem.template.user.services.MockLocationService;
 import nl.tudelft.sem.template.user.services.UserMicroServiceService;
@@ -78,20 +79,30 @@ public class RestaurantService {
         } catch (UserIDNotFoundException e) {
 
             // if we catch an error, then get the user's current location
-            try {
-                String jsonUser = userMicroServiceService.getUserLocation(userID);
-                if (jsonUser == null || jsonUser.isEmpty()) { // in case getUserLocation timed out.
-                    throw new UserIDNotFoundException(userID);
-                }
-                List<Double> userLocation = JsonParserService.parseLocation(jsonUser);
-                // option: error thrown in the JsonParserService could be caught in this try catch
-                if (userLocation == null) {
-                    throw new RuntimeException("Something went wrong parsing location");
-                }
-                return userLocation;
-            } catch (Exception ex) {
+            return userLocationHandler(userID);
+        }
+    }
+
+    /** Handles the checking for user existence.
+     *
+     * @param userID the id of the checked user
+     * @return the checked userLocation
+     * @throws UserIDNotFoundException if the user does not exist
+     */
+    private List<Double> userLocationHandler(UUID userID) throws UserIDNotFoundException {
+        try {
+            String jsonUser = userMicroServiceService.getUserLocation(userID);
+            if (jsonUser == null || jsonUser.isEmpty()) { // in case getUserLocation timed out.
                 throw new UserIDNotFoundException(userID);
             }
+            List<Double> userLocation = JsonParserService.parseLocation(jsonUser);
+            // option: error thrown in the JsonParserService could be caught in this try catch
+            if (userLocation == null) {
+                throw new RuntimeException("Something went wrong parsing location");
+            }
+            return userLocation;
+        } catch (Exception ex) {
+            throw new UserIDNotFoundException(userID);
         }
     }
 
@@ -104,8 +115,8 @@ public class RestaurantService {
      */
     public List<UUID> processVendors(List<Double> userLocation, HashMap<UUID, List<Double>> vendors) {
         return vendors.entrySet().stream()
-                .filter(entry -> calculateDistance(userLocation.get(0), userLocation.get(1),
-                        entry.getValue().get(0), entry.getValue().get(1)) < 5)
+                .filter(entry -> calculateDistance(new Coordinates(userLocation.get(0), userLocation.get(1)),
+                        new Coordinates(entry.getValue().get(0), entry.getValue().get(1))) < 5)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
     }
@@ -115,17 +126,19 @@ public class RestaurantService {
      * Algorithm found at:
      * <a href="https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula">...</a>
      *
-     * @param userLatitude latitude of user
-     * @param userLongitude longitude of user
-     * @param vendorLatitude latitude of vendor
-     * @param vendorLongitude longitude of vendor
+     * @param user latitude and longitude of user
+     * @param vendor latitude and longitude of vendor
      * @return the distance between two geo coordinate points
      */
-    public double calculateDistance(double userLatitude, double userLongitude,
-                                    double vendorLatitude, double vendorLongitude) {
+    public double calculateDistance(Coordinates user,
+                                    Coordinates vendor) {
         // Calculate distance between two points using Haversine formula
         final double r = 6371D; // radius of Earth in km
         final double p = Math.PI / 180;
+        double vendorLatitude = vendor.latitude;
+        double vendorLongitude = vendor.longitude;
+        double userLatitude = user.latitude;
+        double userLongitude = user.longitude;
 
         double a = 0.5 - Math.cos((vendorLatitude - userLatitude) * p) / 2
                 + Math.cos(userLatitude * p) * Math.cos(vendorLatitude * p)
