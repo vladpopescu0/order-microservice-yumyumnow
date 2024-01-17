@@ -764,4 +764,46 @@ class OrderServiceTests {
 
     }
 
+    @Test
+    void editOrderRatingSuccessful() throws OrderNotFoundException, InvalidOrderRatingException {
+
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.of(order1));
+        when(orderRepository.save(order1)).thenReturn(order1);
+        Order edited = orderService.editOrderRatingByID(order1.getOrderID(), 3);
+        Assertions.assertEquals(3, edited.getRating());
+        Mockito.verify(orderRepository, Mockito.times(1)).save(order1);
+
+    }
+
+    @Test
+    void editOrderRatingInvalidRating() throws OrderNotFoundException, InvalidOrderRatingException {
+
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
+        Assertions.assertThrows(InvalidOrderRatingException.class, ()
+                -> orderService.editOrderRatingByID(order1.getOrderID(), 0));
+        Mockito.verify(orderRepository, Mockito.never()).save(order1);
+
+    }
+
+    @Test
+    void editOrderRatingInvalidRating2() throws OrderNotFoundException, InvalidOrderRatingException {
+
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
+        Assertions.assertThrows(InvalidOrderRatingException.class, ()
+                -> orderService.editOrderRatingByID(order1.getOrderID(), 10));
+        Mockito.verify(orderRepository, Mockito.never()).save(order1);
+
+    }
+
+    @Test
+    void editOrderRatingNotFound() throws OrderNotFoundException, InvalidOrderRatingException {
+
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
+        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.editOrderRatingByID(order1.getOrderID(), 3));
+        Mockito.verify(orderRepository, Mockito.never()).save(order1);
+
+    }
+
+
 }
