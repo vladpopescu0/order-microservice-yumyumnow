@@ -53,8 +53,6 @@ public class OrderIntegrationTests {
     private transient OrderService orderService;
     @Autowired
     private transient DishService dishService;
-    @Autowired
-    private transient OrderController orderController;
 
     @MockBean
     private transient UserMicroServiceService userMicroServiceService;
@@ -1068,4 +1066,29 @@ public class OrderIntegrationTests {
 
     }
 
+    @Test
+    @Transactional
+    public void getOrderToVendor_unsuccessfullyNotAllDishesAvailable() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        dishService.addDish(d1);
+
+        order1.setListOfDishes(List.of(d1.getDishID(), d2.getDishID()));
+        order1.setOrderPaid(true);
+        orderService.createOrder(order1);
+
+        MvcResult result2 = mockMvc.perform(MockMvcRequestBuilders
+                        .get(getOrderToVendor, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+        Assertions.assertEquals(404, result2.getResponse().getStatus());
+
+    }
 }
