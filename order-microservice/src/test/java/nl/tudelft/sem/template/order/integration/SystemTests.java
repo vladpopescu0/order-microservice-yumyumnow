@@ -3,7 +3,10 @@ package nl.tudelft.sem.template.order.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.tudelft.sem.template.order.domain.user.DishService;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
+import nl.tudelft.sem.template.order.domain.user.RestaurantService;
 import nl.tudelft.sem.template.user.services.UserMicroServiceService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -31,8 +34,22 @@ public class SystemTests {
     @Autowired
     private transient DishService dishService;
 
+    @Autowired
+    private transient RestaurantService restaurantService;
+
     @MockBean
     private transient UserMicroServiceService userMicroServiceService;
 
+    @BeforeEach
+    public void setup() {
 
+    }
+    /**
+     * Add dish -> Add dish -> Create Order.
+     */
+
+    @Test
+    public void addDishesCreateOrderAndDeleteOrder() {
+
+    }
 }
