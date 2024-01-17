@@ -421,4 +421,22 @@ public class OrderService {
 
     }
 
+    /**
+     * Method for getting the order of a specific Order in the database.
+     *
+     * @param orderID ID specifying the Order
+     * @return int corresponding to the order of the specified Order
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public Integer getOrderRatingByID(UUID orderID) throws OrderNotFoundException {
+
+        Optional<Order> order = orderRepository.findOrderByOrderID(orderID);
+        if (order.isEmpty()) {
+            throw new OrderNotFoundException(orderID);
+        }
+
+        return order.get().getRating();
+
+    }
+
 }

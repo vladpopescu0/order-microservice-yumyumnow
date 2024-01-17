@@ -441,4 +441,24 @@ public class OrderController implements OrderApi {
         }
 
     }
+
+    /**
+     * Endpoint for getting the rating of an Order.
+     *
+     * @param orderID ID specifying order
+     * @return rating of Order as int value
+     */
+    @Override
+    public ResponseEntity<Integer> getOrderRatingByID(UUID orderID) {
+
+        try {
+            int rating = orderService.getOrderRatingByID(orderID);
+            return ResponseEntity.ok(rating);
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
 }
