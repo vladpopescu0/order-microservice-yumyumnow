@@ -40,7 +40,8 @@ class RestaurantServiceTest {
     transient UUID user;
     transient UUID user11;
 
-    transient List<String> vendors;
+    transient List<String> vendorsList;
+    transient String vendors;
     transient String asian;
     transient String asianUpper;
 
@@ -58,11 +59,50 @@ class RestaurantServiceTest {
                     "latitude": 51.998513,
                     "longitude": 4.37127
                 },""";
-        vendors = new ArrayList<>();
-        vendors.add("""
-                {
-                  "userID": "550e8400-e29b-41d4-a716-446655440000",
-                  "user": {
+        vendors = """
+                [
+                    {
+                        "userID": "550e8400-e29b-41d4-a716-446655440000",
+                        "user": {
+                            "id": "550e8400-e29b-41d4-a716-446655440000",
+                            "firstname": "John",
+                            "surname": "James",
+                            "email": "john@email.com",
+                            "avatar": "www.avatar.com/avatar.png",
+                            "password": "12345",
+                            "verified": false,
+                            "userType": "Customer"
+                        },
+                        "cuisineType": "italian",
+                        "location": {
+                            "latitude": 51.998513,
+                            "longitude": 4.37127
+                        }
+                    },
+                    {
+                        "userID": "110e8400-e29b-41d4-a716-446655440000",
+                        "user": {
+                            "id": "550e8400-e29b-41d4-a716-446655440000",
+                            "firstname": "John",
+                            "surname": "James",
+                            "email": "john@email.com",
+                            "avatar": "www.avatar.com/avatar.png",
+                            "password": "12345",
+                            "verified": false,
+                            "userType": "Customer"
+                        },
+                        "cuisineType": "asian",
+                        "location": {
+                            "latitude": 55.998513,
+                            "longitude": 4.37127
+                        }
+                    }
+                ]""";
+        vendorsList = new ArrayList<>();
+        vendorsList.add("""
+            {
+                "userID": "550e8400-e29b-41d4-a716-446655440000",
+                "user": {
                     "id": "550e8400-e29b-41d4-a716-446655440000",
                     "firstname": "John",
                     "surname": "James",
@@ -71,17 +111,17 @@ class RestaurantServiceTest {
                     "password": "12345",
                     "verified": false,
                     "userType": "Customer"
-                  },
-                  "cuisineType": "italian",
-                  "location": {
+                },
+                "cuisineType": "italian",
+                "location": {
                     "latitude": 51.998513,
                     "longitude": 4.37127
-                  }
-                }""");
-        vendors.add("""
-                {
-                  "userID": "110e8400-e29b-41d4-a716-446655440000",
-                  "user": {
+                }
+            }""");
+        vendorsList.add("""
+            {
+                "userID": "110e8400-e29b-41d4-a716-446655440000",
+                "user": {
                     "id": "550e8400-e29b-41d4-a716-446655440000",
                     "firstname": "John",
                     "surname": "James",
@@ -90,13 +130,13 @@ class RestaurantServiceTest {
                     "password": "12345",
                     "verified": false,
                     "userType": "Customer"
-                  },
-                  "cuisineType": "asian",
-                  "location": {
+                },
+                "cuisineType": "asian",
+                "location": {
                     "latitude": 55.998513,
                     "longitude": 4.37127
-                  }
-                }""");
+                }
+            }""");
         asian = "asian";
         asianUpper = "Asian";
     }
@@ -112,7 +152,7 @@ class RestaurantServiceTest {
 
     @Test
     void getAllRestaurantsVendorsEmpty() {
-        when(mockUserService.getAllVendors()).thenReturn(List.of());
+        when(mockUserService.getAllVendors()).thenReturn("");
 
         assertThrows(RuntimeException.class, () -> restaurantService.getAllRestaurants(user));
 
@@ -129,23 +169,24 @@ class RestaurantServiceTest {
     }
 
     @Test
-    void getAllRestaurantsVendorsEmptyVendors() throws UserIDNotFoundException {
-        List<String> v1 = new ArrayList<>();
-        v1.add("""
-                {
-                  "userID": "550e8400-e29b-41d4-a716-446655440000",
-                  "user": {
-                    "id": "550e8400-e29b-41d4-a716-446655440000",
-                    "firstname": "John",
-                    "surname": "James",
-                    "email": "john@email.com",
-                    "avatar": "www.avatar.com/avatar.png",
-                    "password": "12345",
-                    "verified": false,
-                    "userType": "Customer"
-                  },
-                  "cuisineType": "italian"
-                }""");
+    void getAllRestaurantsVendorsEmptyVendors() {
+        String v1 = """
+                [
+                    {
+                        "userID": "550e8400-e29b-41d4-a716-446655440000",
+                        "user": {
+                            "id": "550e8400-e29b-41d4-a716-446655440000",
+                            "firstname": "John",
+                            "surname": "James",
+                            "email": "john@email.com",
+                            "avatar": "www.avatar.com/avatar.png",
+                            "password": "12345",
+                            "verified": false,
+                            "userType": "Customer"
+                        },
+                        "cuisineType": "italian"
+                    }
+                ]""";
         when(mockUserService.getAllVendors()).thenReturn(v1);
 
         assertThrows(RuntimeException.class, () -> restaurantService.getAllRestaurants(user));
@@ -176,43 +217,43 @@ class RestaurantServiceTest {
         // userLocation setup
         when(mockUserService.getUserAddress(user)).thenReturn(address);
         when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.990013, 4.37127));
-        List<String> vendorsAll = new ArrayList<>();
-        vendorsAll.add("""
-                {
-                  "userID": "550e8400-e29b-41d4-a716-446655440000",
-                  "user": {
-                    "id": "550e8400-e29b-41d4-a716-446655440000",
-                    "firstname": "John",
-                    "surname": "James",
-                    "email": "john@email.com",
-                    "avatar": "www.avatar.com/avatar.png",
-                    "password": "12345",
-                    "verified": false,
-                    "userType": "Customer"
-                  },
-                  "location": {
-                    "latitude": 51.998513,
-                    "longitude": 4.37127
-                  }
-                }""");
-        vendorsAll.add("""
-                {
-                  "userID": "110e8400-e29b-41d4-a716-446655440000",
-                  "user": {
-                    "id": "110e8400-e29b-41d4-a716-446655440000",
-                    "firstname": "John",
-                    "surname": "James",
-                    "email": "john@email.com",
-                    "avatar": "www.avatar.com/avatar.png",
-                    "password": "12345",
-                    "verified": false,
-                    "userType": "Customer"
-                  },
-                  "location": {
-                    "latitude": 51.990513,
-                    "longitude": 4.37127
-                  }
-                }""");
+        String vendorsAll = """
+                [
+                    {
+                        "userID": "550e8400-e29b-41d4-a716-446655440000",
+                        "user": {
+                            "id": "550e8400-e29b-41d4-a716-446655440000",
+                            "firstname": "John",
+                            "surname": "James",
+                            "email": "john@email.com",
+                            "avatar": "www.avatar.com/avatar.png",
+                            "password": "12345",
+                            "verified": false,
+                            "userType": "Customer"
+                        },
+                        "location": {
+                            "latitude": 51.998513,
+                            "longitude": 4.37127
+                        }
+                    },
+                    {
+                        "userID": "110e8400-e29b-41d4-a716-446655440000",
+                        "user": {
+                            "id": "110e8400-e29b-41d4-a716-446655440000",
+                            "firstname": "John",
+                            "surname": "James",
+                            "email": "john@email.com",
+                            "avatar": "www.avatar.com/avatar.png",
+                            "password": "12345",
+                            "verified": false,
+                            "userType": "Customer"
+                        },
+                        "location": {
+                            "latitude": 51.990513,
+                            "longitude": 4.37127
+                        }
+                    }
+                ]""";
 
         when(mockUserService.getAllVendors()).thenReturn(vendorsAll);
 
@@ -419,7 +460,7 @@ class RestaurantServiceTest {
         when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.990013, 4.37127));
 
         when(mockUserService.getAllVendors()).thenReturn(vendors);
-        when(mockUserService.getVendorsFromID(anyList())).thenReturn(vendors);
+        when(mockUserService.getVendorsFromID(anyList())).thenReturn(vendorsList);
 
         List<UUID> result = restaurantService.getAllRestaurantsWithQuery(user, asian);
         List<UUID> expected = List.of(v1);

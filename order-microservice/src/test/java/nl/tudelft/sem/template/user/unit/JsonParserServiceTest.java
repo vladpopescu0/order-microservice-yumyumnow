@@ -41,148 +41,150 @@ class JsonParserServiceTest {
               "longitude": 4.37127,
               "angle": 30
             }""";
-    transient List<String> vendor2 = Arrays.asList("""
-              {
-                "userID": "550e8400-e29b-41d4-a716-446655440000",
-                "user": {
-                  "id": "550e8400-e29b-41d4-a716-446655440000",
-                  "firstname": "John",
-                  "surname": "James",
-                  "email": "john@email.com",
-                  "avatar": "www.avatar.com/avatar.png",
-                  "password": "12345",
-                  "verified": false,
-                  "userType": "Customer"
+    transient String vendor2 = """
+            [
+                {
+                    "userID": "550e8400-e29b-41d4-a716-446655440000",
+                    "user": {
+                        "id": "550e8400-e29b-41d4-a716-446655440000",
+                        "firstname": "John",
+                        "surname": "James",
+                        "email": "john@email.com",
+                        "avatar": "www.avatar.com/avatar.png",
+                        "password": "12345",
+                        "verified": false,
+                        "userType": "Customer"
+                    },
+                    "address": {
+                        "street": "437 Lytton",
+                        "city": "Palo Alto",
+                        "country": "Germany",
+                        "zip": "2511RE"
+                    },
+                    "location": {
+                        "latitude": 51.998513,
+                        "longitude": 4.37127
+                    }
                 },
-                "address": {
-                  "street": "437 Lytton",
-                  "city": "Palo Alto",
-                  "country": "Germany",
-                  "zip": "2511RE"
-                },
-                "location": {
-                  "latitude": 51.998513,
-                  "longitude": 4.37127
+                {
+                    "userID": "110e8400-e29b-41d4-a716-446655440000",
+                    "user": {
+                        "id": "110e8400-e29b-41d4-a716-446655440000",
+                        "firstname": "John",
+                        "surname": "James",
+                        "email": "john@email.com",
+                        "avatar": "www.avatar.com/avatar.png",
+                        "password": "12345",
+                        "verified": false,
+                        "userType": "Customer"
+                    },
+                    "address": {
+                        "street": "437 Lytton",
+                        "city": "Palo Alto",
+                        "country": "Germany",
+                        "zip": "2511RE"
+                    },
+                    "location": {
+                        "latitude": 5.998513,
+                        "longitude": 41.37127
+                    }
                 }
-              }
-            """, """
-            {
-                "userID": "110e8400-e29b-41d4-a716-446655440000",
-                "user": {
-                  "id": "110e8400-e29b-41d4-a716-446655440000",
-                  "firstname": "John",
-                  "surname": "James",
-                  "email": "john@email.com",
-                  "avatar": "www.avatar.com/avatar.png",
-                  "password": "12345",
-                  "verified": false,
-                  "userType": "Customer"
+            ]""";
+    transient String vendor2NotValid = """
+            [
+                {
+                    "userID": "550e8400-e29b-41d4-a716-446655440000",
+                    "user": {
+                        "id": "550e8400-e29b-41d4-a716-446655440000",
+                        "firstname": "John",
+                        "surname": "James",
+                        "email": "john@email.com",
+                        "avatar": "www.avatar.com/avatar.png",
+                        "password": "12345",
+                        "verified": false,
+                        "userType": "Customer"
+                    },
+                    "address": {
+                        "street": "437 Lytton",
+                        "city": "Palo Alto",
+                        "country": "Germany",
+                        "zip": "2511RE"
+                    },
+                    "location": {
+                        "latitude": 51.998513,
+                        "longitude": 4.37127
+                    }
                 },
-                "address": {
-                  "street": "437 Lytton",
-                  "city": "Palo Alto",
-                  "country": "Germany",
-                  "zip": "2511RE"
-                },
-                "location": {
-                  "latitude": 5.998513,
-                  "longitude": 41.37127
+                {
+                    "userID": "110e8400-e29b-41d4-a716-446655440000",
+                    "user": {
+                        "id": "110e8400-e29b-41d4-a716-446655440000",
+                        "firstname": "John",
+                        "surname": "James",
+                        "email": "john@email.com",
+                        "avatar": "www.avatar.com/avatar.png",
+                        "password": "12345",
+                        "verified": false,
+                        "userType": "Customer"
+                    },
+                    "address": {
+                        "street": "437 Lytton",
+                        "city": "Palo Alto",
+                        "country": "Germany",
+                        "zip": "2511RE"
+                    }
                 }
-            }""");
-    transient List<String> vendor2NotValid = Arrays.asList("""
-              {
-                "userID": "550e8400-e29b-41d4-a716-446655440000",
-                "user": {
-                  "id": "550e8400-e29b-41d4-a716-446655440000",
-                  "firstname": "John",
-                  "surname": "James",
-                  "email": "john@email.com",
-                  "avatar": "www.avatar.com/avatar.png",
-                  "password": "12345",
-                  "verified": false,
-                  "userType": "Customer"
+            ]""";
+    transient String vendor2NoLoc = """
+            [
+                {
+                    "userID": "550e8400-e29b-41d4-a716-446655440000",
+                    "user": {
+                        "id": "550e8400-e29b-41d4-a716-446655440000",
+                        "firstname": "John",
+                        "surname": "James",
+                        "email": "john@email.com",
+                        "avatar": "www.avatar.com/avatar.png",
+                        "password": "12345",
+                        "verified": false,
+                        "userType": "Customer"
+                    },
+                    "address": {
+                        "street": "437 Lytton",
+                        "city": "Palo Alto",
+                        "country": "Germany",
+                        "zip": "2511RE"
+                    },
+                    "location": {
+                        "latitude": 51.998513,
+                        "longitude": 4.37127
+                    }
                 },
-                "address": {
-                  "street": "437 Lytton",
-                  "city": "Palo Alto",
-                  "country": "Germany",
-                  "zip": "2511RE"
-                },
-                "location": {
-                  "latitude": 51.998513,
-                  "longitude": 4.37127
+                {
+                    "userID": "110e8400-e29b-41d4-a716-446655440000",
+                    "user": {
+                        "id": "110e8400-e29b-41d4-a716-446655440000",
+                        "firstname": "John",
+                        "surname": "James",
+                        "email": "john@email.com",
+                        "avatar": "www.avatar.com/avatar.png",
+                        "password": "12345",
+                        "verified": false,
+                        "userType": "Customer"
+                    },
+                    "address": {
+                        "street": "437 Lytton",
+                        "city": "Palo Alto",
+                        "country": "Germany",
+                        "zip": "2511RE"
+                    },
+                    "location": {
+                        "latitude": 5.998513,
+                        "longitude": "oh hi"
+                    }
                 }
-              }
-            """, """
-            {
-                "userID": "110e8400-e29b-41d4-a716-446655440000",
-                "user": {
-                  "id": "110e8400-e29b-41d4-a716-446655440000",
-                  "firstname": "John",
-                  "surname": "James",
-                  "email": "john@email.com",
-                  "avatar": "www.avatar.com/avatar.png",
-                  "password": "12345",
-                  "verified": false,
-                  "userType": "Customer"
-                },
-                "address": {
-                  "street": "437 Lytton",
-                  "city": "Palo Alto",
-                  "country": "Germany",
-                  "zip": "2511RE"
-                }
-                
-            }""");
-    transient List<String> vendor2NoLoc = Arrays.asList("""
-              {
-                "userID": "550e8400-e29b-41d4-a716-446655440000",
-                "user": {
-                  "id": "550e8400-e29b-41d4-a716-446655440000",
-                  "firstname": "John",
-                  "surname": "James",
-                  "email": "john@email.com",
-                  "avatar": "www.avatar.com/avatar.png",
-                  "password": "12345",
-                  "verified": false,
-                  "userType": "Customer"
-                },
-                "address": {
-                  "street": "437 Lytton",
-                  "city": "Palo Alto",
-                  "country": "Germany",
-                  "zip": "2511RE"
-                },
-                "location": {
-                  "latitude": 51.998513,
-                  "longitude": 4.37127
-                }
-              }
-            """, """
-            {
-                "userID": "110e8400-e29b-41d4-a716-446655440000",
-                "user": {
-                  "id": "110e8400-e29b-41d4-a716-446655440000",
-                  "firstname": "John",
-                  "surname": "James",
-                  "email": "john@email.com",
-                  "avatar": "www.avatar.com/avatar.png",
-                  "password": "12345",
-                  "verified": false,
-                  "userType": "Customer"
-                },
-                "address": {
-                  "street": "437 Lytton",
-                  "city": "Palo Alto",
-                  "country": "Germany",
-                  "zip": "2511RE"
-                },
-                "location": {
-                  "latitude": 5.998513,
-                  "longitude": "oh hi"
-                }
-            }""");
-    transient List<String> vendor1InValidUUID = List.of("""
+            ]""";
+    transient String vendor1InValidUUID = """
               {
                 "userID": "oh hi",
                 "user": {
@@ -206,8 +208,8 @@ class JsonParserServiceTest {
                   "longitude": 4.37127
                 }
               }
-            """);
-    transient List<String> vendorInvalidJson = List.of("""
+            """;
+    transient String vendorInvalidJson = """
               {
                 userID : "oh hi",
                 "user": {
@@ -231,7 +233,7 @@ class JsonParserServiceTest {
                   "longitude": 4.37127
                 }
               }
-            """);
+            """;
 
     transient String customerJson = """
             {
@@ -317,7 +319,7 @@ class JsonParserServiceTest {
 
     @Test
     void parseVendorsLocationEmpty() {
-        HashMap<UUID, List<Double>> result = JsonParserService.parseVendorsLocation(new ArrayList<>());
+        HashMap<UUID, List<Double>> result = JsonParserService.parseVendorsLocation("");
         assertNull(result);
     }
 

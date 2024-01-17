@@ -50,7 +50,7 @@ public class RestaurantService {
 
         // get vendor location and UUID
         try {
-            List<String> jsonVendors = userMicroServiceService.getAllVendors();
+            String jsonVendors = userMicroServiceService.getAllVendors();
             HashMap<UUID, List<Double>> vendors = JsonParserService.parseVendorsLocation(jsonVendors);
             // option: error thrown in the JsonParserService could be caught in this try catch
             if (vendors == null || vendors.isEmpty()) {
