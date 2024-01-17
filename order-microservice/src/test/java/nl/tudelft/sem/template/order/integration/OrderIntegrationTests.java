@@ -16,7 +16,6 @@ import java.util.UUID;
 import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.model.Order;
-import nl.tudelft.sem.template.order.controllers.OrderController;
 import nl.tudelft.sem.template.order.domain.user.DishService;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
 import nl.tudelft.sem.template.user.services.UserMicroServiceService;
@@ -72,6 +71,7 @@ public class OrderIntegrationTests {
     transient String removeDishFromOrderPath = "/order/{orderID}/removeDishFromOrder/{dishID}";
     transient String getOrderToVendor = "/order/{orderID}/vendor";
     transient String orderStatusPath = "/order/{orderID}/status";
+    transient String orderTotalCostPath = "/order/{orderID}/totalCost";
     transient String dateString = "1700006405000";
     transient String specialRequirementsString = "Knock on the door";
 
@@ -1081,14 +1081,38 @@ public class OrderIntegrationTests {
         order1.setOrderPaid(true);
         orderService.createOrder(order1);
 
-        MvcResult result2 = mockMvc.perform(MockMvcRequestBuilders
+        MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders
                         .get(getOrderToVendor, order1.getOrderID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andReturn();
 
-        Assertions.assertEquals(404, result2.getResponse().getStatus());
+        Assertions.assertEquals(404, result1.getResponse().getStatus());
 
     }
+
+    @Test
+    @Transactional
+    public void getOrderToVendor_unsuccessfullyNoOrder() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        dishService.addDish(d1);
+        dishService.addDish(d2);
+
+        MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders
+                        .get(getOrderToVendor, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+        Assertions.assertEquals(404, result1.getResponse().getStatus());
+
+    }
+
 }
