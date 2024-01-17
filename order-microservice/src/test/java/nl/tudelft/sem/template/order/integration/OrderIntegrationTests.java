@@ -642,34 +642,34 @@ public class OrderIntegrationTests {
     @Test
     public void updateStatusOfOrderSuccessful() throws Exception {
 
-//        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
-//        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
-//
-//        orderService.createOrder(order1);
-//
-//        String s1 = "delivered";
-//
-//        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID())
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(s1)
-//                        .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(MockMvcResultMatchers.status().isOk())
-//                .andReturn();
-//
-//        String edit1 = orderService.getStatusOfOrderById(order1.getOrderID());
-//        Assertions.assertEquals("delivered", edit1);
-////
-//        String s2 = "rejected";
-//
-//        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s2)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(s2)
-//                        .accept(MediaType.APPLICATION_JSON))
-//                .andExpect(MockMvcResultMatchers.status().isOk())
-//                .andReturn();
-//
-//        String edit2 = orderService.getStatusOfOrderById(order1.getOrderID());
-//        Assertions.assertEquals("rejected", edit2);
+    //            when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+    //            when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+    //
+    //            orderService.createOrder(order1);
+    //
+    //            String s1 = "delivered";
+    //
+    //            mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID())
+    //                            .contentType(MediaType.APPLICATION_JSON)
+    //                            .content(s1)
+    //                            .accept(MediaType.APPLICATION_JSON))
+    //                    .andExpect(MockMvcResultMatchers.status().isOk())
+    //                    .andReturn();
+    //
+    //            String edit1 = orderService.getStatusOfOrderById(order1.getOrderID());
+    //            Assertions.assertEquals("delivered", edit1);
+    //
+    //            String s2 = "rejected";
+    //
+    //            mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s2)
+    //                            .contentType(MediaType.APPLICATION_JSON)
+    //                            .content(s2)
+    //                            .accept(MediaType.APPLICATION_JSON))
+    //                    .andExpect(MockMvcResultMatchers.status().isOk())
+    //                    .andReturn();
+    //
+    //            String edit2 = orderService.getStatusOfOrderById(order1.getOrderID());
+    //            Assertions.assertEquals("rejected", edit2);
 
     }
 

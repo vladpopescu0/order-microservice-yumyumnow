@@ -539,9 +539,7 @@ public class OrderService {
      */
     public Order editOrderRatingByID(UUID orderID, Integer rating)
             throws OrderNotFoundException, InvalidOrderRatingException {
-        if (!checkUUIDIsUnique(orderID)) {
-            throw new OrderNotFoundException(orderID);
-        }
+        verifyOrderIDExistence(orderID);
 
         if (rating < 1 || rating > 5) {
             throw new InvalidOrderRatingException(orderID);
