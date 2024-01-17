@@ -16,7 +16,8 @@ import java.util.UUID;
 import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.model.Order;
-import nl.tudelft.sem.template.order.domain.user.*;
+import nl.tudelft.sem.template.order.domain.user.DishService;
+import nl.tudelft.sem.template.order.domain.user.OrderService;
 import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -776,7 +777,8 @@ public class OrderIntegrationTests {
         order1.setListOfDishes(List.of(d1.getDishID()));
         orderService.createOrder(order1);
         
-        MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders.put(addDishToOrderPath, order1.getOrderID(), d2.getDishID())
+        MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders
+                        .put(addDishToOrderPath, order1.getOrderID(), d2.getDishID())
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -786,7 +788,8 @@ public class OrderIntegrationTests {
         Order add1 = objectMapper.readValue(result1.getResponse().getContentAsString(), Order.class);
         Assertions.assertEquals(List.of(d1.getDishID(), d2.getDishID()), add1.getListOfDishes());
 
-        MvcResult result2 = mockMvc.perform(MockMvcRequestBuilders.put(addDishToOrderPath, order1.getOrderID(), d2.getDishID())
+        MvcResult result2 = mockMvc.perform(MockMvcRequestBuilders
+                        .put(addDishToOrderPath, order1.getOrderID(), d2.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -808,7 +811,8 @@ public class OrderIntegrationTests {
         order1.setListOfDishes(List.of(d1.getDishID()));
         orderService.createOrder(order1);
 
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.put(addDishToOrderPath, order1.getOrderID(), UUID.randomUUID())
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .put(addDishToOrderPath, order1.getOrderID(), UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
@@ -826,7 +830,8 @@ public class OrderIntegrationTests {
 
         dishService.addDish(d1);
 
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.put(addDishToOrderPath, UUID.randomUUID(), d1.getDishID())
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .put(addDishToOrderPath, UUID.randomUUID(), d1.getDishID())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
@@ -835,81 +840,4 @@ public class OrderIntegrationTests {
 
     }
 
-    /*@Transactional
-    @Test
-    public void lalal() {
-        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
-        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
-
-        orderService.createOrder(order1);
-
-        String s1 = "DELIVERED";
-
-        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s1)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(s1)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andReturn();
-
-        String edit1 = orderService.getStatusOfOrderById(order1.getOrderID());
-        Assertions.assertEquals("delivered", edit1);
-
-        String s2 = "rejected";
-
-        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s2)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(s2)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andReturn();
-
-        String edit2 = orderService.getStatusOfOrderById(order1.getOrderID());
-        Assertions.assertEquals("rejected", edit2);
-
-        String s3 = "DELIVERED";
-
-        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s3)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(s3)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andReturn();
-
-        String edit3 = orderService.getStatusOfOrderById(order1.getOrderID());
-        Assertions.assertEquals("delivered", edit3);
-
-
-
-
-        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
-        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
-        when(userMicroServiceService.checkVendorExists(order2.getVendorID())).thenReturn(true);
-        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
-
-        orderService.createOrder(order1);
-        orderService.createOrder(order2);
-
-        MvcResult order1Return = mockMvc.perform(MockMvcRequestBuilders.get(orderIdPath, order1.getOrderID())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn();
-
-        MvcResult order2Return = mockMvc.perform(MockMvcRequestBuilders.get(orderIdPath, order2.getOrderID())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andReturn();
-
-        Order o1 = objectMapper.readValue(order1Return.getResponse().getContentAsString(), Order.class);
-        Order o2 = objectMapper.readValue(order2Return.getResponse().getContentAsString(), Order.class);
-
-        Assertions.assertEquals(order2, o2);
-        Assertions.assertEquals(order1, o1);
-    }*/
 }
-
-
