@@ -938,6 +938,7 @@ class OrderControllerTests {
         Assertions.assertEquals(HttpStatus.BAD_REQUEST, rating.getStatusCode());
 
     }
+
     @Test
     void editOrderRatingSuccessful() throws OrderNotFoundException, InvalidOrderRatingException {
 

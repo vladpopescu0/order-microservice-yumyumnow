@@ -670,40 +670,28 @@ class OrderServiceTests {
     @Test
     public void updateStatusOfOrderSuccessful() throws OrderNotFoundException, InvalidOrderStatusException {
 
-        Order mockOrder = Mockito.mock(Order.class);
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
+        orderService.updateStatusOfOrderById(order1.getOrderID(), "ACCEPTED");
 
-        when(orderService.checkUUIDIsUnique(mockOrder.getOrderID())).thenReturn(true);
-        when(orderRepository.findOrderByOrderID(mockOrder.getOrderID())).thenReturn(Optional.of(mockOrder));
-        orderService.updateStatusOfOrderById(mockOrder.getOrderID(), "ACCEPTED");
-
-        Mockito.verify(mockOrder, Mockito.times(1)).setStatus(Order.StatusEnum.ACCEPTED);
-        Mockito.verify(orderRepository, Mockito.times(1)).save(mockOrder);
+        Mockito.verify(orderRepository, Mockito.times(1)).updateOrderStatus(Order.StatusEnum.ACCEPTED, order1.getOrderID());
     }
 
     @Test
     public void updateStatusOfOrderSuccessfulLowerCase() throws OrderNotFoundException, InvalidOrderStatusException {
 
-        Order mockOrder = Mockito.mock(Order.class);
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
+        orderService.updateStatusOfOrderById(order1.getOrderID(), "rejected");
 
-        when(orderService.checkUUIDIsUnique(mockOrder.getOrderID())).thenReturn(true);
-        when(orderRepository.findOrderByOrderID(mockOrder.getOrderID())).thenReturn(Optional.of(mockOrder));
-        orderService.updateStatusOfOrderById(mockOrder.getOrderID(), "rejected");
-
-        Mockito.verify(mockOrder, Mockito.times(1)).setStatus(Order.StatusEnum.REJECTED);
-        Mockito.verify(orderRepository, Mockito.times(1)).save(mockOrder);
+        Mockito.verify(orderRepository, Mockito.times(1)).updateOrderStatus(Order.StatusEnum.REJECTED, order1.getOrderID());
     }
 
     @Test
     public void updateStatusOfOrderSuccessfulMixedCase() throws OrderNotFoundException, InvalidOrderStatusException {
 
-        Order mockOrder = Mockito.mock(Order.class);
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
+        orderService.updateStatusOfOrderById(order1.getOrderID(), "PendinG");
 
-        when(orderService.checkUUIDIsUnique(mockOrder.getOrderID())).thenReturn(true);
-        when(orderRepository.findOrderByOrderID(mockOrder.getOrderID())).thenReturn(Optional.of(mockOrder));
-        orderService.updateStatusOfOrderById(mockOrder.getOrderID(), "PendinG");
-
-        Mockito.verify(mockOrder, Mockito.times(1)).setStatus(Order.StatusEnum.PENDING);
-        Mockito.verify(orderRepository, Mockito.times(1)).save(mockOrder);
+        Mockito.verify(orderRepository, Mockito.times(1)).updateOrderStatus(Order.StatusEnum.PENDING, order1.getOrderID());
 
     }
 
@@ -800,7 +788,8 @@ class OrderServiceTests {
     void editOrderRatingNotFound() throws OrderNotFoundException, InvalidOrderRatingException {
 
         when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
-        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.editOrderRatingByID(order1.getOrderID(), 3));
+        Assertions.assertThrows(OrderNotFoundException.class,
+                () -> orderService.editOrderRatingByID(order1.getOrderID(), 3));
         Mockito.verify(orderRepository, Mockito.never()).save(order1);
 
     }
