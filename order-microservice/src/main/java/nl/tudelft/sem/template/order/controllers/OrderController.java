@@ -15,6 +15,7 @@ import nl.tudelft.sem.template.order.domain.user.NullFieldException;
 import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
 import nl.tudelft.sem.template.order.domain.user.UserIDNotFoundException;
+import nl.tudelft.sem.template.order.domain.user.VendorNotFoundException;
 import nl.tudelft.sem.template.user.services.JsonParserService;
 import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,9 +79,7 @@ public class OrderController implements OrderApi {
 
         try {
             String jsonUser = userMicroServiceService.getUserInformation(userID);
-            if (jsonUser == null || jsonUser.isEmpty()) {
-                throw new UserIDNotFoundException(userID);
-            }
+            userNotFoundThrower(userID, jsonUser);
             String userType = JsonParserService.parseUserType(jsonUser);
             if (userType.equals("Admin")) {
                 List<Order> list = orderService.getAllOrders();
@@ -155,20 +154,47 @@ public class OrderController implements OrderApi {
 
         try {
             String jsonUser = userMicroServiceService.getUserInformation(userID);
-            if (jsonUser == null || jsonUser.isEmpty()) {
-                throw new UserIDNotFoundException(userID);
-            }
+            userNotFoundThrower(userID, jsonUser);
             String userType = JsonParserService.parseUserType(jsonUser);
-            if (userType.equals("Admin")) {
-                Order edited = orderService.editOrderByID(orderID, order);
-                return ResponseEntity.ok(edited);
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
+            return adminCheckerEdit(orderID, order, userType);
         } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /** Throws exception if the id is malformed.
+     *
+     * @param userID the id to show in exception
+     * @param jsonUser the json to check on
+     * @throws UserIDNotFoundException the exception to throw
+     */
+    private static void userNotFoundThrower(UUID userID, String jsonUser) throws UserIDNotFoundException {
+        if (jsonUser == null || jsonUser.isEmpty()) {
+            throw new UserIDNotFoundException(userID);
+        }
+    }
+
+    /** Checks if the usertype is an admin.
+     *
+     * @param orderID the id of the order
+     * @param order the whole object
+     * @param userType the current type
+     * @return different status code based on input
+     * @throws OrderNotFoundException when the order is not found
+     * @throws NullFieldException if the order is null
+     * @throws VendorNotFoundException if the vendor id is wrong
+     * @throws CustomerNotFoundException if the customer id is wrong
+     */
+
+    private ResponseEntity<Order> adminCheckerEdit(UUID orderID, Order order, String userType)
+            throws OrderNotFoundException, NullFieldException, VendorNotFoundException, CustomerNotFoundException {
+        if (userType.equals("Admin")) {
+            Order edited = orderService.editOrderByID(orderID, order);
+            return ResponseEntity.ok(edited);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
@@ -184,20 +210,30 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Void> deleteOrderByID(UUID orderID, UUID userID) {
         try {
             String jsonUser = userMicroServiceService.getUserInformation(userID);
-            if (jsonUser == null || jsonUser.isEmpty()) {
-                throw new UserIDNotFoundException(userID);
-            }
+            userNotFoundThrower(userID, jsonUser);
             String userType = JsonParserService.parseUserType(jsonUser);
-            if (userType.equals("Admin")) {
-                orderService.deleteOrderByID(orderID);
-                return ResponseEntity.ok().build();
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
+            return adminChecker(orderID, userType);
         } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /** Admin checker helper function.
+     *
+     * @param orderID the id of the current order
+     * @param userType admin or not admin
+     * @return the status code of this operation
+     * @throws OrderNotFoundException if the order does not exist
+     */
+
+    private ResponseEntity<Void> adminChecker(UUID orderID, String userType) throws OrderNotFoundException {
+        if (userType.equals("Admin")) {
+            orderService.deleteOrderByID(orderID);
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
