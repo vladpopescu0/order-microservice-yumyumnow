@@ -629,7 +629,7 @@ class OrderControllerTests {
     @Test
     void testOrderOrderIDIsPaidGet_BadRequest() throws OrderNotFoundException {
         UUID orderID = UUID.randomUUID();
-        when(orderService.orderIsPaid(orderID)).thenThrow(NullPointerException.class);
+        Mockito.when(orderService.orderIsPaid(orderID)).thenThrow(NullPointerException.class);
 
         ResponseEntity<Void> response = orderController.orderOrderIDIsPaidGet(orderID);
 
@@ -673,7 +673,7 @@ class OrderControllerTests {
     @Test
     void testPaymentBadRequest() throws OrderNotFoundException {
         UUID orderID = UUID.randomUUID();
-        when(orderService.orderIsPaidUpdate(orderID)).thenThrow(NullPointerException.class);
+        Mockito.when(orderService.orderIsPaidUpdate(orderID)).thenThrow(NullPointerException.class);
 
         ResponseEntity<Order> response = orderController.updateOrderPaid(orderID);
 
@@ -718,7 +718,7 @@ class OrderControllerTests {
         orders.add(order1);
         orders.add(order2);
 
-        when(orderService.getPastOrdersByCustomerID(eq(customerId), Mockito.any(FilteringByStatus.class)))
+        Mockito.when(orderService.getPastOrdersByCustomerID(eq(customerId), Mockito.any(FilteringByStatus.class)))
                 .thenThrow(CustomerNotFoundException.class);
 
         var response = orderController.getCustomerOrderHistory(customerId);
@@ -735,7 +735,7 @@ class OrderControllerTests {
         orders.add(order1);
         orders.add(order2);
 
-        when(orderService.getPastOrdersByCustomerID(eq(customerId), Mockito.any(FilteringByStatus.class)))
+        Mockito.when(orderService.getPastOrdersByCustomerID(eq(customerId), Mockito.any(FilteringByStatus.class)))
                 .thenThrow(NullPointerException.class);
 
         var response = orderController.getCustomerOrderHistory(customerId);

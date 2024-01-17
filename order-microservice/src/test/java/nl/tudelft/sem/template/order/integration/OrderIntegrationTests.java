@@ -602,6 +602,9 @@ public class OrderIntegrationTests {
     @Test
     public void getStatusOfOrderSuccessful() throws Exception {
 
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
         orderService.createOrder(order1);
 
         MvcResult ret = mockMvc.perform(MockMvcRequestBuilders.get(orderStatusPath, order1.getOrderID())
@@ -620,6 +623,9 @@ public class OrderIntegrationTests {
     @Test
     public void getStatusOfOrderNotFound() throws Exception {
 
+        when(userMicroServiceService.checkVendorExists(order2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         orderService.createOrder(order2);
 
         mockMvc.perform(MockMvcRequestBuilders.get(orderStatusPath, order1.getOrderID())
@@ -632,6 +638,9 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void updateStatusOfOrderSuccessful() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
 
         orderService.createOrder(order1);
 
@@ -677,6 +686,9 @@ public class OrderIntegrationTests {
     @Test
     public void updateStatusOfOrderNotFound() throws Exception {
 
+        when(userMicroServiceService.checkVendorExists(order2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order2.getCustomerID())).thenReturn(true);
+
         orderService.createOrder(order2);
 
         String s1 = "DELIVERED";
@@ -693,6 +705,9 @@ public class OrderIntegrationTests {
     @Transactional
     @Test
     public void updateStatusOfOrderInvalidStatus() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
 
         orderService.createOrder(order1);
 
