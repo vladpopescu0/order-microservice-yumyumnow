@@ -649,4 +649,101 @@ class OrderServiceTests {
         Assertions.assertTrue(o1.getOrderPaid());
         Mockito.verify(orderRepository, Mockito.times(1)).updateOrderPayment(true, order1.getOrderID());
     }
+
+    @Test
+    public void getStatusOfOrderSuccessful() throws OrderNotFoundException {
+
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.of(order1));
+        String status = orderService.getStatusOfOrderById(order1.getOrderID());
+        Assertions.assertEquals("delivered", status);
+
+    }
+
+    @Test
+    public void getStatusOfOrderNotFound() {
+
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.empty());
+        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.getStatusOfOrderById(order1.getOrderID()));
+
+    }
+
+    @Test
+    public void updateStatusOfOrderSuccessful() throws OrderNotFoundException, InvalidOrderStatusException {
+
+        Order mockOrder = Mockito.mock(Order.class);
+
+        when(orderService.checkUUIDIsUnique(mockOrder.getOrderID())).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(mockOrder.getOrderID())).thenReturn(Optional.of(mockOrder));
+        orderService.updateStatusOfOrderById(mockOrder.getOrderID(), "ACCEPTED");
+
+        Mockito.verify(mockOrder, Mockito.times(1)).setStatus(Order.StatusEnum.ACCEPTED);
+        Mockito.verify(orderRepository, Mockito.times(1)).save(mockOrder);
+    }
+
+    @Test
+    public void updateStatusOfOrderSuccessfulLowerCase() throws OrderNotFoundException, InvalidOrderStatusException {
+
+        Order mockOrder = Mockito.mock(Order.class);
+
+        when(orderService.checkUUIDIsUnique(mockOrder.getOrderID())).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(mockOrder.getOrderID())).thenReturn(Optional.of(mockOrder));
+        orderService.updateStatusOfOrderById(mockOrder.getOrderID(), "rejected");
+
+        Mockito.verify(mockOrder, Mockito.times(1)).setStatus(Order.StatusEnum.REJECTED);
+        Mockito.verify(orderRepository, Mockito.times(1)).save(mockOrder);
+    }
+
+    @Test
+    public void updateStatusOfOrderSuccessfulMixedCase() throws OrderNotFoundException, InvalidOrderStatusException {
+
+        Order mockOrder = Mockito.mock(Order.class);
+
+        when(orderService.checkUUIDIsUnique(mockOrder.getOrderID())).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(mockOrder.getOrderID())).thenReturn(Optional.of(mockOrder));
+        orderService.updateStatusOfOrderById(mockOrder.getOrderID(), "PendinG");
+
+        Mockito.verify(mockOrder, Mockito.times(1)).setStatus(Order.StatusEnum.PENDING);
+        Mockito.verify(orderRepository, Mockito.times(1)).save(mockOrder);
+
+    }
+
+
+    @Test
+    public void updateStatusOfOrderNotFound() {
+
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
+        Assertions.assertThrows(OrderNotFoundException.class,
+                () -> orderService.updateStatusOfOrderById(order1.getOrderID(), "REJECTED"));
+
+    }
+
+    @Test
+    public void updateStatusOfOrderInvalidStatus() {
+
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
+        Assertions.assertThrows(InvalidOrderStatusException.class,
+                () -> orderService.updateStatusOfOrderById(order1.getOrderID(), "GREEN"));
+
+    }
+
+    @Test
+    public void allStatusesAreValid() {
+
+        Assertions.assertTrue(orderService.isValidStatusEnumType("pending"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("accepted"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("REJECTED"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("PREPARING"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("Given to courier"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("On-transit"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("Delivered"));
+
+    }
+
+    @Test
+    public void isValidStatusEnumFalse() {
+
+        Assertions.assertFalse(orderService.isValidStatusEnumType(null));
+        Assertions.assertFalse(orderService.isValidStatusEnumType("random string"));
+
+    }
 }
