@@ -9,13 +9,7 @@ import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringByStatus;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
 import nl.tudelft.sem.template.order.domain.helpers.OrderValidation;
-import nl.tudelft.sem.template.order.domain.user.CustomerNotFoundException;
-import nl.tudelft.sem.template.order.domain.user.InvalidOrderStatusException;
-import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
-import nl.tudelft.sem.template.order.domain.user.NullFieldException;
-import nl.tudelft.sem.template.order.domain.user.OrderNotFoundException;
-import nl.tudelft.sem.template.order.domain.user.OrderService;
-import nl.tudelft.sem.template.order.domain.user.UserIDNotFoundException;
+import nl.tudelft.sem.template.order.domain.user.*;
 import nl.tudelft.sem.template.user.services.JsonParserService;
 import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -456,6 +450,28 @@ public class OrderController implements OrderApi {
             return ResponseEntity.ok(rating);
         } catch (OrderNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+
+    /**
+     * Endpoint for updating the rating of an Order.
+     *
+     * @param orderID ID specifying the Order
+     * @param rating New rating as an Integer
+     * @return ResponseEntity of operation
+     */
+    @Override
+    public ResponseEntity<Order> editOrderRatingByID(UUID orderID, Integer rating) {
+        try {
+            Order o = orderService.editOrderRatingByID(orderID, rating);
+            return ResponseEntity.ok(o);
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (InvalidOrderRatingException e) {
+            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

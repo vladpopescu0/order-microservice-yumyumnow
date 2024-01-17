@@ -439,4 +439,29 @@ public class OrderService {
 
     }
 
+    /**
+     * Method for editing the status of an Order in the database.
+     *
+     * @param orderID ID specifying the Order
+     * @param rating New rating as String
+     * @return Edited Order
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public Order editOrderRatingByID(UUID orderID, Integer rating)
+            throws OrderNotFoundException, InvalidOrderRatingException {
+        if (!checkUUIDIsUnique(orderID)) {
+            throw new OrderNotFoundException(orderID);
+        }
+
+        if (rating < 1 || rating > 5) {
+            throw new InvalidOrderRatingException(orderID);
+        }
+
+        Order order = orderRepository.findOrderByOrderID(orderID).get();
+        order.setRating(rating);
+        order = orderRepository.save(order);
+        return order;
+
+    }
+
 }
