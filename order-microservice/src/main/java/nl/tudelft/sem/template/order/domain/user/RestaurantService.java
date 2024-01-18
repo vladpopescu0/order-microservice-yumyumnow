@@ -76,7 +76,7 @@ public class RestaurantService {
             Address userAddress = userMicroServiceService.getUserAddress(userID);
             // this always returns the geo coordinates of TU Aula, unless we catch an error
             return mockedLocationService.convertAddressToGeoCoords(userAddress);
-        } catch (UserIDNotFoundException e) {
+        } catch (Exception e) {
 
             // if we catch an error, then get the user's current location
             return userLocationHandler(userID);
