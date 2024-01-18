@@ -1115,4 +1115,74 @@ public class OrderIntegrationTests {
 
     }
 
+    @Test
+    @Transactional
+    public void getOrderTotalCost_successfully() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        dishService.addDish(d1);
+        dishService.addDish(d2);
+
+        order1.setListOfDishes(List.of(d1.getDishID(), d2.getDishID()));
+        order1.setOrderPaid(false);
+        orderService.createOrder(order1);
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .get(orderTotalCostPath, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Float totalCost = objectMapper.readValue(result.getResponse().getContentAsString(), Float.class);
+        Assertions.assertEquals(200, result.getResponse().getStatus());
+        Assertions.assertEquals(15.0f, totalCost);
+
+    }
+
+    @Test
+    @Transactional
+    public void getOrderTotalCost_orderNotFound() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+
+        dishService.addDish(d1);
+        dishService.addDish(d2);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get(orderTotalCostPath, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+    }
+
+    @Test
+    @Transactional
+    public void getOrderTotalCost_unsuccessful() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+
+        dishService.addDish(d1);
+        dishService.addDish(d2);
+
+        String orderID = "orderID";
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get(orderTotalCostPath, orderID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn();
+
+    }
+
 }
