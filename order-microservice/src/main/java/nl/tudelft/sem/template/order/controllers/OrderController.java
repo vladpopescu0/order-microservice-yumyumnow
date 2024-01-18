@@ -452,7 +452,9 @@ public class OrderController implements OrderApi {
             return ResponseEntity.ok(order);
         } catch (NullFieldException e) {
             return ResponseEntity.unprocessableEntity().build();
-        } catch (OrderNotFoundException | DishNotFoundException e) {
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (DishNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -476,7 +478,9 @@ public class OrderController implements OrderApi {
             return ResponseEntity.ok(order);
         } catch (NullFieldException e) {
             return ResponseEntity.unprocessableEntity().build();
-        } catch (OrderNotFoundException | DishNotFoundException e) {
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (DishNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
