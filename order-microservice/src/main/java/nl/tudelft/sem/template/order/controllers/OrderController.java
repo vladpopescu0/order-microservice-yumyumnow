@@ -190,7 +190,6 @@ public class OrderController implements OrderApi {
      * @throws VendorNotFoundException if the vendor id is wrong
      * @throws CustomerNotFoundException if the customer id is wrong
      */
-
     private ResponseEntity<Order> adminCheckerEdit(UUID orderID, Order order, String userType)
             throws OrderNotFoundException, NullFieldException, VendorNotFoundException, CustomerNotFoundException {
         if (userType.equals("Admin")) {
@@ -230,7 +229,6 @@ public class OrderController implements OrderApi {
      * @return the status code of this operation
      * @throws OrderNotFoundException if the order does not exist
      */
-
     private ResponseEntity<Void> adminChecker(UUID orderID, String userType) throws OrderNotFoundException {
         if (userType.equals("Admin")) {
             orderService.deleteOrderByID(orderID);
@@ -262,6 +260,7 @@ public class OrderController implements OrderApi {
             return ResponseEntity.badRequest().build();
         }
     }
+
     /**
      * OrderID isPaid controller method to update the isPaid field.
      * It throws a 404 if the order is not found.
@@ -269,7 +268,6 @@ public class OrderController implements OrderApi {
      * @param orderID the id of the order to be checked
      * @return the order after it was updated
      */
-
     @Override
     public ResponseEntity<Order> updateOrderPaid(UUID orderID) {
         try {
@@ -455,7 +453,9 @@ public class OrderController implements OrderApi {
             return ResponseEntity.ok(order);
         } catch (NullFieldException e) {
             return ResponseEntity.unprocessableEntity().build();
-        } catch (OrderNotFoundException | DishNotFoundException e) {
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (DishNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -479,14 +479,15 @@ public class OrderController implements OrderApi {
             return ResponseEntity.ok(order);
         } catch (NullFieldException e) {
             return ResponseEntity.unprocessableEntity().build();
-        } catch (OrderNotFoundException | DishNotFoundException e) {
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (DishNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
 
     }
-
 
     /**
      * Endpoint for getting the status of an Order.

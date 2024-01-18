@@ -9,11 +9,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import nl.tudelft.sem.template.model.Address;
+import nl.tudelft.sem.template.model.Dish;
 import nl.tudelft.sem.template.model.Order;
+import nl.tudelft.sem.template.order.domain.user.DishService;
 import nl.tudelft.sem.template.order.domain.user.OrderService;
 import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.junit.jupiter.api.Assertions;
@@ -48,6 +51,8 @@ public class OrderIntegrationTests {
 
     @Autowired
     private transient OrderService orderService;
+    @Autowired
+    private transient DishService dishService;
 
     @MockBean
     private transient UserMicroServiceService userMicroServiceService;
@@ -56,13 +61,19 @@ public class OrderIntegrationTests {
     transient Order order2;
     transient Address a1;
     transient Address a2;
+    transient Dish d1;
+    transient Dish d2;
+    transient Dish d3;
     transient String isPaidPath = "/order/{orderID}/isPaid";
     transient String orderPath = "/order";
     transient String getAllOrdersPath = "/order/all/{userID}";
     transient String orderIdPath = "/order/{orderId}";
     transient String editOrderPath = "/order/{orderID}/{userID}";
-    
+    transient String addDishToOrderPath = "/order/{orderID}/addDishToOrder/{dishID}";
+    transient String removeDishFromOrderPath = "/order/{orderID}/removeDishFromOrder/{dishID}";
+    transient String getOrderToVendor = "/order/{orderID}/vendor";
     transient String orderStatusPath = "/order/{orderID}/status";
+    transient String orderTotalCostPath = "/order/{orderID}/totalCost";
 
     transient String orderRatingPath = "/order/{orderID}/orderRating";
 
@@ -89,6 +100,58 @@ public class OrderIntegrationTests {
         a2.setCity("Den Haag");
         a2.setCountry("Netherlands");
         a2.setZip("2517KJ");
+
+        d1 = new Dish();
+        d1.setDishID(UUID.randomUUID());
+        d1.setDescription("very tasty");
+        d1.setImage("img");
+        d1.setName("Pizza");
+        d1.setPrice(5.0f);
+        List<String> allergies = new ArrayList<>();
+        allergies.add("lactose");
+        d1.setListOfAllergies(allergies);
+        List<String> ingredients = new ArrayList<>();
+        ingredients.add("Cheese");
+        ingredients.add("Salami");
+        ingredients.add("Tomato Sauce");
+        d1.setListOfIngredients(ingredients);
+        d1.setVendorID(UUID.randomUUID());
+
+        d2 = new Dish();
+        d2.setDishID(UUID.randomUUID());
+        d2.setDescription("very tasty");
+        d2.setImage("img");
+        d2.setName("Lasagna");
+        d2.setPrice(10.0f);
+        List<String> allergies2 = new ArrayList<>();
+        allergies2.add("lactose");
+        allergies2.add("gluten");
+        d2.setListOfAllergies(allergies2);
+        List<String> ingredients2 = new ArrayList<>();
+        ingredients2.add("Pasta");
+        ingredients2.add("Cheese");
+        ingredients2.add("Tomato Sauce");
+        d2.setListOfIngredients(ingredients2);
+        d2.setVendorID(UUID.randomUUID());
+
+        d3 = new Dish();
+        d3.setDishID(UUID.randomUUID());
+        d3.setDescription("Delicious");
+        d3.setImage("img");
+        d3.setName("Burger");
+        d3.setPrice(7.0f);
+        List<String> allergies3 = new ArrayList<>();
+        allergies3.add("lactose");
+        allergies3.add("gluten");
+        allergies3.add("celery");
+        d3.setListOfAllergies(allergies3);
+        List<String> ingredients3 = new ArrayList<>();
+        ingredients3.add("Chicken");
+        ingredients3.add("Cheese");
+        ingredients3.add("Garlic Sauce");
+        ingredients3.add("Bum");
+        d3.setListOfIngredients(ingredients3);
+        d3.setVendorID(UUID.randomUUID());
 
         order1 = new Order();
         order1.setOrderID(UUID.randomUUID());
@@ -633,8 +696,8 @@ public class OrderIntegrationTests {
         orderService.createOrder(order2);
 
         mockMvc.perform(MockMvcRequestBuilders.get(orderStatusPath, order1.getOrderID())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andReturn();
     }
@@ -722,6 +785,426 @@ public class OrderIntegrationTests {
                         .content(s1)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isUnsupportedMediaType())
+                .andReturn();
+
+    }
+
+    @Test
+    @Transactional
+    public void addDishToOrder_successfully() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        dishService.addDish(d1);
+        dishService.addDish(d2);
+
+        order1.setListOfDishes(List.of(d1.getDishID()));
+        orderService.createOrder(order1);
+
+        MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders
+                        .put(addDishToOrderPath, order1.getOrderID(), d2.getDishID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Order add1 = objectMapper.readValue(result1.getResponse().getContentAsString(), Order.class);
+        Assertions.assertEquals(List.of(d1.getDishID(), d2.getDishID()), add1.getListOfDishes());
+
+        MvcResult result2 = mockMvc.perform(MockMvcRequestBuilders
+                        .put(addDishToOrderPath, order1.getOrderID(), d2.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Order add2 = objectMapper.readValue(result2.getResponse().getContentAsString(), Order.class);
+        Assertions.assertEquals(List.of(d1.getDishID(), d2.getDishID(), d2.getDishID()), add2.getListOfDishes());
+
+    }
+
+    @Test
+    @Transactional
+    public void addDishToOrder_dishNotFound() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        order1.setListOfDishes(List.of(d1.getDishID()));
+        orderService.createOrder(order1);
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .put(addDishToOrderPath, order1.getOrderID(), d1.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+        Assertions.assertEquals(404, result.getResponse().getStatus());
+
+    }
+
+    @Test
+    @Transactional
+    public void addDishToOrder_invalidDishID() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        order1.setListOfDishes(List.of(d1.getDishID()));
+        orderService.createOrder(order1);
+
+        String dishID = "dishID";
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .put(addDishToOrderPath, order1.getOrderID(), dishID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn();
+
+        Assertions.assertEquals(400, result.getResponse().getStatus());
+
+    }
+
+    @Test
+    @Transactional
+    public void addDishToOrder_invalidOrderID() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+
+        dishService.addDish(d1);
+
+        String orderID = "orderID";
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .put(addDishToOrderPath, orderID, d1.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn();
+
+        Assertions.assertEquals(400, result.getResponse().getStatus());
+
+    }
+
+    @Test
+    @Transactional
+    public void addDishToOrder_orderNotFound() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+
+        dishService.addDish(d1);
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .put(addDishToOrderPath, order1.getOrderID(), d1.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+        Assertions.assertEquals(404, result.getResponse().getStatus());
+
+    }
+
+    @Test
+    @Transactional
+    public void removeDishFromOrder_successfully() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        dishService.addDish(d1);
+        dishService.addDish(d2);
+
+        order1.setListOfDishes(List.of(d1.getDishID(), d2.getDishID()));
+        orderService.createOrder(order1);
+
+        MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders
+                        .put(removeDishFromOrderPath, order1.getOrderID(), d2.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Order add1 = objectMapper.readValue(result1.getResponse().getContentAsString(), Order.class);
+        Assertions.assertEquals(List.of(d1.getDishID()), add1.getListOfDishes());
+
+        MvcResult result2 = mockMvc.perform(MockMvcRequestBuilders
+                        .put(removeDishFromOrderPath, order1.getOrderID(), d2.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Order add2 = objectMapper.readValue(result2.getResponse().getContentAsString(), Order.class);
+        Assertions.assertEquals(List.of(d1.getDishID()), add2.getListOfDishes());
+
+        MvcResult result3 = mockMvc.perform(MockMvcRequestBuilders
+                        .put(removeDishFromOrderPath, order1.getOrderID(), d1.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Order add3 = objectMapper.readValue(result3.getResponse().getContentAsString(), Order.class);
+        Assertions.assertEquals(List.of(), add3.getListOfDishes());
+
+    }
+
+    @Test
+    @Transactional
+    public void removeDishFromOrder_orderNotFound() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+
+        dishService.addDish(d1);
+        dishService.addDish(d2);
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .put(removeDishFromOrderPath, order1.getOrderID(), d2.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+        Assertions.assertEquals(404, result.getResponse().getStatus());
+
+    }
+
+    @Test
+    @Transactional
+    public void removeDishFromOrder_dishNotFound() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        order1.setListOfDishes(List.of(d1.getDishID()));
+        orderService.createOrder(order1);
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .put(removeDishFromOrderPath, order1.getOrderID(), d1.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+        Assertions.assertEquals(404, result.getResponse().getStatus());
+
+    }
+
+    @Test
+    @Transactional
+    public void removeDishFromOrder_invalidDishId() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        order1.setListOfDishes(List.of(d1.getDishID()));
+        orderService.createOrder(order1);
+        String dishID = "dishID";
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .put(removeDishFromOrderPath, order1.getOrderID(), dishID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn();
+
+        Assertions.assertEquals(400, result.getResponse().getStatus());
+
+    }
+
+    @Test
+    @Transactional
+    public void removeDishFromOrder_invalidOrderID() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+
+        dishService.addDish(d2);
+
+        String orderID = "orderID";
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .put(removeDishFromOrderPath, orderID, d2.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn();
+
+        Assertions.assertEquals(400, result.getResponse().getStatus());
+
+    }
+
+    @Test
+    @Transactional
+    public void getOrderToVendor_successfully() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        dishService.addDish(d1);
+        dishService.addDish(d2);
+
+        order1.setListOfDishes(List.of(d1.getDishID(), d2.getDishID()));
+        order1.setOrderPaid(false);
+        orderService.createOrder(order1);
+
+        MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders
+                        .get(getOrderToVendor, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+        Assertions.assertEquals(404, result1.getResponse().getStatus());
+
+        orderService.orderIsPaidUpdate(order1.getOrderID());
+
+        MvcResult result2 = mockMvc.perform(MockMvcRequestBuilders
+                        .get(getOrderToVendor, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        order1.setOrderPaid(true);
+        Order order = objectMapper.readValue(result2.getResponse().getContentAsString(), Order.class);
+        Assertions.assertEquals(200, result2.getResponse().getStatus());
+        Assertions.assertEquals(order1, order);
+
+    }
+
+    @Test
+    @Transactional
+    public void getOrderToVendor_unsuccessfullyNotAllDishesAvailable() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        dishService.addDish(d1);
+
+        order1.setListOfDishes(List.of(d1.getDishID(), d2.getDishID()));
+        order1.setOrderPaid(true);
+        orderService.createOrder(order1);
+
+        MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders
+                        .get(getOrderToVendor, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+        Assertions.assertEquals(404, result1.getResponse().getStatus());
+
+    }
+
+    @Test
+    @Transactional
+    public void getOrderToVendor_unsuccessfullyNoOrder() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        dishService.addDish(d1);
+        dishService.addDish(d2);
+
+        MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders
+                        .get(getOrderToVendor, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+        Assertions.assertEquals(404, result1.getResponse().getStatus());
+
+    }
+
+    @Test
+    @Transactional
+    public void getOrderTotalCost_successfully() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        dishService.addDish(d1);
+        dishService.addDish(d2);
+
+        order1.setListOfDishes(List.of(d1.getDishID(), d2.getDishID()));
+        order1.setOrderPaid(false);
+        orderService.createOrder(order1);
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                        .get(orderTotalCostPath, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Float totalCost = objectMapper.readValue(result.getResponse().getContentAsString(), Float.class);
+        Assertions.assertEquals(200, result.getResponse().getStatus());
+        Assertions.assertEquals(15.0f, totalCost);
+
+    }
+
+    @Test
+    @Transactional
+    public void getOrderTotalCost_orderNotFound() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+
+        dishService.addDish(d1);
+        dishService.addDish(d2);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get(orderTotalCostPath, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+    }
+
+    @Test
+    @Transactional
+    public void getOrderTotalCost_unsuccessful() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+
+        dishService.addDish(d1);
+        dishService.addDish(d2);
+
+        String orderID = "orderID";
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get(orderTotalCostPath, orderID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andReturn();
 
     }
@@ -846,5 +1329,145 @@ public class OrderIntegrationTests {
 
     }
 
+    @Test
+    @Transactional
+    public void userBehaviour() throws Exception {
+
+        when(userMicroServiceService.checkVendorExists(d1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d2.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(d3.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
+        dishService.addDish(d1);
+        dishService.addDish(d3);
+
+        order1.setListOfDishes(new ArrayList<>());
+        order1.setOrderPaid(false);
+        order1.setStatus(Order.StatusEnum.PENDING);
+        orderService.createOrder(order1);
+
+        MvcResult result1 = mockMvc.perform(MockMvcRequestBuilders
+                        .put(addDishToOrderPath, order1.getOrderID(), d1.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Order orderResponse1 = objectMapper.readValue(result1.getResponse().getContentAsString(), Order.class);
+        Assertions.assertEquals(200, result1.getResponse().getStatus());
+        order1.addListOfDishesItem(d1.getDishID());
+        Assertions.assertEquals(order1, orderResponse1);
+
+        MvcResult result2 = mockMvc.perform(MockMvcRequestBuilders
+                        .put(addDishToOrderPath, order1.getOrderID(), d1.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Order orderResponse2 = objectMapper.readValue(result2.getResponse().getContentAsString(), Order.class);
+        Assertions.assertEquals(200, result2.getResponse().getStatus());
+        order1.addListOfDishesItem(d1.getDishID());
+        Assertions.assertEquals(order1, orderResponse2);
+
+        MvcResult result3 = mockMvc.perform(MockMvcRequestBuilders
+                        .put(addDishToOrderPath, order1.getOrderID(), d2.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+        Assertions.assertEquals(404, result3.getResponse().getStatus());
+
+        dishService.addDish(d2);
+
+        MvcResult result4 = mockMvc.perform(MockMvcRequestBuilders
+                        .put(addDishToOrderPath, order1.getOrderID(), d2.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Order orderResponse4 = objectMapper.readValue(result4.getResponse().getContentAsString(), Order.class);
+        Assertions.assertEquals(200, result4.getResponse().getStatus());
+        order1.addListOfDishesItem(d2.getDishID());
+        Assertions.assertEquals(order1, orderResponse4);
+
+        MvcResult result5 = mockMvc.perform(MockMvcRequestBuilders
+                        .put(addDishToOrderPath, order1.getOrderID(), d3.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Order orderResponse5 = objectMapper.readValue(result5.getResponse().getContentAsString(), Order.class);
+        Assertions.assertEquals(200, result5.getResponse().getStatus());
+        order1.addListOfDishesItem(d3.getDishID());
+        Assertions.assertEquals(order1, orderResponse5);
+
+        MvcResult result6 = mockMvc.perform(MockMvcRequestBuilders
+                        .put(removeDishFromOrderPath, order1.getOrderID(), d2.getDishID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Order orderResponse6 = objectMapper.readValue(result6.getResponse().getContentAsString(), Order.class);
+        Assertions.assertEquals(200, result6.getResponse().getStatus());
+        order1.getListOfDishes().remove(d2.getDishID());
+        Assertions.assertEquals(order1, orderResponse6);
+
+        MvcResult result7 = mockMvc.perform(MockMvcRequestBuilders
+                        .get(getOrderToVendor, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn();
+
+        Assertions.assertEquals(404, result7.getResponse().getStatus());
+
+        MvcResult result8 = mockMvc.perform(MockMvcRequestBuilders
+                        .put(isPaidPath, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Order orderResponse8 = objectMapper.readValue(result8.getResponse().getContentAsString(), Order.class);
+        Assertions.assertEquals(200, result8.getResponse().getStatus());
+        order1.setOrderPaid(true);
+        Assertions.assertEquals(order1, orderResponse8);
+
+        MvcResult result9 = mockMvc.perform(MockMvcRequestBuilders
+                        .get(getOrderToVendor, order1.getOrderID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        Order orderResponse9 = objectMapper.readValue(result9.getResponse().getContentAsString(), Order.class);
+        Assertions.assertEquals(200, result9.getResponse().getStatus());
+        Assertions.assertEquals(order1, orderResponse9);
+
+        String s = "PREPARING";
+        mockMvc.perform(MockMvcRequestBuilders.put(orderStatusPath, order1.getOrderID(), s)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(s)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn();
+
+        String statusOrder = orderService.getStatusOfOrderById(order1.getOrderID());
+        Assertions.assertEquals("preparing", statusOrder);
+
+    }
 
 }
