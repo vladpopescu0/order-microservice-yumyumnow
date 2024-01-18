@@ -486,9 +486,9 @@ public class OrderService {
             throw new InvalidOrderStatusException(orderID);
         }
 
-        Order.StatusEnum modified = Order.StatusEnum.valueOf(status.toUpperCase(Locale.ENGLISH));
-
-        orderRepository.updateOrderStatus(modified, orderID);
+        Order order = orderRepository.findOrderByOrderID(orderID).get();
+        order.setStatus(Order.StatusEnum.valueOf(status.toUpperCase(Locale.ENGLISH)));
+        orderRepository.save(order);
 
     }
 

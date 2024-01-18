@@ -45,10 +45,5 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     @Query("update Order u set u.orderPaid = ?1 where u.orderID = ?2")
     void updateOrderPayment(Boolean orderPaid, UUID orderID);
 
-    @Modifying
-    @Transactional
-    @Query("update Order o set o.status = ?1 where o.orderID = ?2")
-    void updateOrderStatus(Order.StatusEnum status, UUID orderID);
-
     Optional<List<Order>> findOrdersByCustomerID(UUID customerID);
 }
