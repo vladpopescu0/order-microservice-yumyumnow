@@ -209,7 +209,7 @@ public class SystemTests {
         Mockito.when(userMicroServiceService.getUserAddress(customerID)).thenReturn(address);
 
         Mockito.when(mockLocationService.convertAddressToGeoCoords(address)).thenReturn(List.of(51.998513, 4.37127));
-        Mockito.when(userMicroServiceService.getAllVendors()).thenReturn(vendors);
+        Mockito.when(userMicroServiceService.getAllVendors()).thenReturn(vendors.toString());
 
         mockMvc.perform(MockMvcRequestBuilders.post(postGetPath, dish1.getVendorID())
                         .contentType(MediaType.APPLICATION_JSON)
