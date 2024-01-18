@@ -1055,5 +1055,70 @@ class OrderControllerTests {
 
     }
 
+    @Test
+    void getOrderRatingSuccessful() throws OrderNotFoundException {
+
+        when(orderService.getOrderRatingByID(order1.getOrderID())).thenReturn(order1.getRating());
+        ResponseEntity<Integer> rating = orderController.getOrderRatingByID(order1.getOrderID());
+        Assertions.assertEquals(HttpStatus.OK, rating.getStatusCode());
+        Assertions.assertEquals(order1.getRating(), rating.getBody());
+
+    }
+
+    @Test
+    void getOrderRatingOrderNotFound() throws OrderNotFoundException {
+
+        when(orderService.getOrderRatingByID(order1.getOrderID())).thenThrow(OrderNotFoundException.class);
+        ResponseEntity<Integer> rating = orderController.getOrderRatingByID(order1.getOrderID());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, rating.getStatusCode());
+
+    }
+
+    @Test
+    void getOrderRatingException() throws OrderNotFoundException {
+
+        when(orderService.getOrderRatingByID(order1.getOrderID())).thenThrow(RuntimeException.class);
+        ResponseEntity<Integer> rating = orderController.getOrderRatingByID(order1.getOrderID());
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, rating.getStatusCode());
+
+    }
+
+    @Test
+    void editOrderRatingSuccessful() throws OrderNotFoundException, InvalidOrderRatingException {
+
+        order1.setRating(5);
+        when(orderService.editOrderRatingByID(order1.getOrderID(), 5)).thenReturn(order1);
+        ResponseEntity<Order> edited = orderController.editOrderRatingByID(order1.getOrderID(), 5);
+        Assertions.assertEquals(HttpStatus.OK, edited.getStatusCode());
+        Assertions.assertEquals(5, edited.getBody().getRating());
+    }
+
+    @Test
+    void editOrderRatingNotFound() throws OrderNotFoundException, InvalidOrderRatingException {
+
+        when(orderService.editOrderRatingByID(order1.getOrderID(), 5)).thenThrow(OrderNotFoundException.class);
+        ResponseEntity<Order> edited = orderController.editOrderRatingByID(order1.getOrderID(), 5);
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, edited.getStatusCode());
+
+    }
+
+    @Test
+    void editOrderRatingInvalidException() throws OrderNotFoundException, InvalidOrderRatingException {
+
+        when(orderService.editOrderRatingByID(order1.getOrderID(), 5)).thenThrow(InvalidOrderRatingException.class);
+        ResponseEntity<Order> edited = orderController.editOrderRatingByID(order1.getOrderID(), 5);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, edited.getStatusCode());
+
+    }
+
+    @Test
+    void editOrderRatingException() throws OrderNotFoundException, InvalidOrderRatingException {
+
+        when(orderService.editOrderRatingByID(order1.getOrderID(), 5)).thenThrow(RuntimeException.class);
+        ResponseEntity<Order> edited = orderController.editOrderRatingByID(order1.getOrderID(), 5);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, edited.getStatusCode());
+
+    }
+
 
 }

@@ -489,6 +489,7 @@ public class OrderService {
         Order order = orderRepository.findOrderByOrderID(orderID).get();
         order.setStatus(Order.StatusEnum.valueOf(status.toUpperCase(Locale.ENGLISH)));
         orderRepository.save(order);
+
     }
 
     /**
@@ -508,6 +509,48 @@ public class OrderService {
         }
 
         return false;
+    }
+
+    /**
+     * Method for getting the order of a specific Order in the database.
+     *
+     * @param orderID ID specifying the Order
+     * @return int corresponding to the order of the specified Order
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public Integer getOrderRatingByID(UUID orderID) throws OrderNotFoundException {
+
+        Optional<Order> order = orderRepository.findOrderByOrderID(orderID);
+        if (order.isEmpty()) {
+            throw new OrderNotFoundException(orderID);
+        }
+
+        return order.get().getRating();
+
+    }
+
+    /**
+     * Method for editing the status of an Order in the database.
+     *
+     * @param orderID ID specifying the Order
+     * @param rating New rating as String
+     * @return Edited Order
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public Order editOrderRatingByID(UUID orderID, Integer rating)
+            throws OrderNotFoundException, InvalidOrderRatingException {
+        verifyOrderIDExistence(orderID);
+
+        if (rating < 1 || rating > 5) {
+            throw new InvalidOrderRatingException(orderID);
+        }
+
+        Order order = orderRepository.findOrderByOrderID(orderID).get();
+        order.setRating(rating);
+        order = orderRepository.save(order);
+
+        return order;
+
     }
 
 }

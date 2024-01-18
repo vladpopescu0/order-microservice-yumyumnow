@@ -11,6 +11,7 @@ import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
 import nl.tudelft.sem.template.order.domain.helpers.OrderValidation;
 import nl.tudelft.sem.template.order.domain.user.CustomerNotFoundException;
 import nl.tudelft.sem.template.order.domain.user.DishNotFoundException;
+import nl.tudelft.sem.template.order.domain.user.InvalidOrderRatingException;
 import nl.tudelft.sem.template.order.domain.user.InvalidOrderStatusException;
 import nl.tudelft.sem.template.order.domain.user.NoOrdersException;
 import nl.tudelft.sem.template.order.domain.user.NullFieldException;
@@ -526,5 +527,46 @@ public class OrderController implements OrderApi {
             return ResponseEntity.badRequest().build();
         }
 
+    }
+
+    /**
+     * Endpoint for getting the rating of an Order.
+     *
+     * @param orderID ID specifying order
+     * @return rating of Order as int value
+     */
+    @Override
+    public ResponseEntity<Integer> getOrderRatingByID(UUID orderID) {
+
+        try {
+            int rating = orderService.getOrderRatingByID(orderID);
+            return ResponseEntity.ok(rating);
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+
+    /**
+     * Endpoint for updating the rating of an Order.
+     *
+     * @param orderID ID specifying the Order
+     * @param rating New rating as an Integer
+     * @return ResponseEntity of operation
+     */
+    @Override
+    public ResponseEntity<Order> editOrderRatingByID(UUID orderID, Integer rating) {
+        try {
+            Order o = orderService.editOrderRatingByID(orderID, rating);
+            return ResponseEntity.ok(o);
+        } catch (OrderNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (InvalidOrderRatingException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
