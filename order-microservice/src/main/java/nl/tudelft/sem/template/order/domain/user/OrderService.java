@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -12,6 +13,7 @@ import nl.tudelft.sem.template.model.Order;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
 import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
+import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,11 +22,41 @@ import org.springframework.stereotype.Service;
 public class OrderService {
     private final transient OrderRepository orderRepository;
     private final transient DishRepository dishRepository;
+    private final transient UserMicroServiceService userMicroServiceService;
 
+    /**
+     * Instantiates a new OrderService.
+     *
+     * @param orderRepository   the order repository
+     * @param userMicroServiceService the user microService
+     * @param dishRepository    the dish repository
+     */
     @Autowired
-    public OrderService(OrderRepository orderRepository, DishRepository dishRepository) {
+    public OrderService(OrderRepository orderRepository, UserMicroServiceService userMicroServiceService,
+                        DishRepository dishRepository) {
         this.orderRepository = orderRepository;
+        this.userMicroServiceService = userMicroServiceService;
         this.dishRepository = dishRepository;
+    }
+
+    /**
+     * Checks whether a certain vendor exists.
+     *
+     * @param vendorId UUID of the vendor
+     * @return Boolean specifying whether the vendor exists or not
+     */
+    private boolean checkVendorExists(UUID vendorId) {
+        return userMicroServiceService.checkVendorExists(vendorId);
+    }
+
+    /**
+     * Checks whether a certain user exists.
+     *
+     * @param userId UUID of the vendor
+     * @return Boolean specifying whether the user exists or not
+     */
+    private boolean checkUserExists(UUID userId) {
+        return userMicroServiceService.checkUserExists(userId);
     }
 
     /**
@@ -44,19 +76,15 @@ public class OrderService {
      * @return Order that has been created and added to the database
      * @throws OrderIdAlreadyInUseException - thrown when the provided orderID is not unique
      */
-    public Order createOrder(Order order) throws OrderIdAlreadyInUseException, NullFieldException {
-
+    public Order createOrder(Order order) throws OrderIdAlreadyInUseException,
+            NullFieldException, VendorNotFoundException, CustomerNotFoundException {
         if (order == null) {
             throw new NullFieldException();
         }
-
         if (checkUUIDIsUnique(order.getOrderID())) {
             throw new OrderIdAlreadyInUseException(order.getOrderID());
         }
-
-        order = orderRepository.save(order);
-        order.setListOfDishes(new ArrayList<>(order.getListOfDishes()));
-        return order;
+        return saveOrder(order);
 
     }
 
@@ -88,9 +116,7 @@ public class OrderService {
      * @throws OrderNotFoundException - thrown when the orderID isn't found
      */
     public Order getOrderById(UUID orderID) throws OrderNotFoundException, NullFieldException {
-        if (orderID == null) {
-            throw new NullFieldException();
-        }
+        verifyNullField(orderID);
         Optional<Order> o = orderRepository.findOrderByOrderID(orderID);
         if (o.isEmpty()) {
             throw new OrderNotFoundException(orderID);
@@ -110,21 +136,41 @@ public class OrderService {
      * @return Edited Order
      * @throws OrderNotFoundException - thrown when the orderID isn't found
      */
-    public Order editOrderByID(UUID orderID, Order order) throws OrderNotFoundException, NullFieldException {
+    public Order editOrderByID(UUID orderID, Order order) throws OrderNotFoundException,
+            NullFieldException, VendorNotFoundException, CustomerNotFoundException {
 
-        if (orderID == null || order == null) {
+        verifyNullField(orderID);
+        if (order == null) {
             throw new NullFieldException();
         }
 
-        if (!checkUUIDIsUnique(orderID)) {
-            throw new OrderNotFoundException(orderID);
+        verifyOrderIDExistence(orderID);
+
+        return saveOrder(order);
+
+    }
+
+    /**
+     * Saves an order to the database.
+     *
+     * @param order Order to be saved
+     * @return Saved order from the database
+     * @throws CustomerNotFoundException if the customer could not be found
+     * @throws VendorNotFoundException if the vendor could not be found
+     */
+    private Order saveOrder(Order order) throws CustomerNotFoundException, VendorNotFoundException {
+        if (!checkUserExists(order.getCustomerID())) {
+            throw new CustomerNotFoundException(order.getOrderID());
+        }
+
+        if (!checkVendorExists(order.getVendorID())) {
+            throw new VendorNotFoundException(order.getVendorID());
         }
 
         order = orderRepository.save(order);
         order.setListOfDishes(new ArrayList<>(order.getListOfDishes()));
 
         return order;
-
     }
 
     /**
@@ -134,9 +180,7 @@ public class OrderService {
      * @throws OrderNotFoundException - thrown when the orderID isn't found
      */
     public void deleteOrderByID(UUID orderID) throws OrderNotFoundException {
-        if (!checkUUIDIsUnique(orderID)) {
-            throw new OrderNotFoundException(orderID);
-        }
+        verifyOrderIDExistence(orderID);
         orderRepository.deleteById(orderID);
     }
 
@@ -148,9 +192,7 @@ public class OrderService {
      * @throws OrderNotFoundException when the method cannot find the order in the database
      */
     public boolean orderIsPaid(UUID orderID) throws OrderNotFoundException {
-        if (!checkUUIDIsUnique(orderID)) {
-            throw new OrderNotFoundException(orderID);
-        }
+        verifyOrderIDExistence(orderID);
         Optional<Order> currentOrder = orderRepository.findOrderByOrderID(orderID);
 
         return currentOrder.get().getOrderPaid();
@@ -165,7 +207,7 @@ public class OrderService {
      * @throws NoOrdersException if no orders were found
      */
     private List<Order> getOrdersFromVendor(UUID vendorID) throws VendorNotFoundException, NoOrdersException {
-        if (!orderRepository.existsByVendorID(vendorID)) {
+        if (!checkVendorExists(vendorID)) {
             throw new VendorNotFoundException(vendorID);
         }
         Optional<List<Order>> orders = orderRepository.findOrdersByVendorID(vendorID);
@@ -202,11 +244,11 @@ public class OrderService {
      */
     public List<Order> getOrdersFromCustomerAtVendor(UUID vendorID, UUID customerID)
             throws VendorNotFoundException, CustomerNotFoundException, NoOrdersException {
-        if (!orderRepository.existsByVendorID(vendorID)) {
+        if (!checkVendorExists(vendorID)) {
             throw new VendorNotFoundException(vendorID);
         }
-        if (!orderRepository.existsByCustomerID(customerID)) {
-            throw new CustomerNotFoundException(customerID);
+        if (!checkUserExists(customerID)) {
+            throw new CustomerNotFoundException(vendorID);
         }
         Optional<List<Order>> orders = orderRepository.findOrdersByVendorIDAndCustomerID(vendorID, customerID);
         return handleDatabaseOrders(orders);
@@ -221,7 +263,7 @@ public class OrderService {
      * @throws NoOrdersException if no orders were found
      */
     public Integer getOrderVolume(UUID vendorID) throws VendorNotFoundException, NoOrdersException {
-        if (!orderRepository.existsByVendorID(vendorID)) {
+        if (!checkVendorExists(vendorID)) {
             throw new VendorNotFoundException(vendorID);
         }
         Optional<Integer> res = orderRepository.countOrderByVendorID(vendorID);
@@ -262,10 +304,9 @@ public class OrderService {
      * @return list with the dishes ordered by how often they have been ordered, only including dishes
      *             that have been ordered before
      * @throws VendorNotFoundException if the vendor does not exist
-     * @throws NoOrdersException if no orders were found
      */
-    public List<Dish> getDishesSortedByVolume(UUID vendorID) throws VendorNotFoundException, DishNotFoundException {
-        if (!orderRepository.existsByVendorID(vendorID)) {
+    public List<Dish> getDishesSortedByVolume(UUID vendorID) throws VendorNotFoundException {
+        if (!checkVendorExists(vendorID)) {
             throw new VendorNotFoundException(vendorID);
         }
         List<Dish> res = orderRepository.countDishesOccurrencesFromVendor(vendorID);
@@ -306,7 +347,11 @@ public class OrderService {
      * @throws NoOrdersException when there are no orders in the database or no orders of this specific customerID
      */
     public List<Order> getPastOrdersByCustomerID(UUID customerID,
-                                                 FilteringParam<Order> filteringParam) throws NoOrdersException {
+                                                 FilteringParam<Order> filteringParam) throws NoOrdersException,
+            CustomerNotFoundException {
+        if (!checkUserExists(customerID)) {
+            throw new CustomerNotFoundException(customerID);
+        }
         Optional<List<Order>> customerOrders = orderRepository.findOrdersByCustomerID(customerID);
         if (customerOrders.isEmpty()) {
             throw new NoOrdersException();
@@ -318,4 +363,196 @@ public class OrderService {
         }
         return fromOptional;
     }
+
+    /**
+     * Adds a dish to an order based on their IDs.
+     *
+     * @param orderID   the ID of the order to add the dish to
+     * @param dishID    the ID of the dish to be added to the order
+     * @return the order, now updated with the new dish
+     * @throws NullFieldException when orderID or dishID are null
+     * @throws OrderNotFoundException when the orderID does not exist
+     * @throws DishNotFoundException when the dishID does not exist
+     */
+    public Order addDishToOrder(UUID orderID, UUID dishID)
+            throws NullFieldException, OrderNotFoundException, DishNotFoundException {
+        verifyNullField(orderID);
+        verifyNullField(dishID);
+
+        verifyOrderIDExistence(orderID);
+        verifyDishIDExistence(dishID);
+
+        Optional<Order> order = orderRepository.findOrderByOrderID(orderID);
+        if (order.isEmpty()) {
+            throw new NullFieldException();
+        }
+        order.get().addListOfDishesItem(dishID);
+        orderRepository.save(order.get());
+
+        return order.get();
+    }
+
+    /**
+     * Removes a dish from an order based on their IDs.
+     *
+     * @param orderID   the ID of the order to remove the dish from
+     * @param dishID    the ID of the dish to be removed from the order
+     * @return the order, now updated
+     * @throws NullFieldException when orderID or dishID are null
+     * @throws OrderNotFoundException when the orderID does not exist
+     * @throws DishNotFoundException when the dishID does not exist
+     */
+    public Order removeDishFromOrder(UUID orderID, UUID dishID)
+            throws NullFieldException, OrderNotFoundException, DishNotFoundException {
+        verifyNullField(orderID);
+        verifyNullField(dishID);
+
+        verifyOrderIDExistence(orderID);
+        verifyDishIDExistence(dishID);
+
+        Optional<Order> order = orderRepository.findOrderByOrderID(orderID);
+        if (order.isEmpty()) {
+            throw new NullFieldException();
+        }
+
+        order.get().getListOfDishes().remove(dishID);
+        orderRepository.save(order.get());
+
+        return order.get();
+    }
+
+    /**
+     * Verifies if a UUID id is null.
+     *
+     * @param uuid the id to be verified
+     * @throws NullFieldException if the id is null
+     */
+    private static void verifyNullField(UUID uuid) throws NullFieldException {
+        if (uuid == null) {
+            throw new NullFieldException();
+        }
+    }
+
+    /**
+     * Verifies if an id of an order exists.
+     *
+     * @param orderID the id to be verified
+     * @throws OrderNotFoundException if the orderID doesn't exist
+     */
+    private void verifyOrderIDExistence(UUID orderID) throws OrderNotFoundException {
+        if (!orderRepository.existsByOrderID(orderID)) {
+            throw new OrderNotFoundException(orderID);
+        }
+    }
+
+    /**
+     * Verifies if an id of a dish exists.
+     *
+     * @param dishID the id to be verified
+     * @throws DishNotFoundException if the dishID doesn't exist
+     */
+    private void verifyDishIDExistence(UUID dishID) throws DishNotFoundException {
+        if (!dishRepository.existsByDishID(dishID)) {
+            throw new DishNotFoundException(dishID);
+        }
+    }
+
+    /**
+     * Method for getting the status of a specific Order in the database.
+     *
+     * @param orderID ID specifying the Order
+     * @return StatusEnum corresponding to the status of the specified Order
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public String getStatusOfOrderById(UUID orderID) throws OrderNotFoundException {
+        Optional<Order> order = orderRepository.findOrderByOrderID(orderID);
+        if (order.isEmpty()) {
+            throw new OrderNotFoundException(orderID);
+        }
+
+        return order.get().getStatus().toString();
+    }
+
+    /**
+     * Method for editing the status of an Order in the database.
+     *
+     * @param orderID ID specifying the Order
+     * @param status New status as String
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public void updateStatusOfOrderById(UUID orderID, String status)
+            throws OrderNotFoundException, InvalidOrderStatusException {
+        verifyOrderIDExistence(orderID);
+
+        if (!isValidStatusEnumType(status)) {
+            throw new InvalidOrderStatusException(orderID);
+        }
+
+        Order order = orderRepository.findOrderByOrderID(orderID).get();
+        order.setStatus(Order.StatusEnum.valueOf(status.toUpperCase(Locale.ENGLISH)));
+        orderRepository.save(order);
+
+    }
+
+    /**
+     * Method for verifying whether a String is a valid status code.
+     *
+     * @param s String to verify
+     * @return return true when s is a valid status, false otherwise
+     */
+    public boolean isValidStatusEnumType(String s) {
+        if (s == null) {
+            return false;
+        }
+        for (Order.StatusEnum e : Order.StatusEnum.values()) {
+            if (e.toString().equalsIgnoreCase(s)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Method for getting the order of a specific Order in the database.
+     *
+     * @param orderID ID specifying the Order
+     * @return int corresponding to the order of the specified Order
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public Integer getOrderRatingByID(UUID orderID) throws OrderNotFoundException {
+
+        Optional<Order> order = orderRepository.findOrderByOrderID(orderID);
+        if (order.isEmpty()) {
+            throw new OrderNotFoundException(orderID);
+        }
+
+        return order.get().getRating();
+
+    }
+
+    /**
+     * Method for editing the status of an Order in the database.
+     *
+     * @param orderID ID specifying the Order
+     * @param rating New rating as String
+     * @return Edited Order
+     * @throws OrderNotFoundException - thrown when the orderID isn't found
+     */
+    public Order editOrderRatingByID(UUID orderID, Integer rating)
+            throws OrderNotFoundException, InvalidOrderRatingException {
+        verifyOrderIDExistence(orderID);
+
+        if (rating < 1 || rating > 5) {
+            throw new InvalidOrderRatingException(orderID);
+        }
+
+        Order order = orderRepository.findOrderByOrderID(orderID).get();
+        order.setRating(rating);
+        order = orderRepository.save(order);
+
+        return order;
+
+    }
+
 }

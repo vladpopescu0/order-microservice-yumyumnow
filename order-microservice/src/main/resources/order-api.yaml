@@ -277,12 +277,21 @@ paths:
                 $ref: '#/components/schemas/Order'
         '400':
           description: Bad Request. The provided order is malformed
+  /order/all/{userID}:
     get:
       tags:
         - Order
       summary: Get all orders from the database
       description: An admin operation to retrieve all orders
       operationId: getAllOrders
+      parameters:
+        - name: userID
+          in: path
+          description: ID of user that wishes to retrieve the orders
+          required: true
+          schema:
+            type: string
+            format: UUID
       responses:
         '200':
           description: Successful operation
@@ -292,39 +301,11 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Order'
+        '401':
+          description: Not authorised. The user is not authorised for this action
         '404':
           description: Not Found. There are no orders in the database
   /order/{orderID}:
-    put:
-      tags:
-        - Order
-      summary: Edit an existing order
-      description: Editing an existing order in the database. Functioning as adding and removing dishes from the order.
-      operationId: editOrderByID
-      parameters:
-        - name: orderID
-          in: path
-          description: ID of vendor to retrieve dishes from
-          required: true
-          schema:
-            type: string
-            format: UUID
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Order'
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
-        '400':
-          description: Bad Request. The provided order is malformed
-        '404':
-          description: Not Found. Order not found
     get:
       tags:
         - Order
@@ -350,6 +331,46 @@ paths:
           description: Bad Request. The provided ID is malformed
         '404':
           description: Not Found. Order not found
+  /order/{orderID}/{userID}:
+    put:
+      tags:
+        - Order
+      summary: Edit an existing order
+      description: Editing an existing order in the database. Functioning as adding and removing dishes from the order.
+      operationId: editOrderByID
+      parameters:
+        - name: orderID
+          in: path
+          description: ID of order to retrieve dishes from
+          required: true
+          schema:
+            type: string
+            format: UUID
+        - name: userID
+          in: path
+          description: ID of user that wishes to amend the order
+          required: true
+          schema:
+            type: string
+            format: UUID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Bad Request. The provided order is malformed
+        '401':
+          description: Not authorised. The user is not authorised for this action
+        '404':
+          description: Not Found. Order not found
     delete:
       tags:
         - Order
@@ -359,7 +380,14 @@ paths:
       parameters:
         - name: orderID
           in: path
-          description: ID of the order that needs to be deleted
+          description: ID of order to retrieve dishes from
+          required: true
+          schema:
+            type: string
+            format: UUID
+        - name: userID
+          in: path
+          description: ID of user that wishes to amend the order
           required: true
           schema:
             type: string
@@ -369,8 +397,72 @@ paths:
           description: Operation succesful
         '400':
           description: Bad Request. The provided ID is malformed
+        '401':
+          description: Not authorised. The user is not authorised for this action
         '404':
           description: Not Found. Order not found
+  /order/{orderID}/addDishToOrder/{dishID}:
+    put:
+      tags:
+        - Order
+      summary: Add a dish to an order
+      description: Add a dish to an order by orderID and dishID
+      operationId: addDishToOrder
+      parameters:
+        - name: orderID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: UUID
+        - name: dishID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Operation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Not found. Order or Dish not found
+        '400':
+          description: Bad request. The provided ID is malformed
+  /order/{orderID}/removeDishFromOrder/{dishID}:
+    put:
+      tags:
+        - Order
+      summary: Remove a dish from an order
+      description: Remove a dish from an order by orderID and dishID
+      operationId: removeDishFromOrder
+      parameters:
+        - name: orderID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: UUID
+        - name: dishID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: UUID
+      responses:
+        '200':
+          description: Operation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Not found. Order or Dish not found
+        '400':
+          description: Bad request. The provided ID is malformed
   /order/{orderID}/orderRating:
     get:
       tags:

@@ -1,10 +1,12 @@
 package nl.tudelft.sem.template.user.services;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import nl.tudelft.sem.template.model.Address;
 import nl.tudelft.sem.template.order.domain.user.UserIDNotFoundException;
+import nl.tudelft.sem.template.order.domain.user.VendorNotFoundException;
 import nl.tudelft.sem.template.user.api.UserMicroServiceAPI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,7 +37,7 @@ public class UserMicroServiceService implements UserMicroServiceAPI {
     @Override
     public Address getUserAddress(UUID userID) throws UserIDNotFoundException {
         return userMicroServiceWebClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/customer/address/{userID").build(userID))
+                .uri(uriBuilder -> uriBuilder.path("/customer/address/{userID}").build(userID))
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError, response -> Mono.error(new UserIDNotFoundException(userID)))
                 .onStatus(HttpStatus::is5xxServerError, response -> Mono.error(new UserIDNotFoundException(userID)))
@@ -65,16 +67,97 @@ public class UserMicroServiceService implements UserMicroServiceAPI {
     }
 
     @Override
-    public List<String> getAllVendors() {
+    public String getAllVendors() {
         return userMicroServiceWebClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/vendor").build())
                 .retrieve()
                 .onStatus(HttpStatus::is4xxClientError,
                         response -> Mono.error(new RuntimeException("no vendors in database")))
-                .bodyToFlux(String.class)
-                .collectList()
+                .bodyToMono(String.class)
                 .block(requestTimeout); // wait only 3 seconds, instead of default 30
     }
 
+    @Override
+    public String getUserInformation(UUID userID) {
+        return userMicroServiceWebClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/user/{userID}").build(userID))
+                .retrieve()
+                .onStatus(HttpStatus::is4xxClientError, response -> Mono.error(new UserIDNotFoundException(userID)))
+                .onStatus(HttpStatus::is5xxServerError, response -> Mono.error(new UserIDNotFoundException(userID)))
+                .bodyToMono(String.class)
+                .block(requestTimeout); // wait only 3 seconds, instead of default 30
+    }
 
+    /**
+     * Check with user microservice whether a certain vendor exists.
+     *
+     * @param vendorId id of the vendor
+     * @return Boolean for whether a vendor exists or not
+     */
+    public boolean checkVendorExists(UUID vendorId) {
+        try {
+            userMicroServiceWebClient.get()
+                    .uri(uriBuilder -> uriBuilder.path("/vendor/{userID}").build(vendorId))
+                    .retrieve()
+                    .onStatus(HttpStatus::is4xxClientError, response -> Mono.error(new VendorNotFoundException(vendorId)))
+                    .bodyToMono(String.class)
+                    .block(requestTimeout);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Check with user microservice whether a certain user exists.
+     *
+     * @param userId id of the user
+     * @return Boolean for whether a user exists or not
+     */
+    public boolean checkUserExists(UUID userId) {
+        try {
+            userMicroServiceWebClient.get()
+                    .uri(uriBuilder -> uriBuilder.path("/user/{userID}").build(userId))
+                    .retrieve()
+                    .onStatus(HttpStatus::is4xxClientError, response -> Mono.error(new UserIDNotFoundException(userId)))
+                    .bodyToMono(String.class)
+                    .block(requestTimeout);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public String getUserName(UUID userID) throws UserIDNotFoundException {
+        return userMicroServiceWebClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/customer/name/{userID}").build(userID))
+                .retrieve()
+                .onStatus(HttpStatus::is4xxClientError, response -> Mono.error(new UserIDNotFoundException(userID)))
+                .onStatus(HttpStatus::is5xxServerError, response -> Mono.error(new UserIDNotFoundException(userID)))
+                .bodyToMono(String.class)
+                .block(requestTimeout);
+    }
+
+    @Override
+    public List<String> getVendorsFromID(List<UUID> restaurantsID) {
+        List<String> result = new ArrayList<>(restaurantsID.size());
+        for (UUID id : restaurantsID) {
+            try {
+                String restaurant = userMicroServiceWebClient.get()
+                        .uri(uriBuilder -> uriBuilder.path("/vendor/{userID}").build(id))
+                        .retrieve()
+                        .onStatus(HttpStatus::is4xxClientError, response -> null)
+                        .bodyToMono(String.class)
+                        .block(requestTimeout);
+                if (restaurant != null) {
+                    result.add(restaurant);
+                }
+            } catch (RuntimeException e) { // in case of TIMEOUT, catch error and do nothing
+                break;
+            }
+
+        }
+        return result;
+    }
 }

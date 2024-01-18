@@ -20,6 +20,7 @@ import nl.tudelft.sem.template.order.PersistentBagMock;
 import nl.tudelft.sem.template.order.domain.helpers.FilteringParam;
 import nl.tudelft.sem.template.order.domain.user.repositories.DishRepository;
 import nl.tudelft.sem.template.order.domain.user.repositories.OrderRepository;
+import nl.tudelft.sem.template.user.services.UserMicroServiceService;
 import org.hibernate.collection.internal.PersistentBag;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +49,8 @@ class OrderServiceTests {
     private transient OrderRepository orderRepository;
     @Mock
     private transient DishRepository dishRepository;
+    @Mock
+    private transient UserMicroServiceService userMicroServiceService;
     @InjectMocks
     private transient OrderService orderService;
 
@@ -192,8 +195,10 @@ class OrderServiceTests {
     }
 
     @Test
-    void testCreateOrderSuccessful() throws OrderIdAlreadyInUseException, NullFieldException {
-
+    void testCreateOrderSuccessful() throws OrderIdAlreadyInUseException,
+            NullFieldException, VendorNotFoundException, CustomerNotFoundException {
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
         when(orderRepository.save(order1)).thenReturn(order1);
 
         Order savedOrder = orderService.createOrder(order1);
@@ -211,6 +216,25 @@ class OrderServiceTests {
         Assertions.assertThrows(OrderIdAlreadyInUseException.class,
                 () -> orderService.createOrder(order1));
 
+    }
+
+    @Test
+    void testCreateVendorDoesNotExist() {
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(false);
+
+        Assertions.assertThrows(VendorNotFoundException.class,
+                () -> orderService.createOrder(order1));
+    }
+
+    @Test
+    void testCreateCustomerDoesNotExist() throws OrderIdAlreadyInUseException {
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(false);
+
+        Assertions.assertThrows(CustomerNotFoundException.class,
+                () -> orderService.createOrder(order1));
     }
 
     @Test
@@ -287,8 +311,10 @@ class OrderServiceTests {
     }
 
     @Test
-    void testEditOrderByIDSuccessful() throws OrderNotFoundException, NullFieldException {
-
+    void testEditOrderByIDSuccessful() throws OrderNotFoundException, NullFieldException,
+            VendorNotFoundException, CustomerNotFoundException {
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
         order1.setRating(2);
 
         when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(true);
@@ -298,6 +324,25 @@ class OrderServiceTests {
         order1CopyResult.setRating(2);
         Assertions.assertEquals(edited, order1CopyResult);
 
+    }
+
+    @Test
+    void testEditOrderByIDVendorDoesNotExist() {
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(false);
+
+        Assertions.assertThrows(VendorNotFoundException.class,
+                () -> orderService.createOrder(order1));
+    }
+
+    @Test
+    void testEditOrderByIDCustomerDoesNotExist() throws OrderIdAlreadyInUseException {
+        when(orderService.checkUUIDIsUnique(order1.getOrderID())).thenReturn(false);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(false);
+
+        Assertions.assertThrows(CustomerNotFoundException.class,
+                () -> orderService.createOrder(order1));
     }
 
     @Test
@@ -390,8 +435,7 @@ class OrderServiceTests {
     @Test
     void getOrdersFromCostumerAtVendor_VendorDoesNotExist() {
         UUID nonExistingVendorID = UUID.randomUUID();
-
-        when(orderRepository.existsByVendorID(nonExistingVendorID)).thenReturn(false);
+        when(userMicroServiceService.checkVendorExists(nonExistingVendorID)).thenReturn(false);
 
         Assertions.assertThrows(VendorNotFoundException.class,
                 () -> orderService.getOrdersFromCustomerAtVendor(nonExistingVendorID, order1.getCustomerID()));
@@ -400,9 +444,8 @@ class OrderServiceTests {
     @Test
     void getOrdersFromCostumerAtVendor_CustomerDoesNotExist() {
         UUID nonExistingCustomerID = UUID.randomUUID();
-
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
-        when(orderRepository.existsByCustomerID(nonExistingCustomerID)).thenReturn(false);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(nonExistingCustomerID)).thenReturn(false);
 
         Assertions.assertThrows(CustomerNotFoundException.class,
                 () -> orderService.getOrdersFromCustomerAtVendor(order1.getVendorID(), nonExistingCustomerID));
@@ -410,8 +453,9 @@ class OrderServiceTests {
 
     @Test
     void getOrdersFromCostumerAtVendor_EmptyOrder() {
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
-        when(orderRepository.existsByCustomerID(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+
         when(orderRepository.findOrdersByVendorIDAndCustomerID(order1.getVendorID(),
                 order1.getCustomerID())).thenReturn(Optional.empty());
 
@@ -422,8 +466,8 @@ class OrderServiceTests {
     @Test
     void getOrdersFromCostumerAtVendor_NonEmptyResult()
             throws VendorNotFoundException, CustomerNotFoundException, NoOrdersException {
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
-        when(orderRepository.existsByCustomerID(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
         when(orderRepository.findOrdersByVendorIDAndCustomerID(order1.getVendorID(),
                 order1.getCustomerID())).thenReturn(Optional.of(List.of(order1, order2)));
 
@@ -435,15 +479,14 @@ class OrderServiceTests {
     @Test
     void getOrderVolume_VendorDoesNotExist() {
         UUID nonExistingVendorID = UUID.randomUUID();
-
-        when(orderRepository.existsByVendorID(nonExistingVendorID)).thenReturn(false);
+        when(userMicroServiceService.checkVendorExists(nonExistingVendorID)).thenReturn(false);
 
         Assertions.assertThrows(VendorNotFoundException.class, () -> orderService.getOrderVolume(nonExistingVendorID));
     }
 
     @Test
     void getOrderVolume_NoOrders() {
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
         when(orderRepository.countOrderByVendorID(order1.getVendorID())).thenReturn(Optional.empty());
 
         Assertions.assertThrows(NoOrdersException.class, () -> orderService.getOrderVolume(order1.getVendorID()));
@@ -451,7 +494,7 @@ class OrderServiceTests {
 
     @Test
     void getOrderVolume_WithOrders() throws VendorNotFoundException, NoOrdersException {
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
         when(orderRepository.countOrderByVendorID(order1.getVendorID()))
                 .thenReturn(Optional.of(21));
 
@@ -462,7 +505,7 @@ class OrderServiceTests {
     void getDishesSortedByVolume_VendorDoesNotExist() {
         UUID nonExistingVendorID = UUID.randomUUID();
 
-        when(orderRepository.existsByVendorID(nonExistingVendorID)).thenReturn(false);
+        when(userMicroServiceService.checkVendorExists(nonExistingVendorID)).thenReturn(false);
 
         Assertions.assertThrows(VendorNotFoundException.class,
                 () -> orderService.getDishesSortedByVolume(nonExistingVendorID));
@@ -470,7 +513,7 @@ class OrderServiceTests {
 
     @Test
     void getDishesSortedByVolume_DishesFound() throws VendorNotFoundException, DishNotFoundException {
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
         when(orderRepository.countDishesOccurrencesFromVendor(order1.getVendorID())).thenReturn(List.of(d2, d1));
 
         List<Dish> res = orderService.getDishesSortedByVolume(order1.getVendorID());
@@ -482,15 +525,14 @@ class OrderServiceTests {
     @Test
     void getOrderVolumeByTime_VendorNotFound() {
         UUID nonExistingVendorID = UUID.randomUUID();
-
-        when(orderRepository.existsByVendorID(nonExistingVendorID)).thenReturn(false);
+        when(userMicroServiceService.checkVendorExists(nonExistingVendorID)).thenReturn(false);
 
         Assertions.assertThrows(VendorNotFoundException.class, () -> orderService.getOrderVolumeByTime(nonExistingVendorID));
     }
 
     @Test
     void getOrderVolumeByTime_NoOrders() throws VendorNotFoundException, NoOrdersException {
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
         when(orderRepository.findOrdersByVendorID(order1.getVendorID())).thenReturn(Optional.empty());
 
         Assertions.assertThrows(NoOrdersException.class, () -> orderService.getOrderVolumeByTime(order1.getVendorID()));
@@ -517,7 +559,7 @@ class OrderServiceTests {
             correctTime.add(j);
         }
 
-        when(orderRepository.existsByVendorID(order1.getVendorID())).thenReturn(true);
+        when(userMicroServiceService.checkVendorExists(order1.getVendorID())).thenReturn(true);
         when(orderRepository.findOrdersByVendorID(order1.getVendorID())).thenReturn(Optional.of(orders));
 
         List<Integer> volume = orderService.getOrderVolumeByTime(order1.getVendorID());
@@ -525,7 +567,17 @@ class OrderServiceTests {
     }
 
     @Test
-    void testOrderHistoryContainsValues() throws NoOrdersException {
+    void testOrderHistoryCustomerDoesNotExist() {
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(false);
+        Assertions.assertThrows(CustomerNotFoundException.class,
+                () -> orderService.getPastOrdersByCustomerID(order1.getCustomerID(), Mockito.mock(FilteringParam.class)));
+    }
+
+    @Test
+    void testOrderHistoryContainsValues() throws NoOrdersException, CustomerNotFoundException {
+        when(userMicroServiceService.checkUserExists(order1.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order3.getCustomerID())).thenReturn(true);
+
         orders.add(order1);
         orders.add(order3);
 
@@ -543,6 +595,9 @@ class OrderServiceTests {
 
     @Test
     void testOrderHistoryHasNoAvailablePastOrders() {
+        when(userMicroServiceService.checkUserExists(order3.getCustomerID())).thenReturn(true);
+        when(userMicroServiceService.checkUserExists(order3.getCustomerID())).thenReturn(true);
+
         order3.setStatus(Order.StatusEnum.PENDING);
         orders.add(order1);
         orders.add(order3);
@@ -561,6 +616,7 @@ class OrderServiceTests {
     @Test
     void testOrderHistoryNotInDatabase() {
         UUID randomUUID = UUID.randomUUID();
+        when(userMicroServiceService.checkUserExists(randomUUID)).thenReturn(true);
         when(orderRepository.findOrdersByCustomerID(randomUUID)).thenReturn(Optional.empty());
 
         FilteringParam<Order> filteringParam = Mockito.mock(FilteringParam.class);
@@ -593,4 +649,304 @@ class OrderServiceTests {
         Assertions.assertTrue(o1.getOrderPaid());
         Mockito.verify(orderRepository, Mockito.times(1)).updateOrderPayment(true, order1.getOrderID());
     }
+
+    @Test
+    void testAddDishToOrder_addSuccessfully() throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        order1.setListOfDishes(new ArrayList<>());
+        List<UUID> result = new ArrayList<>();
+        result.add(dishID);
+
+        when(orderRepository.existsByOrderID(orderID)).thenReturn(true);
+        when(dishRepository.existsByDishID(dishID)).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(orderID)).thenReturn(Optional.of(order1));
+
+        Order order = orderService.addDishToOrder(orderID, dishID);
+        Assertions.assertEquals(order.getListOfDishes(), result);
+
+    }
+
+    @Test
+    void testAddDishToOrder_nullOrderID() {
+
+        Assertions.assertThrows(NullFieldException.class,
+                () -> orderService.addDishToOrder(null, d1.getDishID()));
+
+    }
+
+    @Test
+    void testAddDishToOrder_orderNotFound() {
+
+        UUID orderID = order1.getOrderID();
+
+        when(orderRepository.existsByOrderID(orderID)).thenReturn(false);
+
+        Assertions.assertThrows(OrderNotFoundException.class,
+                () -> orderService.addDishToOrder(orderID, d1.getDishID()));
+
+    }
+
+    @Test
+    void testAddDishToOrder_dishNotFound() {
+
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        when(orderRepository.existsByOrderID(orderID)).thenReturn(true);
+        when(dishRepository.existsByDishID(dishID)).thenReturn(false);
+
+        Assertions.assertThrows(DishNotFoundException.class, () -> orderService.addDishToOrder(orderID, dishID));
+
+    }
+
+    @Test
+    void testAddDishToOrder_orderOptionEmpty() {
+
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        when(orderRepository.existsByOrderID(orderID)).thenReturn(true);
+        when(dishRepository.existsByDishID(dishID)).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(orderID)).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(NullFieldException.class, () -> orderService.addDishToOrder(orderID, dishID));
+
+    }
+
+    @Test
+    void testRemoveDishFromOrder_removeSuccessfully()
+            throws OrderNotFoundException, NullFieldException, DishNotFoundException {
+
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        order1.setListOfDishes(new ArrayList<>(Collections.singletonList(dishID)));
+
+        when(orderRepository.existsByOrderID(orderID)).thenReturn(true);
+        when(dishRepository.existsByDishID(dishID)).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(orderID)).thenReturn(Optional.of(order1));
+
+        Order order = orderService.removeDishFromOrder(orderID, dishID);
+        List<UUID> result = new ArrayList<>();
+        Assertions.assertEquals(order.getListOfDishes(), result);
+
+    }
+
+    @Test
+    void testRemoveDishFromOrder_nullOrderID() {
+
+        Assertions.assertThrows(NullFieldException.class,
+                () -> orderService.removeDishFromOrder(null, d1.getDishID()));
+
+    }
+
+    @Test
+    void testRemoveDishFromOrder_nullDishId() {
+
+        Assertions.assertThrows(NullFieldException.class,
+                () -> orderService.removeDishFromOrder(order1.getOrderID(), null));
+
+    }
+
+    @Test
+    void testRemoveDishFromOrder_orderNotFound() {
+
+        UUID orderID = order1.getOrderID();
+
+        when(orderRepository.existsByOrderID(orderID)).thenReturn(false);
+
+        Assertions.assertThrows(OrderNotFoundException.class,
+                () -> orderService.removeDishFromOrder(orderID, d1.getDishID()));
+
+    }
+
+    @Test
+    void testRemoveDishFromOrder_dishNotFound() {
+
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        when(orderRepository.existsByOrderID(orderID)).thenReturn(true);
+        when(dishRepository.existsByDishID(dishID)).thenReturn(false);
+
+        Assertions.assertThrows(DishNotFoundException.class, () -> orderService.removeDishFromOrder(orderID, dishID));
+
+    }
+
+    @Test
+    void testRemoveDishFromOrder_orderOptionNull() {
+
+        UUID orderID = order1.getOrderID();
+        UUID dishID = d1.getDishID();
+
+        order1.setListOfDishes(null);
+
+        when(orderRepository.existsByOrderID(orderID)).thenReturn(true);
+        when(dishRepository.existsByDishID(dishID)).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(orderID)).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(NullFieldException.class, () -> orderService.removeDishFromOrder(orderID, dishID));
+
+    }
+
+    @Test
+    public void getStatusOfOrderSuccessful() throws OrderNotFoundException {
+
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.of(order1));
+        String status = orderService.getStatusOfOrderById(order1.getOrderID());
+        Assertions.assertEquals("delivered", status);
+
+    }
+
+    @Test
+    public void getStatusOfOrderNotFound() {
+
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.empty());
+        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.getStatusOfOrderById(order1.getOrderID()));
+
+    }
+
+    @Test
+    public void updateStatusOfOrderSuccessful() throws OrderNotFoundException, InvalidOrderStatusException {
+
+        Order mockOrder = Mockito.mock(Order.class);
+
+        when(orderRepository.existsByOrderID(mockOrder.getOrderID())).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(mockOrder.getOrderID())).thenReturn(Optional.of(mockOrder));
+        orderService.updateStatusOfOrderById(mockOrder.getOrderID(), "ACCEPTED");
+
+        Mockito.verify(mockOrder, Mockito.times(1)).setStatus(Order.StatusEnum.ACCEPTED);
+        Mockito.verify(orderRepository, Mockito.times(1)).save(mockOrder);
+    }
+
+    @Test
+    public void updateStatusOfOrderSuccessfulLowerCase() throws OrderNotFoundException, InvalidOrderStatusException {
+
+        Order mockOrder = Mockito.mock(Order.class);
+
+        when(orderRepository.existsByOrderID(mockOrder.getOrderID())).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(mockOrder.getOrderID())).thenReturn(Optional.of(mockOrder));
+        orderService.updateStatusOfOrderById(mockOrder.getOrderID(), "rejected");
+
+        Mockito.verify(mockOrder, Mockito.times(1)).setStatus(Order.StatusEnum.REJECTED);
+        Mockito.verify(orderRepository, Mockito.times(1)).save(mockOrder);
+    }
+
+    @Test
+    public void updateStatusOfOrderSuccessfulMixedCase() throws OrderNotFoundException, InvalidOrderStatusException {
+
+        Order mockOrder = Mockito.mock(Order.class);
+
+        when(orderRepository.existsByOrderID(mockOrder.getOrderID())).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(mockOrder.getOrderID())).thenReturn(Optional.of(mockOrder));
+        orderService.updateStatusOfOrderById(mockOrder.getOrderID(), "PendinG");
+
+        Mockito.verify(mockOrder, Mockito.times(1)).setStatus(Order.StatusEnum.PENDING);
+        Mockito.verify(orderRepository, Mockito.times(1)).save(mockOrder);
+
+    }
+
+
+    @Test
+    public void updateStatusOfOrderNotFound() {
+
+        when(orderRepository.existsByOrderID(order1.getOrderID())).thenReturn(false);
+        Assertions.assertThrows(OrderNotFoundException.class,
+                () -> orderService.updateStatusOfOrderById(order1.getOrderID(), "REJECTED"));
+
+    }
+
+    @Test
+    public void updateStatusOfOrderInvalidStatus() {
+
+        when(orderRepository.existsByOrderID(order1.getOrderID())).thenReturn(true);
+        Assertions.assertThrows(InvalidOrderStatusException.class,
+                () -> orderService.updateStatusOfOrderById(order1.getOrderID(), "GREEN"));
+
+    }
+
+    @Test
+    public void allStatusesAreValid() {
+
+        Assertions.assertTrue(orderService.isValidStatusEnumType("pending"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("accepted"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("REJECTED"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("PREPARING"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("Given to courier"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("On-transit"));
+        Assertions.assertTrue(orderService.isValidStatusEnumType("Delivered"));
+
+    }
+
+    @Test
+    public void isValidStatusEnumFalse() {
+
+        Assertions.assertFalse(orderService.isValidStatusEnumType(null));
+        Assertions.assertFalse(orderService.isValidStatusEnumType("random string"));
+
+    }
+
+    @Test
+    void getRatingOfOrderSuccessful() throws OrderNotFoundException {
+
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.of(order1));
+        Integer rating = orderService.getOrderRatingByID(order1.getOrderID());
+        Assertions.assertEquals(4, rating);
+
+    }
+
+    @Test
+    void getRatingOfOrderNotFound() {
+
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.empty());
+        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.getOrderRatingByID(order1.getOrderID()));
+
+    }
+
+    @Test
+    void editOrderRatingSuccessful() throws OrderNotFoundException, InvalidOrderRatingException {
+
+        when(orderRepository.existsByOrderID(order1.getOrderID())).thenReturn(true);
+        when(orderRepository.findOrderByOrderID(order1.getOrderID())).thenReturn(Optional.of(order1));
+        when(orderRepository.save(order1)).thenReturn(order1);
+        Order edited = orderService.editOrderRatingByID(order1.getOrderID(), 3);
+        Assertions.assertEquals(3, edited.getRating());
+        Mockito.verify(orderRepository, Mockito.times(1)).save(order1);
+
+    }
+
+    @Test
+    void editOrderRatingInvalidRating() throws OrderNotFoundException, InvalidOrderRatingException {
+
+        when(orderRepository.existsByOrderID(order1.getOrderID())).thenReturn(true);
+        Assertions.assertThrows(InvalidOrderRatingException.class, ()
+                -> orderService.editOrderRatingByID(order1.getOrderID(), 0));
+        Mockito.verify(orderRepository, Mockito.never()).save(order1);
+
+    }
+
+    @Test
+    void editOrderRatingInvalidRating2() throws OrderNotFoundException, InvalidOrderRatingException {
+
+        when(orderRepository.existsByOrderID(order1.getOrderID())).thenReturn(true);
+        Assertions.assertThrows(InvalidOrderRatingException.class, ()
+                -> orderService.editOrderRatingByID(order1.getOrderID(), 10));
+        Mockito.verify(orderRepository, Mockito.never()).save(order1);
+
+    }
+
+    @Test
+    void editOrderRatingNotFound() throws OrderNotFoundException, InvalidOrderRatingException {
+
+        when(orderRepository.existsByOrderID(order1.getOrderID())).thenReturn(false);
+        Assertions.assertThrows(OrderNotFoundException.class,
+                () -> orderService.editOrderRatingByID(order1.getOrderID(), 3));
+        Mockito.verify(orderRepository, Mockito.never()).save(order1);
+
+    }
+
+
 }
