@@ -43,23 +43,23 @@ public class JsonParserService {
      * @param jsonVendors List of all the vendors
      * @return Map with the UUID of each vendor mapping to their location
      */
-    public static HashMap<UUID, List<Double>> parseVendorsLocation(List<String> jsonVendors) {
+    public static HashMap<UUID, List<Double>> parseVendorsLocation(String jsonVendors) {
         if (jsonVendors == null || jsonVendors.isEmpty()) {
             return null;
         }
         try {
             HashMap<UUID, List<Double>> result = new HashMap<>();
-            for (String jsonVendor : jsonVendors) {
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode jsonNode = objectMapper.readTree(jsonVendor);
-                JsonNode locationNode = jsonNode.get("location");
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonArray = objectMapper.readTree(jsonVendors);
+            for (JsonNode jsonVendor : jsonArray) { // loop over each jsonNode containing a vendor
+                JsonNode locationNode = jsonVendor.get("location");
                 String loc = (locationNode == null) ? null : locationNode.toString();
                 List<Double> location = parseLocation(loc);
                 if (location == null) {
                     break;
                 }
                 try {
-                    UUID uuid = UUID.fromString(jsonNode.get("userID").asText());
+                    UUID uuid = UUID.fromString(jsonVendor.get("userID").asText());
                     result.put(uuid, location);
                 } catch (IllegalArgumentException e) {
                     break;
