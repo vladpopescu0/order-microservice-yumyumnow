@@ -387,6 +387,7 @@ public class OrderService {
             throw new NullFieldException();
         }
         order.get().addListOfDishesItem(dishID);
+        orderRepository.save(order.get());
 
         return order.get();
     }
@@ -415,6 +416,7 @@ public class OrderService {
         }
 
         order.get().getListOfDishes().remove(dishID);
+        orderRepository.save(order.get());
 
         return order.get();
     }
